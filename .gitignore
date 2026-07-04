@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Environment and local secrets
+.env
+.env.*
+!.env.example
+
+# macOS / editor noise
+.DS_Store
+
+# Framework and build output
+.next/
+out/
+dist/
+build/
+coverage/
+
+# Local runtime data and caches
+.data/
+.sdd/
+.claude/settings.local.json
+cache_processed_matches.json
+
+# Generated media, publishing packages, and render caches
+public/renders/
+public/render-assets/
+public/publish-packages/
+public/temp/
+output/
+tmp/
+Hextech-Video-Studio-*.pdf
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

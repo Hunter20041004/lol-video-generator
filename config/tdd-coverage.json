@@ -1,0 +1,171 @@
+{
+  "thresholds": {
+    "lines": 80,
+    "branches": 80,
+    "functions": 80
+  },
+  "testGlobs": [
+    "tests/**/*.test.js"
+  ],
+  "slices": [
+    {
+      "id": "patch-storyboard-density",
+      "description": "Champion patch storyboard segmentation for dense same-skill changes",
+      "productionFiles": [
+        "utils/patchStoryboard.js"
+      ],
+      "testFiles": [
+        "tests/unit/patchStoryboard.test.js"
+      ]
+    },
+    {
+      "id": "publishing-oauth-config",
+      "description": "Meta Instagram/Threads OAuth helpers and social account configuration",
+      "productionFiles": [
+        "utils/envLoader.js",
+        "utils/contentFactory/analysisBuilder.js",
+        "utils/contentFactory/payloadBuilder.js",
+        "utils/contentFactory/store.js",
+        "utils/publishing/accounts.js",
+        "utils/publishing/copy.js",
+        "utils/publishing/insights.js",
+        "utils/publishing/postLinks.js",
+        "utils/publishing/index.js",
+        "utils/publishing/schedule.js",
+        "utils/publishing/tunnel.js",
+        "utils/publishing/adapters/instagram.js",
+        "utils/publishing/adapters/threads.js",
+        "utils/publishing/metaAuth.js"
+      ],
+      "testFiles": [
+        "tests/unit/envLoader.test.js",
+        "tests/unit/contentFactory/analysisBuilder.test.js",
+        "tests/unit/contentFactory/payloadBuilder.test.js",
+        "tests/unit/contentFactory/store.test.js",
+        "tests/unit/publishing/adapters.test.js",
+        "tests/unit/publishing/accounts.test.js",
+        "tests/unit/publishing/copy.test.js",
+        "tests/unit/publishing/insights.test.js",
+        "tests/unit/publishing/postLinks.test.js",
+        "tests/unit/publishing/index.test.js",
+        "tests/unit/publishing/schedule.test.js",
+        "tests/unit/publishing/tunnel.test.js",
+        "tests/unit/publishing/metaAuth.test.js"
+      ]
+    },
+    {
+      "id": "esports-daily-series-videos",
+      "description": "Daily esports series selection, semantic payload planning, gatekeeping, dry-run API, and IG/Threads publishing integration",
+      "productionFiles": [
+        "utils/esports/config.js",
+        "utils/esports/seriesFetcher.js",
+        "utils/esports/seriesAggregator.js",
+        "utils/esports/matchScorer.js",
+        "utils/esports/contentPlanner.js",
+        "utils/esports/gatekeeper.js",
+        "utils/esports/runStore.js",
+        "utils/esports/publishing.js",
+        "utils/esports/dailyPipeline.js",
+        "utils/esports/sampleData.js",
+        "utils/esports/apiHandlers.js"
+      ],
+      "testFiles": [
+        "tests/unit/esports/config.test.js",
+        "tests/unit/esports/seriesFetcher.test.js",
+        "tests/unit/esports/seriesAggregator.test.js",
+        "tests/unit/esports/matchScorer.test.js",
+        "tests/unit/esports/contentPlanner.test.js",
+        "tests/unit/esports/gatekeeper.test.js",
+        "tests/unit/esports/runStore.test.js",
+        "tests/unit/esports/publishing.test.js",
+        "tests/unit/esports/dailyPipeline.test.js",
+        "tests/unit/esports/api.test.js",
+        "tests/unit/render/renderService.test.js"
+      ]
+    },
+    {
+      "id": "pipeline-pruning-runtime-policy",
+      "description": "Runtime registry, API guards, static pruning checks, and persisted data cleanup for removed pipelines and platforms",
+      "productionFiles": [
+        "utils/pipelineRegistry.js",
+        "utils/apiGuards.js",
+        "utils/pipelinePruner.js"
+      ],
+      "testFiles": [
+        "tests/unit/pipelineRegistry.test.js",
+        "tests/unit/apiBoundaryContracts.test.js",
+        "tests/unit/pipelinePruningStatic.test.js",
+        "tests/unit/pipelinePruner.test.js",
+        "tests/unit/render/compositionScope.test.js"
+      ]
+    },
+    {
+      "id": "esports-candidate-workbench-contracts",
+      "description": "Candidate scan snapshots, scanId-gated daily runs, and MVP/player radar publishing flow for the redesigned workbench",
+      "productionFiles": [
+        "utils/esports/candidateStore.js",
+        "utils/esports/candidateScanner.js",
+        "utils/esports/playerRadarRunner.js"
+      ],
+      "testFiles": [
+        "tests/unit/esports/candidates.test.js",
+        "tests/unit/esports/snapshotRuns.test.js",
+        "tests/unit/esports/playerRadarRunner.test.js"
+      ]
+    },
+    {
+      "id": "meta-factory-source-adapters",
+      "description": "LoLalytics source normalization and external boundary smoke coverage for Meta Content Factory",
+      "productionFiles": [
+        "utils/metaFactory/sourceAdapters/lolalyticsAdapter.js"
+      ],
+      "testFiles": [
+        "tests/unit/metaFactory/sourceAdapters.test.js"
+      ]
+    },
+    {
+      "id": "meta-factory-offmeta-scoring",
+      "description": "OP.GG verification and offmeta candidate scoring for Meta Content Factory",
+      "productionFiles": [
+        "utils/metaFactory/sourceAdapters/opggVerifier.js",
+        "utils/metaFactory/scoring.js"
+      ],
+      "testFiles": [
+        "tests/unit/metaFactory/opggVerifier.test.js",
+        "tests/unit/metaFactory/scoring.test.js"
+      ]
+    },
+    {
+      "id": "meta-factory-snapshot-api",
+      "description": "Meta Factory scan snapshots and API boundary orchestration",
+      "productionFiles": [
+        "utils/metaFactory/snapshotStore.js",
+        "utils/metaFactory/apiHandlers.js"
+      ],
+      "testFiles": [
+        "tests/unit/metaFactory/snapshotStore.test.js",
+        "tests/unit/metaFactory/apiHandlers.test.js"
+      ]
+    },
+    {
+      "id": "meta-factory-render-queue",
+      "description": "Meta Factory render payload planning, Remotion routing, and IG/Threads queue handoff",
+      "productionFiles": [
+        "utils/metaFactory/candidatePlanner.js"
+      ],
+      "testFiles": [
+        "tests/unit/metaFactory/renderPlanner.test.js"
+      ]
+    },
+    {
+      "id": "meta-factory-workbench-static-contracts",
+      "description": "Meta Content Factory workbench routing and static runtime label contract",
+      "productionFiles": [
+        "app/page.jsx"
+      ],
+      "testFiles": [
+        "tests/unit/metaFactory/workbenchStatic.test.js"
+      ]
+    }
+  ]
+}

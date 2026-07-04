@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="HVS favicon">
+  <rect width="64" height="64" rx="10" fill="#070b10"/>
+  <rect x="7" y="7" width="50" height="50" rx="6" fill="#111927" stroke="#c8aa6e" stroke-width="2"/>
+  <path d="M17 18h4v11h10V18h4v28h-4V33H21v13h-4V18Zm23 0h4l5 18 5-18h4l-8 28h-3L40 18Z" fill="#f0e6d2"/>
+  <path d="M17 50h30" stroke="#35d0c8" stroke-width="3" stroke-linecap="round"/>
+</svg>

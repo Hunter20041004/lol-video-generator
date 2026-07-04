@@ -1,0 +1,72 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hextech Video Studio HVS avatar">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="42%" r="62%">
+      <stop offset="0%" stop-color="#0b5163"/>
+      <stop offset="43%" stop-color="#071b34"/>
+      <stop offset="100%" stop-color="#030711"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="18%" y1="10%" x2="82%" y2="92%">
+      <stop offset="0%" stop-color="#fff1ad"/>
+      <stop offset="22%" stop-color="#caa85a"/>
+      <stop offset="52%" stop-color="#70512b"/>
+      <stop offset="78%" stop-color="#e6c36f"/>
+      <stop offset="100%" stop-color="#8c6a35"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="18%" y1="15%" x2="86%" y2="82%">
+      <stop offset="0%" stop-color="#ecffff"/>
+      <stop offset="34%" stop-color="#71f5ff"/>
+      <stop offset="70%" stop-color="#0ab7d3"/>
+      <stop offset="100%" stop-color="#073f70"/>
+    </linearGradient>
+    <linearGradient id="darkMetal" x1="15%" y1="12%" x2="88%" y2="85%">
+      <stop offset="0%" stop-color="#182941"/>
+      <stop offset="52%" stop-color="#07111f"/>
+      <stop offset="100%" stop-color="#1a2536"/>
+    </linearGradient>
+    <filter id="softGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.02 0 0 0 0 0.78 0 0 0 0 0.9 0 0 0 0.75 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="goldShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#000814" flood-opacity="0.72"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#c8a45c" flood-opacity="0.45"/>
+    </filter>
+    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M64 0H0V64" fill="none" stroke="#8fdfff" stroke-opacity="0.055" stroke-width="2"/>
+    </pattern>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bgGlow)"/>
+  <rect width="1024" height="1024" fill="url(#grid)" opacity="0.8"/>
+  <circle cx="512" cy="502" r="380" fill="none" stroke="#7fe8ff" stroke-opacity="0.08" stroke-width="3"/>
+  <circle cx="512" cy="502" r="286" fill="none" stroke="#d6b566" stroke-opacity="0.09" stroke-width="2"/>
+
+  <g opacity="0.55">
+    <path d="M192 187l28-28 28 28-28 28zM792 212l22-22 22 22-22 22zM163 761l20-20 20 20-20 20zM827 780l24-24 24 24-24 24z" fill="#d7b769"/>
+    <path d="M290 160h42v6h-42zM692 862h56v6h-56zM134 512h48v5h-48zM842 511h48v5h-48z" fill="#7deeff" opacity="0.38"/>
+  </g>
+
+  <g filter="url(#goldShadow)">
+    <path d="M512 151 790 312v322L512 795 234 634V312L512 151Z" fill="#06111f" stroke="url(#gold)" stroke-width="18" stroke-linejoin="round"/>
+    <path d="M512 192 754 332v280L512 752 270 612V332L512 192Z" fill="url(#darkMetal)" stroke="#56e8ff" stroke-opacity="0.26" stroke-width="6"/>
+  </g>
+
+  <g filter="url(#softGlow)">
+    <path d="M514 282 682 382v142L514 624 346 524V382l168-100Z" fill="#041520" stroke="url(#cyan)" stroke-width="14" stroke-linejoin="round"/>
+    <path d="M514 325 637 398v109l-123 73-123-73V398l123-73Z" fill="#071d2c" stroke="#d3ffff" stroke-opacity="0.5" stroke-width="4"/>
+    <circle cx="514" cy="453" r="80" fill="none" stroke="url(#cyan)" stroke-width="20"/>
+    <path d="M488 421 570 453l-82 32V421Z" fill="#e9ffff"/>
+    <path d="M514 250 548 344h-68l34-94ZM514 656l-34-94h68l-34 94ZM316 453l94-34v68l-94-34ZM712 453l-94 34v-68l94 34Z" fill="url(#cyan)"/>
+  </g>
+
+  <g>
+    <path d="M310 819h404l30 38-30 38H310l-30-38 30-38Z" fill="#050a12" fill-opacity="0.78" stroke="url(#gold)" stroke-width="5"/>
+    <text x="512" y="874" text-anchor="middle" font-family="Cinzel, Trajan Pro, Georgia, serif" font-size="58" font-weight="900" fill="#f0e6d2" letter-spacing="9">HVS</text>
+  </g>
+
+  <path d="M82 179V82h98M844 82h98v97M942 845v97h-98M180 942H82v-97" fill="none" stroke="url(#gold)" stroke-width="8" stroke-linecap="square" opacity="0.95"/>
+</svg>

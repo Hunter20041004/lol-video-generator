@@ -1,0 +1,16 @@
+[
+  { "id": "Hide on bush", "name": "Faker", "type": "GOAT" },
+  { "id": "Gen G Chovy", "name": "Chovy", "type": "MECHANIC_GOD" },
+  { "id": "DK ShowMaker", "name": "ShowMaker", "type": "MECHANIC_GOD" },
+  { "id": "BLG Knight", "name": "Knight", "type": "MECHANIC_GOD" },
+  { "id": "BLG Bin", "name": "Bin", "type": "MECHANIC_GOD" },
+  { "id": "JDG Ruler", "name": "Ruler", "type": "MECHANIC_GOD" },
+  { "id": "EDG Viper", "name": "Viper", "type": "MECHANIC_GOD" },
+  { "id": "BeryL_Account", "name": "BeryL", "type": "INNOVATOR" },
+  { "id": "DK Canyon", "name": "Canyon", "type": "INNOVATOR" },
+  { "id": "T1 Keria", "name": "Keria", "type": "INNOVATOR" },
+  { "id": "Karsa_Account", "name": "Karsa", "type": "LOCAL_STAR" },
+  { "id": "Maple_Account", "name": "Maple", "type": "LOCAL_STAR" },
+  { "id": "SwordArt_Account", "name": "SwordArt", "type": "LOCAL_STAR" },
+  { "id": "Stanley_Account", "name": "史丹利", "type": "ENTERTAINER" }
+]
