@@ -221,7 +221,7 @@ function normalizePayloadSelection(selectionOrPlayer = {}) {
 
 function buildPlayerRadarPayload(series = {}, selectionOrPlayer = {}, locale = "zh") {
   const selection = normalizePayloadSelection(selectionOrPlayer);
-  const matchupName = selection.matchupPlayerName || "";
+  const matchupName = selection.matchupPlayerName || selection.playerName || "";
   const proofName = selection.mvpPlayerName || selection.playerName || "";
   const matchupSegment = selectMatchupSegment(series, matchupName);
   const proofSegment = selectProofSegment(series, proofName, locale);

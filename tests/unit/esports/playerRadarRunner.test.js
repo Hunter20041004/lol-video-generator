@@ -174,6 +174,7 @@ test("runPlayerRadarFromSnapshot can render a manually selected player without r
     });
 
     assert.equal(result.player.name, "GEN Support");
+    assert.equal(result.payloads[0].matchupSegment.focusPlayer.name, "GEN Support");
     assert.deepEqual(result.videos.map((video) => video.locale), ["zh"]);
   });
 });
@@ -254,6 +255,11 @@ test("player radar payloads handle empty stats and stale MVP names", async () =>
       role: "Top",
       champion: "Gnar",
       radarStats: [],
+    });
+    snapshot.candidates[0].roleMatchups.push({
+      role: "Top",
+      left: snapshot.candidates[0].players.find((player) => player.name === "No Stats"),
+      right: snapshot.candidates[0].players.find((player) => player.name === "GEN Top"),
     });
     writeCandidateSnapshot(snapshot);
 
