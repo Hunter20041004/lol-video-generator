@@ -125,7 +125,7 @@ test("buildPlayerRadarPayload auto-selects max matchup edge and MVP proof segmen
   });
 });
 
-test("runPlayerRadarFromSnapshot auto-selects MVP and queues IG/Threads jobs", async () => {
+test("runPlayerRadarFromSnapshot renders one dual-read video per locale and queues IG/Threads jobs", async () => {
   await withTempProject(async () => {
     const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
     writeCandidateSnapshot(makeSnapshot());
@@ -140,7 +140,7 @@ test("runPlayerRadarFromSnapshot auto-selects MVP and queues IG/Threads jobs", a
     }, {
       renderVideosFromRequest: async (payload) => {
         renderedPayloads.push(payload);
-        return { videoUrl: `/renders/${payload.player.name}-${payload.locale}.mp4`, fileName: `${payload.locale}.mp4` };
+        return { videoUrl: `/renders/${payload.locale}-player-radar.mp4`, fileName: `${payload.locale}.mp4` };
       },
       createPublishJobs: async (payload) => {
         queued.push(payload);
@@ -150,8 +150,18 @@ test("runPlayerRadarFromSnapshot auto-selects MVP and queues IG/Threads jobs", a
 
     assert.equal(result.success, true);
     assert.equal(result.player.name, "T1 Jungle");
+    assert.equal(result.matchupSegment.edgePlayer.name, "T1 Mid");
+    assert.equal(result.proofSegment.player.name, "T1 Jungle");
     assert.deepEqual(renderedPayloads.map((payload) => payload.locale), ["zh", "en"]);
-    assert.equal(renderedPayloads[0].dataType, "PLAYER_RADAR");
+    assert.deepEqual(renderedPayloads[0].storyboard.map((scene) => scene.tag), [
+      "HOOK",
+      "MATCHUP_EDGE",
+      "PLAYER_PROOF",
+      "CONCLUSION_CTA",
+    ]);
+    assert.equal(renderedPayloads[0].renderLanguages[0], "zh");
+    assert.equal(renderedPayloads[1].renderLanguages[0], "en");
+    assert.equal(result.videos.length, 2);
     assert.deepEqual(queued[0].platforms, ["instagram", "threads"]);
     assert.equal(result.publish.jobs.length, 4);
   });
