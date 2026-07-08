@@ -220,3 +220,32 @@ test("Player radar template renders dual-read matchup and proof scenes", () => {
   assert.equal(source.includes("強項與弱點會自己浮出來"), false);
   assert.equal(source.includes("不是只有 KDA"), false);
 });
+
+test("Player radar template derives matchup sides and locale-aware copy from helpers", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+
+  assert.match(source, /const isEnglishLocale = \(data = \{\}\) => data\.locale === "en"/);
+  assert.match(source, /const getPlayerRadarCopy = \(data = \{\}\) =>/);
+  assert.match(source, /const deriveMatchupDisplayPlayers = \(segment = \{\}\) =>/);
+  assert.match(source, /const getProofBadgeLabel = \(proofType, data = \{\}\) =>/);
+  assert.match(source, /const samePlayer = \(left = \{\}, right = \{\}\) =>/);
+  assert.match(source, /const displayPlayers = deriveMatchupDisplayPlayers\(segment\)/);
+  assert.match(source, /const copy = getPlayerRadarCopy\(data\)/);
+  assert.match(source, /const proofBadgeLabel = getProofBadgeLabel\(data\.proofSegment\?\.proofType, data\)/);
+  assert.match(source, /proofBadgeLabel/);
+  assert.match(source, /copy\.matchupTitle/);
+  assert.match(source, /copy\.edgeLeadLabel/);
+  assert.match(source, /copy\.proofSubtitle/);
+  assert.match(source, /copy\.conclusionSamePlayer/);
+  assert.match(source, /copy\.conclusionSplit/);
+  assert.match(source, /copy\.hookProofTypeLabels\.mvp/);
+  assert.match(source, /copy\.hookProofTypeLabels\.key_player/);
+  assert.match(source, /matchupTitle: "BIGGEST MATCHUP EDGE"/);
+  assert.match(source, /proofSubtitle: "Build the key-player case with numbers\."/);
+  assert.match(source, /conclusionSamePlayer: "\(proofName\) owns both the matchup edge and the key-player case\."/);
+  assert.match(source, /conclusionSplit: "The matchup edge belongs to \(matchupName\), while the key-player case belongs to \(proofName\)\."/);
+  assert.doesNotMatch(source, /title="最大對位差距"/);
+  assert.doesNotMatch(source, /subtitle=\{segment\.verdict \|\| data\.verdict \|\| "用數據建立關鍵人物理由"\}/);
+  assert.doesNotMatch(source, /body=\{\s*samePlayer\s*\?\s*`\$\{proofName\} 同時拿到最大對位差和關鍵人物理由。`/);
+  assert.doesNotMatch(source, /label="推薦"/);
+});
