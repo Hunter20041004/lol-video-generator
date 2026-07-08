@@ -202,3 +202,21 @@ test("Esports recap rows can use per-scene points and headings for deeper analys
   assert.match(source, /scene\?\.subtitle \|\| data\.recapSubtitle/);
   assert.match(source, /<RecapRows data=\{data\} theme=\{theme\} localFrame=\{active\.localFrame\} scene=\{active\.scene\} \/>/);
 });
+
+test("Player radar template renders dual-read matchup and proof scenes", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+
+  assert.match(source, /const MatchupEdgeScene/);
+  assert.match(source, /const PlayerProofScene/);
+  assert.match(source, /matchupSegment/);
+  assert.match(source, /proofSegment/);
+  assert.match(source, /active\.scene\?\.tag === "MATCHUP_EDGE"/);
+  assert.match(source, /active\.scene\?\.tag === "PLAYER_PROOF"/);
+  assert.match(source, /focusPlayer/);
+  assert.match(source, /opponentPlayer/);
+  assert.match(source, /proofReasons/);
+  assert.equal(source.includes("FIVE-AXIS PROFILE"), false);
+  assert.equal(source.includes("的真實形狀"), false);
+  assert.equal(source.includes("強項與弱點會自己浮出來"), false);
+  assert.equal(source.includes("不是只有 KDA"), false);
+});
