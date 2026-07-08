@@ -125,6 +125,84 @@ test("buildPlayerRadarPayload auto-selects max matchup edge and MVP proof segmen
   });
 });
 
+test("playerName overrides both matchup focus and proof player", async () => {
+  await withTempProject(async () => {
+    const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    const series = makeSnapshot().candidates[0];
+
+    const payload = buildPlayerRadarPayload(series, { playerName: "GEN Mid" }, "zh");
+
+    assert.equal(payload.matchupSegment.role, "Mid");
+    assert.equal(payload.matchupSegment.focusPlayer.name, "GEN Mid");
+    assert.equal(payload.matchupSegment.edgePlayer.name, "T1 Mid");
+    assert.equal(payload.matchupSegment.opponentPlayer.name, "GEN Mid");
+    assert.equal(payload.proofSegment.player.name, "GEN Mid");
+    assert.equal(payload.proofSegment.proofType, "key-player");
+    assert.equal(payload.proofSegment.isRecommendedMvp, false);
+  });
+});
+
+test("mvpPlayerName and matchupPlayerName can override separate segments", async () => {
+  await withTempProject(async () => {
+    const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    const series = makeSnapshot().candidates[0];
+
+    const payload = buildPlayerRadarPayload(series, {
+      mvpPlayerName: "T1 Top",
+      matchupPlayerName: "GEN Mid",
+    }, "zh");
+
+    assert.equal(payload.matchupSegment.focusPlayer.name, "GEN Mid");
+    assert.equal(payload.matchupSegment.edgePlayer.name, "T1 Mid");
+    assert.equal(payload.proofSegment.player.name, "T1 Top");
+    assert.equal(payload.proofSegment.proofType, "key-player");
+  });
+});
+
+test("player radar fails clearly for unknown players, missing opponents, and weak reasons", async () => {
+  await withTempProject(async () => {
+    const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    const snapshot = makeSnapshot();
+    const series = snapshot.candidates[0];
+
+    assert.throws(
+      () => buildPlayerRadarPayload(series, { playerName: "Unknown Player" }, "zh"),
+      /Player not found in snapshot: Unknown Player/
+    );
+
+    const missingOpponentSeries = {
+      ...series,
+      players: series.players.filter((player) => player.name !== "GEN Mid"),
+      roleMatchups: series.roleMatchups.map((matchup) =>
+        matchup.role === "Mid" ? { ...matchup, right: null } : matchup
+      ),
+    };
+    assert.throws(
+      () => buildPlayerRadarPayload(missingOpponentSeries, { matchupPlayerName: "T1 Mid" }, "zh"),
+      /Opponent not found in snapshot for player: T1 Mid/
+    );
+
+    const weakSeries = {
+      ...series,
+      roleMatchups: [{
+        role: "Mid",
+        left: {
+          ...series.roleMatchups[2].left,
+          rawStats: { role: "Mid", kda: 3, dpm: 400, kp: 0.5, gpm: 350, csm: 7 },
+        },
+        right: {
+          ...series.roleMatchups[2].right,
+          rawStats: { role: "Mid", kda: 3, dpm: 400, kp: 0.5, gpm: 350, csm: 7 },
+        },
+      }],
+    };
+    assert.throws(
+      () => buildPlayerRadarPayload(weakSeries, {}, "zh"),
+      /needs at least 2 verifiable reasons/
+    );
+  });
+});
+
 test("runPlayerRadarFromSnapshot renders one dual-read video per locale and queues IG/Threads jobs", async () => {
   await withTempProject(async () => {
     const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
