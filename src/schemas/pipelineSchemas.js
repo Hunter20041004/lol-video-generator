@@ -273,6 +273,14 @@ const ensureTwoLineText = (text, fallback = "版本重點\n快速看懂") => {
 const fallbackStoryboardFor = (payload) => {
   const dataType = payload.dataType || "PATCH";
   if (dataType === "PLAYER_RADAR") {
+    if (String(payload.locale || "").toLowerCase().startsWith("en")) {
+      return [
+        { tag: "HOOK", text: "Biggest lane gap\nsame as MVP?", durationInFrames: 90 },
+        { tag: "MATCHUP_EDGE", text: "Start with the biggest gap\nwho beat who", durationInFrames: 126 },
+        { tag: "PLAYER_PROOF", text: "Then test the key player\ndoes the case hold?", durationInFrames: 126 },
+        { tag: "CONCLUSION_CTA", text: "What's your read\ncomment below", durationInFrames: 90 },
+      ];
+    }
     return [
       { tag: "HOOK", text: "最大差距和 MVP\n是同一個人嗎", durationInFrames: 90 },
       { tag: "MATCHUP_EDGE", text: "先看最大對位差\n誰壓過誰", durationInFrames: 126 },
