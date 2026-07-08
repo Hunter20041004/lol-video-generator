@@ -3,10 +3,52 @@ const { createPublishJobs: defaultCreatePublishJobs } = require("../publishing")
 const { renderVideosFromRequest: defaultRenderVideosFromRequest } = require("../render/renderService");
 
 const PLAYER_RADAR_PLATFORMS = ["instagram", "threads"];
+const METRIC_FIELDS = {
+  KDA: "kda",
+  DPM: "dpm",
+  "KP%": "kp",
+  GPM: "gpm",
+  CSM: "csm",
+  VPM: "vpm",
+};
 
 function normalizeLanguages(languages = ["zh", "en"]) {
   const values = Array.isArray(languages) && languages.length > 0 ? languages : ["zh", "en"];
   return [...new Set(values.map((language) => String(language || "zh").toLowerCase().startsWith("en") ? "en" : "zh"))];
+}
+
+function number(value, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function round(value, digits = 2) {
+  const multiplier = 10 ** digits;
+  return Math.round((Number(value) || 0) * multiplier) / multiplier;
+}
+
+function normalizePlayerName(name = "") {
+  return String(name || "").trim().toLowerCase();
+}
+
+function summarizePlayer(player = {}) {
+  return {
+    name: player.name || "",
+    team: player.team || "",
+    role: player.role || "",
+    championPlayed: player.champions?.[0] || player.champion || "",
+    champions: Array.isArray(player.champions) ? player.champions : [],
+    rawStats: player.rawStats || {},
+    radarStats: Array.isArray(player.radarStats) ? player.radarStats : [],
+  };
+}
+
+function findPlayer(series = {}, playerName = "") {
+  const requested = normalizePlayerName(playerName);
+  const players = Array.isArray(series.players) ? series.players : [];
+  const player = players.find((candidate) => normalizePlayerName(candidate.name) === requested);
+  if (!player) throw new Error(`Player not found in snapshot: ${playerName}`);
+  return player;
 }
 
 function averageRadarScore(player = {}) {
@@ -16,31 +58,175 @@ function averageRadarScore(player = {}) {
 }
 
 function selectPlayer(series = {}, playerName = "") {
-  const players = Array.isArray(series.players) ? series.players : [];
-  const requested = String(playerName || "").trim().toLowerCase();
-  if (requested) {
-    const player = players.find((candidate) => String(candidate.name || "").toLowerCase() === requested);
-    if (!player) throw new Error(`Player not found in snapshot: ${playerName}`);
-    return player;
-  }
+  if (String(playerName || "").trim()) return findPlayer(series, playerName);
 
   const mvpName = series.recommendedMvp?.name;
   if (mvpName) {
-    const player = players.find((candidate) => candidate.name === mvpName);
+    const player = (series.players || []).find((candidate) => candidate.name === mvpName);
     if (player) return player;
   }
-  const player = [...players].sort((a, b) => averageRadarScore(b) - averageRadarScore(a))[0];
+
+  const player = [...(series.players || [])].sort((a, b) => averageRadarScore(b) - averageRadarScore(a))[0];
   if (!player) throw new Error(`Player not found in snapshot: ${playerName || "MVP"}`);
   return player;
 }
 
-function buildPlayerRadarPayload(series = {}, player = {}, locale = "zh") {
-  const highlight = [...(player.radarStats || [])].sort((a, b) => Number(b.normalizedScore || 0) - Number(a.normalizedScore || 0))[0];
-  const weakness = [...(player.radarStats || [])].sort((a, b) => Number(a.normalizedScore || 0) - Number(b.normalizedScore || 0))[0];
-  const teams = `${series.teamA || series.teams?.[0] || ""} vs ${series.teamB || series.teams?.[1] || ""}`;
-  const isEn = locale === "en";
+function getRoleMatchups(series = {}) {
+  if (Array.isArray(series.roleMatchups) && series.roleMatchups.length > 0) {
+    return series.roleMatchups;
+  }
+  const teams = series.teams || [series.teamA, series.teamB].filter(Boolean);
+  const players = Array.isArray(series.players) ? series.players : [];
+  const roles = [...new Set(players.map((player) => player.role).filter(Boolean))];
+  return roles.map((role) => ({
+    role,
+    left: players.find((player) => player.role === role && player.team === teams[0]) || null,
+    right: players.find((player) => player.role === role && player.team === teams[1]) || null,
+  }));
+}
 
+function getMetricValue(player = {}, label = "") {
+  const field = METRIC_FIELDS[label];
+  return field ? number(player.rawStats?.[field]) : 0;
+}
+
+function buildEdgeReasons(winner = {}, loser = {}) {
+  const labels = ["KDA", "DPM", "KP%", "GPM", winner.role === "Support" ? "VPM" : "CSM"];
+  return labels
+    .map((label) => {
+      const winnerValue = getMetricValue(winner, label);
+      const loserValue = getMetricValue(loser, label);
+      return {
+        metric: label,
+        winnerValue,
+        loserValue,
+        delta: round(winnerValue - loserValue, label === "KP%" || label === "CSM" || label === "VPM" ? 2 : 0),
+      };
+    })
+    .filter((reason) => reason.delta > 0)
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+    .slice(0, 3);
+}
+
+function buildMatchupCandidate(series = {}, matchup = {}, focusPlayer = null) {
+  if (!matchup.left || !matchup.right) return null;
+  const leftScore = averageRadarScore(matchup.left);
+  const rightScore = averageRadarScore(matchup.right);
+  const edgePlayer = leftScore >= rightScore ? matchup.left : matchup.right;
+  const opponentPlayer = edgePlayer === matchup.left ? matchup.right : matchup.left;
+  const reasons = buildEdgeReasons(edgePlayer, opponentPlayer);
+  if (reasons.length < 2) {
+    throw new Error(`Player Radar matchup segment needs at least 2 verifiable reasons for ${matchup.role}.`);
+  }
+
+  const winningTeam = series.winningTeam || "";
   return {
+    role: matchup.role,
+    focusPlayer: summarizePlayer(focusPlayer || edgePlayer),
+    edgePlayer: summarizePlayer(edgePlayer),
+    opponentPlayer: summarizePlayer(opponentPlayer),
+    edgeWinnerTeam: edgePlayer.team || "",
+    edgeScore: round(Math.abs(leftScore - rightScore), 2),
+    edgeType: winningTeam && edgePlayer.team !== winningTeam ? "loser-highlight" : "winner-breakpoint",
+    reasons,
+  };
+}
+
+function selectMatchupSegment(series = {}, matchupPlayerName = "") {
+  const matchups = getRoleMatchups(series);
+  if (matchups.length === 0) throw new Error("Player Radar matchup segment needs at least one role matchup.");
+
+  if (String(matchupPlayerName || "").trim()) {
+    const focus = findPlayer(series, matchupPlayerName);
+    const matchup = matchups.find((candidate) =>
+      candidate.role === focus.role &&
+      [candidate.left?.name, candidate.right?.name].includes(focus.name)
+    );
+    if (!matchup || !matchup.left || !matchup.right) {
+      throw new Error(`Opponent not found in snapshot for player: ${matchupPlayerName}`);
+    }
+    return buildMatchupCandidate(series, matchup, focus);
+  }
+
+  const candidates = matchups
+    .map((matchup) => buildMatchupCandidate(series, matchup))
+    .filter(Boolean)
+    .sort((a, b) => Number(b.edgeScore || 0) - Number(a.edgeScore || 0));
+  if (!candidates[0]) throw new Error("Player Radar matchup segment needs a complete role matchup.");
+  return candidates[0];
+}
+
+function isRecommendedMvp(series = {}, player = {}) {
+  return Boolean(series.recommendedMvp?.name && normalizePlayerName(series.recommendedMvp.name) === normalizePlayerName(player.name));
+}
+
+function buildProofReasons(player = {}) {
+  return [...(player.radarStats || [])]
+    .filter((stat) => stat?.label)
+    .sort((a, b) => Number(b.normalizedScore || 0) - Number(a.normalizedScore || 0))
+    .slice(0, 3)
+    .map((stat) => ({
+      metric: stat.label,
+      rawValue: stat.rawValue,
+      score: Number(stat.normalizedScore || 0),
+    }));
+}
+
+function selectProofSegment(series = {}, proofPlayerName = "", locale = "zh") {
+  const requested = String(proofPlayerName || "").trim();
+  const player = requested ? findPlayer(series, requested) : selectPlayer(series);
+  const proofReasons = buildProofReasons(player);
+  if (proofReasons.length < 2) {
+    throw new Error(`Player Radar proof segment needs at least 2 verifiable reasons for ${player.name}.`);
+  }
+
+  const recommended = isRecommendedMvp(series, player);
+  const proofType = requested && !recommended ? "key-player" : "mvp";
+  return {
+    player: summarizePlayer(player),
+    proofType,
+    isRecommendedMvp: recommended,
+    proofStats: proofReasons,
+    proofReasons,
+    verdict: locale === "en"
+      ? `${player.name} has the strongest ${proofType === "mvp" ? "MVP" : "key-player"} case.`
+      : `${player.name} 有這場最清楚的${proofType === "mvp" ? "MVP" : "關鍵人物"}理由。`,
+  };
+}
+
+function buildPlayerRadarStoryboard(payload = {}, locale = "zh") {
+  const matchupName = payload.matchupSegment?.edgePlayer?.name || "對位焦點";
+  const proofName = payload.proofSegment?.player?.name || "關鍵人物";
+  const samePlayer = normalizePlayerName(matchupName) === normalizePlayerName(proofName);
+  if (locale === "en") {
+    return [
+      { tag: "HOOK", text: "Biggest lane gap\nsame as MVP?", durationInFrames: 90 },
+      { tag: "MATCHUP_EDGE", text: `${matchupName}\ncreated the matchup gap`, durationInFrames: 126 },
+      { tag: "PLAYER_PROOF", text: `${proofName}\ncheck the player case`, durationInFrames: 126 },
+      { tag: "CONCLUSION_CTA", text: samePlayer ? "One player, two cases\ncomment your read" : "Gap and MVP split\ncomment your read", durationInFrames: 90 },
+    ];
+  }
+  return [
+    { tag: "HOOK", text: "最大差距和 MVP\n是同一個人嗎", durationInFrames: 90 },
+    { tag: "MATCHUP_EDGE", text: `${matchupName}\n打出最大對位差`, durationInFrames: 126 },
+    { tag: "PLAYER_PROOF", text: `${proofName}\n關鍵人物證明`, durationInFrames: 126 },
+    { tag: "CONCLUSION_CTA", text: samePlayer ? "同一人雙重證明\n你同意嗎" : "對位差和關鍵人物\n你怎麼看", durationInFrames: 90 },
+  ];
+}
+
+function normalizePayloadSelection(selectionOrPlayer = {}) {
+  if (selectionOrPlayer?.name) return { playerName: selectionOrPlayer.name };
+  return selectionOrPlayer || {};
+}
+
+function buildPlayerRadarPayload(series = {}, selectionOrPlayer = {}, locale = "zh") {
+  const selection = normalizePayloadSelection(selectionOrPlayer);
+  const matchupName = selection.matchupPlayerName || "";
+  const proofName = selection.mvpPlayerName || selection.playerName || "";
+  const matchupSegment = selectMatchupSegment(series, matchupName);
+  const proofSegment = selectProofSegment(series, proofName, locale);
+  const teams = `${series.teamA || series.teams?.[0] || ""} vs ${series.teamB || series.teams?.[1] || ""}`;
+  const payload = {
     dataType: "PLAYER_RADAR",
     locale,
     seriesId: series.seriesId,
@@ -50,27 +236,18 @@ function buildPlayerRadarPayload(series = {}, player = {}, locale = "zh") {
       teamB: series.teamB || series.teams?.[1] || "",
       seriesScore: series.seriesScore || series.score || "",
     },
-    player: {
-      name: player.name,
-      role: player.role,
-      championPlayed: player.champions?.[0] || player.champion || "",
-      team: player.team,
-    },
-    radarStats: player.radarStats || [],
-    highlight: highlight?.label || "",
-    weakness: weakness?.label || "",
-    verdict: isEn ? `${player.name} is the data lead` : `${player.name} 是數據焦點`,
-    storyboard: isEn ? [
-      { tag: "HOOK", text: `${player.name}\n${teams}`, durationInFrames: 90 },
-      { tag: "STAT_REVEAL", text: `${highlight?.label || "Radar"} leads\ncheck the score`, durationInFrames: 120 },
-      { tag: "STAT_REVEAL", text: `${weakness?.label || "Floor"} is the question\nwatch the context`, durationInFrames: 120 },
-      { tag: "CONCLUSION_CTA", text: "MVP or just hype?\nComment your read", durationInFrames: 90 },
-    ] : [
-      { tag: "HOOK", text: `${player.name}\n${teams}`, durationInFrames: 90 },
-      { tag: "STAT_REVEAL", text: `${highlight?.label || "雷達"} 是強項\n先看分數`, durationInFrames: 120 },
-      { tag: "STAT_REVEAL", text: `${weakness?.label || "低點"} 是疑問\n要看比賽脈絡`, durationInFrames: 120 },
-      { tag: "CONCLUSION_CTA", text: "這場是不是 MVP\n留言告訴我", durationInFrames: 90 },
-    ],
+    title: locale === "en" ? `${teams} Player Radar` : `${teams} 選手雷達`,
+    matchupSegment,
+    proofSegment,
+    player: proofSegment.player,
+    radarStats: proofSegment.player.radarStats || [],
+    highlight: proofSegment.proofReasons[0]?.metric || "",
+    weakness: matchupSegment.reasons.at(-1)?.metric || "",
+    verdict: proofSegment.verdict,
+  };
+  return {
+    ...payload,
+    storyboard: buildPlayerRadarStoryboard(payload, locale),
   };
 }
 
@@ -87,7 +264,7 @@ async function runPlayerRadarFromSnapshot(options = {}, deps = {}) {
   const payloads = [];
 
   for (const locale of languages) {
-    const payload = buildPlayerRadarPayload(series, player, locale);
+    const payload = buildPlayerRadarPayload(series, { playerName: player.name }, locale);
     payloads.push(payload);
     const render = await renderVideosFromRequest({
       ...payload,
@@ -125,6 +302,8 @@ module.exports = {
   PLAYER_RADAR_PLATFORMS,
   normalizeLanguages,
   selectPlayer,
+  selectMatchupSegment,
+  selectProofSegment,
   buildPlayerRadarPayload,
   runPlayerRadarFromSnapshot,
 };
