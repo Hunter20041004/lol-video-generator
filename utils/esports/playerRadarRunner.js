@@ -256,7 +256,11 @@ async function runPlayerRadarFromSnapshot(options = {}, deps = {}) {
   const series = (snapshot.candidates || []).find((candidate) => candidate.seriesId === options.seriesId);
   if (!series) throw new Error(`Series not found in snapshot: ${options.seriesId || "UNKNOWN"}`);
 
-  const player = selectPlayer(series, options.playerName);
+  const selection = {
+    playerName: options.playerName,
+    matchupPlayerName: options.matchupPlayerName,
+    mvpPlayerName: options.mvpPlayerName,
+  };
   const languages = normalizeLanguages(options.languages);
   const renderVideosFromRequest = deps.renderVideosFromRequest || defaultRenderVideosFromRequest;
   const createPublishJobs = deps.createPublishJobs || defaultCreatePublishJobs;
@@ -264,7 +268,7 @@ async function runPlayerRadarFromSnapshot(options = {}, deps = {}) {
   const payloads = [];
 
   for (const locale of languages) {
-    const payload = buildPlayerRadarPayload(series, { playerName: player.name }, locale);
+    const payload = buildPlayerRadarPayload(series, selection, locale);
     payloads.push(payload);
     const render = await renderVideosFromRequest({
       ...payload,
@@ -290,7 +294,9 @@ async function runPlayerRadarFromSnapshot(options = {}, deps = {}) {
     success: true,
     scanId: snapshot.scanId,
     seriesId: series.seriesId,
-    player,
+    player: payloads[0]?.proofSegment?.player || null,
+    matchupSegment: payloads[0]?.matchupSegment || null,
+    proofSegment: payloads[0]?.proofSegment || null,
     languages,
     payloads,
     videos,
