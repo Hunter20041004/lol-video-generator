@@ -15,120 +15,9 @@ import {
   VerdictCard,
   getPipelineTheme,
 } from "../video-system/VideoPrimitives";
+import playerRadarHelpers from "./playerRadarHelpers";
 
-const ROLE_LABELS = {
-  zh: {
-    Top: "上路",
-    Jungle: "打野",
-    Mid: "中路",
-    Adc: "射手",
-    ADC: "射手",
-    Support: "輔助",
-  },
-  en: {
-    Top: "Top",
-    Jungle: "Jungle",
-    Mid: "Mid",
-    Adc: "ADC",
-    ADC: "ADC",
-    Support: "Support",
-  },
-};
-
-const isEnglishLocale = (data = {}) => data.locale === "en";
-
-const getPlayerRadarCopy = (data = {}) => {
-  const locale = isEnglishLocale(data) ? "en" : "zh";
-  return {
-    zh: {
-      hookBadge: "PLAYER RADAR",
-      hookSeriesLabel: "系列賽",
-      hookRoleLabel: "角色",
-      hookProofTypeLabels: {
-        mvp: "MVP",
-        key_player: "關鍵人物",
-      },
-      matchupTitle: "最大對位差距",
-      matchupLoserHighlight: "敗方亮點",
-      matchupWinnerBreak: "勝負突破口",
-      edgeLeadLabel: "數據領先",
-      proofBadgeLabels: {
-        mvp: "MVP CASE",
-        key_player: "關鍵人物",
-      },
-      proofSubtitle: "用數據建立關鍵人物理由",
-      conclusionFallbackMatchupName: "最大對位差選手",
-      conclusionFallbackProofName: "關鍵人物",
-      conclusionSamePlayer: "(proofName) 同時拿到最大對位差和關鍵人物理由。",
-      conclusionSplit: "最大對位差在 (matchupName)，關鍵人物理由在 (proofName)。",
-      conclusionChipsSamePlayer: ["最大對位差", "MVP 案例", "同一人"],
-      conclusionChipsSplit: ["對位差距", "關鍵人物", "雙判讀"],
-      storyboard: [
-        { tag: "HOOK", text: "(playerName)賽後雷達\n數據一眼看懂", durationInFrames: 86 },
-        { tag: "MATCHUP_EDGE", text: "對位差距先看\n誰把優勢打穿", durationInFrames: 126 },
-        { tag: "PLAYER_PROOF", text: "關鍵人物理由\n數據直接列出來", durationInFrames: 112 },
-        { tag: "CONCLUSION_CTA", text: "這場是不是 MVP\n留言告訴我", durationInFrames: 92 },
-      ],
-    },
-    en: {
-      hookBadge: "PLAYER RADAR",
-      hookSeriesLabel: "Series",
-      hookRoleLabel: "Role",
-      hookProofTypeLabels: {
-        mvp: "MVP",
-        key_player: "Key player",
-      },
-      matchupTitle: "BIGGEST MATCHUP EDGE",
-      matchupLoserHighlight: "Loser highlight",
-      matchupWinnerBreak: "Win-condition swing",
-      edgeLeadLabel: "Edge winner",
-      proofBadgeLabels: {
-        mvp: "MVP",
-        key_player: "KEY PLAYER",
-      },
-      proofSubtitle: "Build the key-player case with numbers.",
-      conclusionFallbackMatchupName: "matchup edge player",
-      conclusionFallbackProofName: "key player",
-      conclusionSamePlayer: "(proofName) owns both the matchup edge and the key-player case.",
-      conclusionSplit: "The matchup edge belongs to (matchupName), while the key-player case belongs to (proofName).",
-      conclusionChipsSamePlayer: ["Matchup edge", "MVP case", "Same player"],
-      conclusionChipsSplit: ["Matchup edge", "Key player", "Dual read"],
-      storyboard: [
-        { tag: "HOOK", text: "(playerName) player radar\nThe numbers tell the story", durationInFrames: 86 },
-        { tag: "MATCHUP_EDGE", text: "Start with the lane swing\nWho broke the matchup open", durationInFrames: 126 },
-        { tag: "PLAYER_PROOF", text: "Make the key-player case\nStack the proof cleanly", durationInFrames: 112 },
-        { tag: "CONCLUSION_CTA", text: "Was this the MVP read\nDrop your take below", durationInFrames: 92 },
-      ],
-    },
-  }[locale];
-};
-
-const getRoleLabel = (role, data = {}) => {
-  const locale = isEnglishLocale(data) ? "en" : "zh";
-  return ROLE_LABELS[locale][role] || role || (locale === "en" ? "Mid" : "中路");
-};
-
-const samePlayer = (left = {}, right = {}) => {
-  const leftId = left.playerId || left.id;
-  const rightId = right.playerId || right.id;
-  if (leftId && rightId) return String(leftId).toLowerCase() === String(rightId).toLowerCase();
-
-  return [left.name, left.team, left.role]
-    .map((value) => String(value || "").trim().toLowerCase())
-    .join("|") === [right.name, right.team, right.role].map((value) => String(value || "").trim().toLowerCase()).join("|");
-};
-
-const deriveMatchupDisplayPlayers = (segment = {}) => {
-  const focusPlayer = segment.focusPlayer || segment.edgePlayer || {};
-  const edgePlayer = segment.edgePlayer || {};
-  const actualOpponent = samePlayer(focusPlayer, edgePlayer) ? segment.opponentPlayer || {} : edgePlayer;
-
-  return {
-    focusPlayer,
-    edgePlayer,
-    opponentPlayer: actualOpponent,
-  };
-};
+const { buildConclusionVerdict, deriveMatchupDisplayPlayers, getHookProofPillValue, getPlayer, getPlayerRadarCopy, getRoleLabel, isEnglishLocale } = playerRadarHelpers;
 
 const getProofBadgeLabel = (proofType, data = {}) => {
   const copy = getPlayerRadarCopy(data);
@@ -156,8 +45,6 @@ const normalizeStats = (data = {}) => {
   return (Array.isArray(data.radarStats) && data.radarStats.length > 0 ? data.radarStats : fallback).slice(0, 5);
 };
 
-const getPlayer = (data = {}) => data.player || { name: data.playerName || "Player", role: data.playerRole || data.role || "Mid", championPlayed: data.championPlayed || "" };
-
 const HookScene = ({ data, theme, localFrame }) => {
   const player = getPlayer(data);
   const match = data.matchContext || {};
@@ -176,7 +63,7 @@ const HookScene = ({ data, theme, localFrame }) => {
       />
       <div style={{ display: "flex", gap: 16, marginTop: 18 }}>
         <DataPill label={copy.hookSeriesLabel} value={match.seriesScore || "Game 1"} color={theme.accent} />
-        <DataPill label={proofBadgeLabel} value={data.recommendedMvp || player.name || "MVP"} color={HEXTECH_COLORS.gold} />
+        <DataPill label={proofBadgeLabel} value={getHookProofPillValue(data)} color={HEXTECH_COLORS.gold} />
         <DataPill label={copy.hookRoleLabel} value={getRoleLabel(player.role, data)} color={theme.secondary} />
       </div>
     </div>
@@ -303,13 +190,7 @@ const PlayerProofScene = ({ data, theme, localFrame }) => {
 };
 
 const ConclusionScene = ({ data, theme, localFrame }) => {
-  const copy = getPlayerRadarCopy(data);
-  const matchupName = data.matchupSegment?.edgePlayer?.name || copy.conclusionFallbackMatchupName;
-  const proofName = data.proofSegment?.player?.name || copy.conclusionFallbackProofName;
-  const isSamePlayer = samePlayer(data.matchupSegment?.edgePlayer, data.proofSegment?.player);
-  const body = (isSamePlayer ? copy.conclusionSamePlayer : copy.conclusionSplit)
-    .replace("(proofName)", proofName)
-    .replace("(matchupName)", matchupName);
+  const verdict = buildConclusionVerdict(data);
 
   return (
     <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -317,8 +198,8 @@ const ConclusionScene = ({ data, theme, localFrame }) => {
         theme={theme}
         localFrame={localFrame}
         title="RADAR VERDICT"
-        body={body}
-        chips={isSamePlayer ? copy.conclusionChipsSamePlayer : copy.conclusionChipsSplit}
+        body={verdict.body}
+        chips={verdict.chips}
       />
     </div>
   );
