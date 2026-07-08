@@ -377,3 +377,76 @@ test("player radar payloads handle empty stats and stale MVP names", async () =>
     assert.equal(result.player.name, "T1 Mid");
   });
 });
+
+test("runPlayerRadarFromSnapshot rejects label-only and NaN proof stats before render and publish", async () => {
+  await withTempProject(async () => {
+    const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    const snapshot = makeSnapshot();
+    const jungle = snapshot.candidates[0].players.find((player) => player.name === "T1 Jungle");
+    jungle.radarStats = [
+      { label: "KDA" },
+      { label: "DPM", rawValue: String(jungle.rawStats.dpm), normalizedScore: Number.NaN },
+      { label: "KP%", rawValue: `${Math.round(jungle.rawStats.kp * 100)}%` },
+      { label: "GPM", normalizedScore: 84 },
+      { label: "CSM", rawValue: String(jungle.rawStats.csm), normalizedScore: null },
+    ];
+    writeCandidateSnapshot(snapshot);
+
+    const { runPlayerRadarFromSnapshot } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    let renderCalls = 0;
+    let publishCalls = 0;
+
+    await assert.rejects(
+      () => runPlayerRadarFromSnapshot({
+        scanId: "scan-radar",
+        seriesId: "series-1",
+        matchupPlayerName: "T1 Mid",
+        languages: ["zh"],
+      }, {
+        renderVideosFromRequest: async () => {
+          renderCalls += 1;
+          return { videoUrl: "/renders/zh.mp4", fileName: "zh.mp4" };
+        },
+        createPublishJobs: async () => {
+          publishCalls += 1;
+          return { success: true, jobs: [] };
+        },
+      }),
+      /proof segment needs at least 2 verifiable reasons/
+    );
+
+    assert.equal(renderCalls, 0);
+    assert.equal(publishCalls, 0);
+  });
+});
+
+test("auto matchup selection skips weaker invalid roles but manual weak matchup still throws", async () => {
+  await withTempProject(async () => {
+    const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    const series = makeSnapshot().candidates[0];
+    const topMatchup = series.roleMatchups.find((matchup) => matchup.role === "Top");
+
+    topMatchup.left = {
+      ...topMatchup.left,
+      rawStats: {
+        ...topMatchup.right.rawStats,
+        kda: topMatchup.right.rawStats.kda + 0.1,
+      },
+    };
+    topMatchup.right = {
+      ...topMatchup.right,
+      rawStats: {
+        ...topMatchup.right.rawStats,
+      },
+    };
+
+    const payload = buildPlayerRadarPayload(series, {}, "zh");
+    assert.equal(payload.matchupSegment.role, "Mid");
+    assert.equal(payload.matchupSegment.edgePlayer.name, "T1 Mid");
+
+    assert.throws(
+      () => buildPlayerRadarPayload(series, { matchupPlayerName: "T1 Top" }, "zh"),
+      /matchup segment needs at least 2 verifiable reasons for Top/
+    );
+  });
+});

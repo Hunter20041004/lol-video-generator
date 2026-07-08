@@ -90,6 +90,16 @@ function getMetricValue(player = {}, label = "") {
   return field ? number(player.rawStats?.[field]) : 0;
 }
 
+function getMetricDisplayValue(player = {}, label = "") {
+  const field = METRIC_FIELDS[label];
+  if (!field) return "";
+  const rawValue = player.rawStats?.[field];
+  const numericValue = Number(rawValue);
+  if (!Number.isFinite(numericValue)) return "";
+  if (label === "KP%") return `${Math.round(numericValue * 100)}%`;
+  return String(rawValue);
+}
+
 function buildEdgeReasons(winner = {}, loser = {}) {
   const labels = ["KDA", "DPM", "KP%", "GPM", winner.role === "Support" ? "VPM" : "CSM"];
   return labels
@@ -115,10 +125,6 @@ function buildMatchupCandidate(series = {}, matchup = {}, focusPlayer = null) {
   const edgePlayer = leftScore >= rightScore ? matchup.left : matchup.right;
   const opponentPlayer = edgePlayer === matchup.left ? matchup.right : matchup.left;
   const reasons = buildEdgeReasons(edgePlayer, opponentPlayer);
-  if (reasons.length < 2) {
-    throw new Error(`Player Radar matchup segment needs at least 2 verifiable reasons for ${matchup.role}.`);
-  }
-
   const winningTeam = series.winningTeam || "";
   return {
     role: matchup.role,
@@ -130,6 +136,16 @@ function buildMatchupCandidate(series = {}, matchup = {}, focusPlayer = null) {
     edgeType: winningTeam && edgePlayer.team !== winningTeam ? "loser-highlight" : "winner-breakpoint",
     reasons,
   };
+}
+
+function validateMatchupSegment(segment = {}) {
+  if (!segment) {
+    throw new Error("Player Radar matchup segment needs a complete role matchup.");
+  }
+  if ((segment.reasons || []).length < 2) {
+    throw new Error(`Player Radar matchup segment needs at least 2 verifiable reasons for ${segment.role}.`);
+  }
+  return segment;
 }
 
 function selectMatchupSegment(series = {}, matchupPlayerName = "") {
@@ -145,15 +161,14 @@ function selectMatchupSegment(series = {}, matchupPlayerName = "") {
     if (!matchup || !matchup.left || !matchup.right) {
       throw new Error(`Opponent not found in snapshot for player: ${matchupPlayerName}`);
     }
-    return buildMatchupCandidate(series, matchup, focus);
+    return validateMatchupSegment(buildMatchupCandidate(series, matchup, focus));
   }
 
   const candidates = matchups
     .map((matchup) => buildMatchupCandidate(series, matchup))
     .filter(Boolean)
     .sort((a, b) => Number(b.edgeScore || 0) - Number(a.edgeScore || 0));
-  if (!candidates[0]) throw new Error("Player Radar matchup segment needs a complete role matchup.");
-  return candidates[0];
+  return validateMatchupSegment(candidates[0]);
 }
 
 function isRecommendedMvp(series = {}, player = {}) {
@@ -163,13 +178,22 @@ function isRecommendedMvp(series = {}, player = {}) {
 function buildProofReasons(player = {}) {
   return [...(player.radarStats || [])]
     .filter((stat) => stat?.label)
-    .sort((a, b) => Number(b.normalizedScore || 0) - Number(a.normalizedScore || 0))
-    .slice(0, 3)
-    .map((stat) => ({
-      metric: stat.label,
-      rawValue: stat.rawValue,
-      score: Number(stat.normalizedScore || 0),
-    }));
+    .map((stat) => {
+      const rawScore = stat.normalizedScore;
+      if (rawScore === null || rawScore === undefined || rawScore === "") return null;
+      const score = Number(rawScore);
+      const inlineRawValue = stat.rawValue === null || stat.rawValue === undefined ? "" : String(stat.rawValue).trim();
+      const rawValue = inlineRawValue || getMetricDisplayValue(player, stat.label);
+      if (!Number.isFinite(score) || !rawValue) return null;
+      return {
+        metric: stat.label,
+        rawValue,
+        score,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
 }
 
 function selectProofSegment(series = {}, proofPlayerName = "", locale = "zh") {

@@ -123,6 +123,22 @@ test("player radar schema preserves dual-read segments and uses dual-read fallba
   ]);
 });
 
+test("player radar English fallback storyboard stays visible in English", () => {
+  const { normalizePipelinePayload } = require(path.join(ROOT, "src/schemas/pipelineSchemas.js"));
+
+  const normalized = normalizePipelinePayload({
+    dataType: "PLAYER_RADAR",
+    locale: "en",
+  });
+
+  assert.deepEqual(normalized.data.storyboard.map((scene) => scene.text), [
+    "Biggest lane gap\nsame as MVP?",
+    "Start with the biggest gap\nwho beat who",
+    "Then test the key player\ndoes the case hold?",
+    "What's your read\ncomment below",
+  ]);
+});
+
 test("publish platform policy only allows Instagram and Threads", () => {
   const {
     DEFAULT_PLATFORMS,
