@@ -18,6 +18,18 @@ test("workbench exposes Meta factory without reviving old runtime pipeline names
   assert.equal(page.includes("TIER_LIST"), false);
 });
 
+test("esports workbench can send common and split player radar overrides", () => {
+  const page = fs.readFileSync(path.join(ROOT, "app/page.jsx"), "utf8");
+
+  assert.match(page, /const \[playerName, setPlayerName\] = useState\(""\)/);
+  assert.match(page, /const \[mvpPlayerName, setMvpPlayerName\] = useState\(""\)/);
+  assert.match(page, /const \[matchupPlayerName, setMatchupPlayerName\] = useState\(""\)/);
+  assert.match(page, /mvpPlayerName: mvpPlayerName \|\| undefined/);
+  assert.match(page, /matchupPlayerName: matchupPlayerName \|\| undefined/);
+  assert.match(page, /placeholder="空白則使用推薦 MVP"/);
+  assert.match(page, /placeholder="空白則使用最大對位差距"/);
+});
+
 test("workbench marks implemented Meta factory modes as supported", () => {
   const page = fs.readFileSync(path.join(ROOT, "app/page.jsx"), "utf8");
 

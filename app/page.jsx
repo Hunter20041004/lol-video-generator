@@ -888,6 +888,8 @@ function EsportsFactory({ portfolioReadOnly }) {
   const [scanId, setScanId] = useState("");
   const [seriesId, setSeriesId] = useState("");
   const [playerName, setPlayerName] = useState("");
+  const [mvpPlayerName, setMvpPlayerName] = useState("");
+  const [matchupPlayerName, setMatchupPlayerName] = useState("");
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   const esportsPreviewVideos = getEsportsPreviewVideos(result);
@@ -933,7 +935,14 @@ function EsportsFactory({ portfolioReadOnly }) {
     try {
       const response = await fetch("/api/esports/player-radar", {
         method: "POST",
-        body: JSON.stringify({ scanId, seriesId, playerName: playerName || undefined, languages: ["zh", "en"] }),
+        body: JSON.stringify({
+          scanId,
+          seriesId,
+          playerName: playerName || undefined,
+          mvpPlayerName: mvpPlayerName || undefined,
+          matchupPlayerName: matchupPlayerName || undefined,
+          languages: ["zh", "en"],
+        }),
       });
       setResult(await response.json());
     } catch (error) {
@@ -1016,6 +1025,14 @@ function EsportsFactory({ portfolioReadOnly }) {
             <label>
               playerName
               <input value={playerName} onChange={(event) => setPlayerName(event.target.value)} placeholder="空白則使用推薦 MVP" />
+            </label>
+            <label>
+              mvpPlayerName
+              <input value={mvpPlayerName} onChange={(event) => setMvpPlayerName(event.target.value)} placeholder="空白則使用推薦 MVP" />
+            </label>
+            <label>
+              matchupPlayerName
+              <input value={matchupPlayerName} onChange={(event) => setMatchupPlayerName(event.target.value)} placeholder="空白則使用最大對位差距" />
             </label>
           </div>
           <div className="buttonRow">
