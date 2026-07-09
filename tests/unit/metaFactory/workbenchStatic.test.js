@@ -26,7 +26,8 @@ test("esports workbench can send common and split player radar overrides", () =>
   assert.match(page, /const \[matchupPlayerName, setMatchupPlayerName\] = useState\(""\)/);
   assert.match(page, /mvpPlayerName: mvpPlayerName \|\| undefined/);
   assert.match(page, /matchupPlayerName: matchupPlayerName \|\| undefined/);
-  assert.match(page, /placeholder="空白則使用推薦 MVP"/);
+  assert.match(page, /playerName[\s\S]{0,160}placeholder="共用指定；空白則自動選對位與 MVP"/);
+  assert.match(page, /mvpPlayerName[\s\S]{0,160}placeholder="空白則使用推薦 MVP"/);
   assert.match(page, /placeholder="空白則使用最大對位差距"/);
 });
 

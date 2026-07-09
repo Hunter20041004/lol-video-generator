@@ -1024,7 +1024,7 @@ function EsportsFactory({ portfolioReadOnly }) {
             </label>
             <label>
               playerName
-              <input value={playerName} onChange={(event) => setPlayerName(event.target.value)} placeholder="空白則使用推薦 MVP" />
+              <input value={playerName} onChange={(event) => setPlayerName(event.target.value)} placeholder="共用指定；空白則自動選對位與 MVP" />
             </label>
             <label>
               mvpPlayerName

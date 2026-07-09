@@ -135,7 +135,9 @@ test("playerName overrides both matchup focus and proof player", async () => {
     assert.equal(payload.matchupSegment.role, "Mid");
     assert.equal(payload.matchupSegment.focusPlayer.name, "GEN Mid");
     assert.equal(payload.matchupSegment.edgePlayer.name, "T1 Mid");
-    assert.equal(payload.matchupSegment.opponentPlayer.name, "GEN Mid");
+    assert.equal(payload.matchupSegment.opponentPlayer.name, "T1 Mid");
+    assert.notEqual(payload.matchupSegment.focusPlayer.name, payload.matchupSegment.opponentPlayer.name);
+    assert.notEqual(payload.matchupSegment.focusPlayer.name, payload.matchupSegment.edgePlayer.name);
     assert.equal(payload.proofSegment.player.name, "GEN Mid");
     assert.equal(payload.proofSegment.proofType, "key-player");
     assert.equal(payload.proofSegment.isRecommendedMvp, false);
