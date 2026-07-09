@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-const { createPublishJobs } = require('../../../utils/publishing');
+const { createPublishJobs, preflightPublishJobs } = require('../../../utils/publishing');
 const { listTasks } = require('../../../utils/publishing/queueStore');
 const { ensurePublicMediaBaseUrl } = require('../../../utils/publishing/tunnel');
 const { validatePublishRequest } = require('../../../utils/apiGuards');
@@ -22,6 +22,15 @@ export async function POST(request) {
     const policy = validatePublishRequest(body);
     const action = body.action || 'queue';
     const platforms = policy.platforms;
+    preflightPublishJobs({
+      videoUrl: body.videoUrl,
+      videos: body.videos,
+      analysis: body.analysis || {},
+      socialCopy: body.socialCopy,
+      locale: body.locale || 'zh',
+      platform: body.platform || 'instagram',
+      platforms,
+    });
     const sampleVideoUrl = Array.isArray(body.videos) && body.videos.length > 0
       ? body.videos.find((video) => video?.videoUrl)?.videoUrl
       : body.videoUrl;

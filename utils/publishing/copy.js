@@ -1,4 +1,8 @@
 const { normalizeLocale } = require("./accounts");
+const {
+  hasPlayerRadarPayload,
+  isPlayerRadarPayload,
+} = require("../esports/playerRadarEvidence");
 
 const DATA_TYPE_LABEL = {
   PATCH: { zh: "英雄改版", en: "Champion Patch" },
@@ -163,10 +167,12 @@ function stripEnglishFallback(text = "", locale = "zh") {
 const getLocalizedPayload = (analysis = {}, locale = "zh") => {
   const lang = normalizeLocale(locale);
   const localized = analysis.localizedPayloads?.[lang] || analysis.localizedPayloads?.[locale];
-  const isPlayerRadar = String(analysis.dataType || localized?.dataType || "").toUpperCase() === "PLAYER_RADAR";
+  const isPlayerRadar = isPlayerRadarPayload(analysis)
+    || isPlayerRadarPayload(localized)
+    || hasPlayerRadarPayload(analysis);
   if (isPlayerRadar && !localized) {
     const rootLocale = normalizeLocale(analysis.locale || "zh");
-    if (rootLocale !== lang) {
+    if (!isPlayerRadarPayload(analysis) || rootLocale !== lang) {
       throw new Error(`Player Radar localized payload missing for locale: ${lang}`);
     }
   }

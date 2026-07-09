@@ -1,3 +1,5 @@
+const { buildRadarStats } = require("./seriesAggregator");
+
 function hasValue(value) {
   if (value === null || value === undefined) return false;
   if (typeof value === "number") return Number.isFinite(value);
@@ -55,6 +57,7 @@ function isVerifiableRadarStat(stat = {}) {
 }
 
 const VALID_EDGE_TYPES = new Set(["winner-breakpoint", "loser-highlight"]);
+const MIN_COMMON_MATCHUP_AXES = 2;
 const METRIC_FIELDS = {
   KDA: "kda",
   DPM: "dpm",
@@ -98,6 +101,12 @@ function samePlayer(left = {}, right = {}) {
   );
 }
 
+function playerIdentityKey(player = {}) {
+  return ["name", "team", "role"]
+    .map((field) => String(player?.[field] || "").trim().toLowerCase())
+    .join("|");
+}
+
 function sameNumber(left, right) {
   const a = toFiniteNumber(left);
   const b = toFiniteNumber(right);
@@ -115,6 +124,17 @@ function rawMetricValue(player = {}, metric = "") {
   if (!field) return null;
   const rawValue = player.rawStats?.[field];
   return rawValue === null || rawValue === undefined || rawValue === "" ? null : rawValue;
+}
+
+function sourceRadarStats(player = {}) {
+  return buildRadarStats({
+    ...(player.rawStats || {}),
+    role: player.rawStats?.role || player.role,
+  });
+}
+
+function sourceRadarStatsByMetric(player = {}) {
+  return new Map(sourceRadarStats(player).map((stat) => [metricKey(stat.label), stat]));
 }
 
 function displayMetricValue(player = {}, metric = "") {
@@ -140,6 +160,7 @@ function hasCompleteMatchContext(context = {}) {
   return hasText(context.league)
     && hasText(context.teamA)
     && hasText(context.teamB)
+    && hasText(context.winningTeam)
     && hasText(context.seriesScore);
 }
 
@@ -150,6 +171,27 @@ function teamIsInMatch(player = {}, context = {}) {
 function segmentPlayersMatchRole(segment = {}) {
   return hasText(segment.role)
     && [segment.focusPlayer, segment.edgePlayer, segment.opponentPlayer].every((player) => String(player?.role || "") === String(segment.role));
+}
+
+function matchupPlayersFormOpposingPair(segment = {}) {
+  const focus = segment.focusPlayer || {};
+  const edge = segment.edgePlayer || {};
+  const opponent = segment.opponentPlayer || {};
+  const focusMatchesEdge = samePlayer(focus, edge);
+  const opponentMatchesEdge = samePlayer(opponent, edge);
+  const focusMatchesOpponent = samePlayer(focus, opponent);
+
+  const keys = [focus, edge, opponent].map(playerIdentityKey).filter(Boolean);
+  if (new Set(keys).size !== 2 || focusMatchesOpponent || (!focusMatchesEdge && !opponentMatchesEdge)) {
+    return { valid: false, reason: "pair" };
+  }
+
+  const metricLoser = focusMatchesEdge ? opponent : focus;
+  if (samePlayer(edge, metricLoser) || String(edge.team || "") === String(metricLoser.team || "")) {
+    return { valid: false, reason: "pair" };
+  }
+
+  return { valid: true };
 }
 
 function getMetricLoserPlayer(segment = {}) {
@@ -178,6 +220,33 @@ function proofEvidenceMatchesSourceStats(proofSegment = {}, reasons = [], radarS
     if (!field) return false;
     return sameDisplayValue(entry.rawValue, displayMetricValue(proofSegment.player, entry.metric));
   });
+}
+
+function radarScoresMatchSourceStats(player = {}, radarStats = []) {
+  const expectedByMetric = sourceRadarStatsByMetric(player);
+  return radarStats.every((stat) => {
+    const expected = expectedByMetric.get(metricKey(stat.label));
+    return Boolean(expected)
+      && sameDisplayValue(stat.rawValue, expected.rawValue)
+      && sameNumber(stat.normalizedScore, expected.normalizedScore);
+  });
+}
+
+function calculateMatchupEdgeScore(segment = {}) {
+  const loserPlayer = getMetricLoserPlayer(segment);
+  const edgeStats = sourceRadarStatsByMetric(segment.edgePlayer);
+  const loserStats = sourceRadarStatsByMetric(loserPlayer);
+  const common = [...edgeStats.entries()]
+    .filter(([metric]) => loserStats.has(metric))
+    .map(([metric, edgeStat]) => ({
+      edgeScore: toFiniteNumber(edgeStat.normalizedScore),
+      loserScore: toFiniteNumber(loserStats.get(metric).normalizedScore),
+    }))
+    .filter((pair) => Number.isFinite(pair.edgeScore) && Number.isFinite(pair.loserScore));
+  if (common.length < MIN_COMMON_MATCHUP_AXES) return null;
+  const edgeAverage = common.reduce((sum, pair) => sum + pair.edgeScore, 0) / common.length;
+  const loserAverage = common.reduce((sum, pair) => sum + pair.loserScore, 0) / common.length;
+  return Math.round(Math.abs(edgeAverage - loserAverage) * 100) / 100;
 }
 
 function hasCompletePlayerIdentity(player = {}) {
@@ -254,14 +323,30 @@ function assertSinglePlayerRadarEvidence(payload = {}) {
   if (!segmentPlayersMatchRole(matchupSegment)) {
     throw new Error("Player Radar matchup segment player roles must match segment role.");
   }
+  const matchupPair = matchupPlayersFormOpposingPair(matchupSegment);
+  if (!matchupPair.valid) {
+    throw new Error(matchupPair.reason === "focus"
+      ? "Player Radar matchup focus player must be one side of the opposing pair."
+      : "Player Radar matchup segment players must be one opposing pair.");
+  }
   if (hasText(matchupSegment.edgeWinnerTeam) && String(matchupSegment.edgeWinnerTeam) !== String(matchupSegment.edgePlayer.team)) {
     throw new Error("Player Radar matchup segment edge winner team must match edge player team.");
+  }
+  const expectedEdgeType = String(matchupSegment.edgePlayer.team || "") === String(payload.matchContext?.winningTeam || "")
+    ? "winner-breakpoint"
+    : "loser-highlight";
+  if (String(matchupSegment.edgeType || "") !== expectedEdgeType) {
+    throw new Error("Player Radar matchup edge type must match winning team.");
   }
   if (displayedMatchupReasons.some((reason) => !metricField(reason.metric))) {
     throw new Error("Player Radar matchup segment contains unknown displayed metrics.");
   }
   if (!matchupReasonsMatchSourceStats(matchupSegment, displayedMatchupReasons)) {
     throw new Error("Player Radar matchup segment reasons must match source stats.");
+  }
+  const sourceEdgeScore = calculateMatchupEdgeScore(matchupSegment);
+  if (!Number.isFinite(sourceEdgeScore) || !sameNumber(matchupSegment.edgeScore, sourceEdgeScore)) {
+    throw new Error("Player Radar matchup edge score must match source stats.");
   }
 
   const proofSegment = payload.proofSegment;
@@ -307,6 +392,9 @@ function assertSinglePlayerRadarEvidence(payload = {}) {
   }
   if (!proofEvidenceMatchesSourceStats(proofSegment, displayedProofReasons, displayedRadarStats)) {
     throw new Error("Player Radar proof segment evidence must match source stats.");
+  }
+  if (!radarScoresMatchSourceStats(proofSegment.player, displayedRadarStats)) {
+    throw new Error("Player Radar proof score must match source stats.");
   }
 
   if (!hasCompleteMatchContext(payload.matchContext)) {

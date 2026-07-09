@@ -242,6 +242,8 @@ test("Radar chart does not synthesize fallback evidence axes", () => {
   assert.equal(source.includes("|| \"?\""), false);
   assert.equal(source.includes("?? \"—\""), false);
   assert.equal(source.includes("Number(s.normalizedScore) || 0"), false);
+  assert.equal(source.includes("Number(stats[i].normalizedScore) || 0"), false);
+  assert.match(source, /hasEvidenceDisplayValue/);
 });
 
 test("Remotion root player radar preview uses the dual-read payload shape", () => {

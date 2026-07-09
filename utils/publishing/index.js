@@ -87,12 +87,12 @@ function writePublishPackage(task) {
   };
 }
 
-function createTask({ entry, platform, analysis, action = "queue", scheduledAt }) {
+function createTask({ entry, platform, analysis, action = "queue", scheduledAt, copy, filePath }) {
   const normalizedPlatform = normalizePlatform(platform);
   assertSupportedPlatform(normalizedPlatform);
   const locale = normalizeLocale(entry.locale);
-  const filePath = resolveLocalVideoPath(entry.videoUrl);
-  const copy = buildSocialCopy({ analysis, locale, platform: normalizedPlatform });
+  const resolvedFilePath = filePath || resolveLocalVideoPath(entry.videoUrl);
+  const resolvedCopy = copy || buildSocialCopy({ analysis, locale, platform: normalizedPlatform });
   const id = createTaskId(normalizedPlatform, locale);
   const publicVideoUrl = getPublicVideoUrl(entry.videoUrl);
 
@@ -106,8 +106,8 @@ function createTask({ entry, platform, analysis, action = "queue", scheduledAt }
     publicVideoUrl,
     scheduledAt: normalizeScheduledAt(scheduledAt),
     fileName: entry.fileName || path.basename(entry.videoUrl),
-    filePath,
-    copy,
+    filePath: resolvedFilePath,
+    copy: resolvedCopy,
     result: null,
     error: null,
   };
@@ -144,7 +144,7 @@ async function publishTask(task) {
   }
 }
 
-async function createPublishJobs({
+function preflightPublishJobs({
   videoUrl,
   videos,
   analysis = {},
@@ -152,9 +152,7 @@ async function createPublishJobs({
   locale = "zh",
   platform = "instagram",
   platforms,
-  action = "queue",
-  scheduledAt,
-}) {
+} = {}) {
   assertPlayerRadarEvidence(analysis);
 
   const entries = resolveVideoEntries({ videoUrl, videos, locale });
@@ -169,22 +167,58 @@ async function createPublishJobs({
       : [assertSupportedPlatform(platform)];
 
   const analysisWithCopy = socialCopy ? { ...analysis, socialCopy } : analysis;
-  const jobs = [];
-
+  const plans = [];
   for (const entry of entries) {
-    if (!fs.existsSync(resolveLocalVideoPath(entry.videoUrl))) {
-      throw new Error(`Video file not found: ${resolveLocalVideoPath(entry.videoUrl)}`);
+    const filePath = resolveLocalVideoPath(entry.videoUrl);
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Video file not found: ${filePath}`);
     }
     for (const targetPlatform of normalizedPlatforms) {
-      const task = createTask({
+      const normalizedPlatform = normalizePlatform(targetPlatform);
+      const locale = normalizeLocale(entry.locale);
+      plans.push({
         entry,
-        platform: targetPlatform,
-        analysis: analysisWithCopy,
-        action,
-        scheduledAt,
+        platform: normalizedPlatform,
+        filePath,
+        copy: buildSocialCopy({ analysis: analysisWithCopy, locale, platform: normalizedPlatform }),
       });
-      jobs.push(action === "publish" ? await publishTask(task) : task);
     }
+  }
+
+  return {
+    entries,
+    normalizedPlatforms,
+    analysisWithCopy,
+    plans,
+  };
+}
+
+async function createPublishJobs({
+  videoUrl,
+  videos,
+  analysis = {},
+  socialCopy,
+  locale = "zh",
+  platform = "instagram",
+  platforms,
+  action = "queue",
+  scheduledAt,
+}) {
+  const {
+    normalizedPlatforms,
+    analysisWithCopy,
+    plans,
+  } = preflightPublishJobs({ videoUrl, videos, analysis, socialCopy, locale, platform, platforms });
+  const jobs = [];
+
+  for (const plan of plans) {
+    const task = createTask({
+      ...plan,
+      analysis: analysisWithCopy,
+      action,
+      scheduledAt,
+    });
+    jobs.push(action === "publish" ? await publishTask(task) : task);
   }
 
   return {
@@ -254,6 +288,7 @@ module.exports = {
   assertSupportedPlatform,
   filterSupportedPlatforms,
   resolveVideoEntries,
+  preflightPublishJobs,
   createPublishJobs,
   retryFailedPublishJobs,
   publishTask,

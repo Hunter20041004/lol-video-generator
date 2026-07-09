@@ -75,3 +75,20 @@ test("player radar route returns 400 for semantic evidence validation failures",
   assert.equal(body.userMessage, "選手雷達產生失敗。");
   assert.equal(body.error, "Player Radar matchup segment contains inconsistent displayed deltas.");
 });
+
+test("player radar route returns 400 for all player radar validation messages", async () => {
+  const POST = loadPostRouteWithRunner(async () => {
+    throw new Error("Player Radar matchup segment players must be one opposing pair.");
+  });
+
+  const response = await POST({ json: async () => ({ seriesId: "series-1" }) });
+  const body = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.equal(body.success, false);
+  assert.equal(body.code, "ESPORTS_PIPELINE_ERROR");
+  assert.equal(body.status, 400);
+  assert.equal(body.recoverable, false);
+  assert.equal(body.userMessage, "選手雷達產生失敗。");
+  assert.equal(body.error, "Player Radar matchup segment players must be one opposing pair.");
+});

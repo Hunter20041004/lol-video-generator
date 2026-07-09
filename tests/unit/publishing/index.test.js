@@ -17,6 +17,15 @@ function clearPublishingModules() {
   });
 }
 
+function buildTestRadarStats(rawStats = {}) {
+  const { buildRadarStats } = require(path.join(ROOT, "utils/esports/seriesAggregator.js"));
+  return buildRadarStats(rawStats);
+}
+
+function statByLabel(stats = [], label = "") {
+  return stats.find((stat) => stat.label === label);
+}
+
 function withTempProject(fn) {
   const originalCwd = process.cwd();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-publishing-"));
@@ -35,27 +44,32 @@ function withTempProject(fn) {
 }
 
 function makePlayerRadarAnalysis() {
+  const proofRawStats = { role: "Jungle", kp: 0.84, dpm: 720 };
+  const proofRadarStats = buildTestRadarStats(proofRawStats);
+  const edgeRawStats = { role: "Mid", dpm: 720, kp: 0.86 };
+  const loserRawStats = { role: "Mid", dpm: 360, kp: 0.48 };
+  const edgeRadarStats = buildTestRadarStats(edgeRawStats);
+  const loserRadarStats = buildTestRadarStats(loserRawStats);
+  const edgeScore = ((statByLabel(edgeRadarStats, "DPM").normalizedScore + statByLabel(edgeRadarStats, "KP%").normalizedScore) / 2)
+    - ((statByLabel(loserRadarStats, "DPM").normalizedScore + statByLabel(loserRadarStats, "KP%").normalizedScore) / 2);
   return {
     dataType: "PLAYER_RADAR",
     title: "T1 vs GEN 選手雷達",
-    matchContext: { league: "LCK", teamA: "T1", teamB: "GEN", seriesScore: "Game 3" },
+    matchContext: { league: "LCK", teamA: "T1", teamB: "GEN", winningTeam: "T1", seriesScore: "Game 3" },
     player: {
       name: "Oner",
       team: "T1",
       role: "Jungle",
-      rawStats: { kp: 0.84, dpm: 720 },
-      radarStats: [
-        { label: "KP%", rawValue: "84%", normalizedScore: 90 },
-        { label: "DPM", rawValue: "720", normalizedScore: 88 },
-      ],
+      rawStats: proofRawStats,
+      radarStats: proofRadarStats,
     },
     matchupSegment: {
       role: "Mid",
       edgeType: "winner-breakpoint",
-      edgeScore: 360,
-      focusPlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: { dpm: 720, kp: 0.86 } },
-      edgePlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: { dpm: 720, kp: 0.86 } },
-      opponentPlayer: { name: "Chovy", team: "GEN", role: "Mid", rawStats: { dpm: 360, kp: 0.48 } },
+      edgeScore,
+      focusPlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: edgeRawStats, radarStats: edgeRadarStats },
+      edgePlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: edgeRawStats, radarStats: edgeRadarStats },
+      opponentPlayer: { name: "Chovy", team: "GEN", role: "Mid", rawStats: loserRawStats, radarStats: loserRadarStats },
       edgeWinnerTeam: "T1",
       reasons: [
         { metric: "DPM", winnerValue: 720, loserValue: 360, delta: 360 },
@@ -67,15 +81,12 @@ function makePlayerRadarAnalysis() {
         name: "Oner",
         team: "T1",
         role: "Jungle",
-        rawStats: { kp: 0.84, dpm: 720 },
-        radarStats: [
-          { label: "KP%", rawValue: "84%", normalizedScore: 90 },
-          { label: "DPM", rawValue: "720", normalizedScore: 88 },
-        ],
+        rawStats: proofRawStats,
+        radarStats: proofRadarStats,
       },
       proofReasons: [
-        { metric: "KP%", rawValue: "84%", score: 90 },
-        { metric: "DPM", rawValue: "720", score: 88 },
+        { metric: "KP%", rawValue: statByLabel(proofRadarStats, "KP%").rawValue, score: statByLabel(proofRadarStats, "KP%").normalizedScore },
+        { metric: "DPM", rawValue: statByLabel(proofRadarStats, "DPM").rawValue, score: statByLabel(proofRadarStats, "DPM").normalizedScore },
       ],
       verdict: "Oner 有這場最清楚的 MVP 理由。",
     },
@@ -132,6 +143,31 @@ test("createPublishJobs queues player radar with esports social copy", async () 
     const manifest = JSON.parse(fs.readFileSync(job.package.manifestPath, "utf8"));
     assert.match(manifest.copy.caption, /T1 vs GEN 選手雷達/);
     assert.doesNotMatch(manifest.copy.caption, /版本更新|lolpatch/i);
+  });
+});
+
+test("createPublishJobs preflights all localized player radar videos before queue writes", async () => {
+  await withTempProject(async (dir) => {
+    fs.writeFileSync(path.join(dir, "public", "renders", "clip-zh.mp4"), "fake zh video");
+    fs.writeFileSync(path.join(dir, "public", "renders", "clip-en.mp4"), "fake en video");
+    const { createPublishJobs } = require(path.join(ROOT, "utils/publishing/index.js"));
+
+    await assert.rejects(
+      () => createPublishJobs({
+        videos: [
+          { locale: "zh", videoUrl: "/renders/clip-zh.mp4" },
+          { locale: "en", videoUrl: "/renders/clip-en.mp4" },
+        ],
+        analysis: makePlayerRadarAnalysis(),
+        platforms: ["instagram"],
+      }),
+      /Player Radar localized payload missing for locale: en/
+    );
+
+    const queuePath = path.join(dir, ".data", "publish-queue.json");
+    const packagesDir = path.join(dir, "public", "publish-packages");
+    assert.deepEqual(fs.existsSync(queuePath) ? JSON.parse(fs.readFileSync(queuePath, "utf8")) : [], []);
+    assert.deepEqual(fs.existsSync(packagesDir) ? fs.readdirSync(packagesDir) : [], []);
   });
 });
 

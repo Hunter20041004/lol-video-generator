@@ -5,6 +5,7 @@ const { formatEsportsApiError } = require('../../../../utils/esports/apiErrors')
 function statusForPlayerRadarError(error) {
   const message = error.message || '';
   if (/not found|scan/i.test(message)) return 404;
+  if (/^Player Radar\b/i.test(message)) return 400;
   if (/needs|invalid|required|unsupported|contains|malformed|must match|unique|finite/i.test(message)) return 400;
   return 500;
 }
