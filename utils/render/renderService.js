@@ -422,10 +422,14 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
     ? requestData.renderLanguages.filter(Boolean).map((lang) => String(lang).toLowerCase().startsWith("en") ? "en" : "zh")
     : (requestData.bilingual || requestData.generateBilingual ? ["zh", "en"] : [requestData.locale || "zh"]);
   const languages = [...new Set(requestedLanguages)].slice(0, 2);
+  const payloads = languages.map((lang) => ({
+    lang,
+    payload: getPayloadForLanguage(requestData, lang),
+  }));
+  payloads.forEach(({ payload }) => assertPlayerRadarEvidence(payload));
+
   const videos = [];
-  for (const lang of languages) {
-    const payload = getPayloadForLanguage(requestData, lang);
-    assertPlayerRadarEvidence(payload);
+  for (const { lang, payload } of payloads) {
     videos.push(await renderOne(payload, {
       timestamp,
       locale: lang,

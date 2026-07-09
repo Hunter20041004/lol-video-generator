@@ -151,11 +151,16 @@ test("manual losing-side matchup selection uses the selected player in visible s
 
     const payload = buildPlayerRadarPayload(series, { playerName: "GEN Mid" }, "en");
     const matchupScene = payload.storyboard.find((scene) => scene.tag === "MATCHUP_EDGE");
+    const zhPayload = buildPlayerRadarPayload(series, { playerName: "GEN Mid" }, "zh");
+    const zhMatchupScene = zhPayload.storyboard.find((scene) => scene.tag === "MATCHUP_EDGE");
 
     assert.equal(payload.matchupSegment.focusPlayer.name, "GEN Mid");
     assert.equal(payload.matchupSegment.edgePlayer.name, "T1 Mid");
     assert.match(matchupScene.text, /GEN Mid/);
     assert.doesNotMatch(matchupScene.text, /T1 Mid/);
+    assert.doesNotMatch(matchupScene.text, /created the matchup gap/);
+    assert.match(zhMatchupScene.text, /GEN Mid/);
+    assert.doesNotMatch(zhMatchupScene.text, /打出最大對位差/);
   });
 });
 

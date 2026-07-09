@@ -4,28 +4,37 @@ function hasValue(value) {
   return String(value).trim().length > 0;
 }
 
+function hasText(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function isNumericString(value) {
+  return /^-?(?:\d+|\d*\.\d+)(?:e[+-]?\d+)?$/i.test(String(value).trim());
+}
+
 function hasFiniteNumber(value) {
-  if (!hasValue(value)) return false;
-  return Number.isFinite(Number(value));
+  if (typeof value === "number") return Number.isFinite(value);
+  if (typeof value === "string" && isNumericString(value)) return Number.isFinite(Number(value));
+  return false;
 }
 
 function isVerifiableMatchupReason(reason = {}) {
-  return hasValue(reason.metric)
+  return hasText(reason.metric)
     && hasFiniteNumber(reason.winnerValue)
     && hasFiniteNumber(reason.loserValue)
     && hasFiniteNumber(reason.delta);
 }
 
 function isVerifiableProofReason(reason = {}) {
-  return hasValue(reason.metric)
+  return hasText(reason.metric)
     && hasValue(reason.rawValue)
     && hasFiniteNumber(reason.score);
 }
 
 function hasCompletePlayerIdentity(player = {}) {
-  return hasValue(player.name)
-    && hasValue(player.team)
-    && hasValue(player.role);
+  return hasText(player.name)
+    && hasText(player.team)
+    && hasText(player.role);
 }
 
 function assertPlayerRadarEvidence(payload = {}) {
