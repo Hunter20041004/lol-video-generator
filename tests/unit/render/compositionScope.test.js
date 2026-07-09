@@ -227,6 +227,8 @@ test("Radar chart does not synthesize fallback evidence axes", () => {
   assert.equal(source.includes("while (stats.length < 5)"), false);
   assert.equal(source.includes("rawValue: \"—\""), false);
   assert.equal(source.includes("label: `?"), false);
+  assert.equal(source.includes("|| \"?\""), false);
+  assert.equal(source.includes("?? \"—\""), false);
 });
 
 test("Remotion root player radar preview uses the dual-read payload shape", () => {
@@ -244,6 +246,8 @@ test("Remotion root player radar preview uses the dual-read payload shape", () =
   assert.match(playerRadarSource, /tag: "MATCHUP_EDGE"/);
   assert.match(playerRadarSource, /tag: "PLAYER_PROOF"/);
   assert.match(playerRadarSource, /tag: "CONCLUSION_CTA"/);
+  assert.doesNotMatch(playerRadarSource, /rawValue:\s*"[^"]*(?:\/分|\bGPM\b)/);
+  assert.doesNotMatch(playerRadarSource, /(?:winnerValue|loserValue):\s*"[^"]*(?:%|\/分|[A-Za-z])/);
   assert.equal(playerRadarSource.includes('tag: "STAT_REVEAL"'), false);
 });
 
