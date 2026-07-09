@@ -6,6 +6,31 @@ const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "../..");
 
+function makeValidPlayerRadarAnalysis(overrides = {}) {
+  return {
+    dataType: "PLAYER_RADAR",
+    matchupSegment: {
+      role: "Mid",
+      focusPlayer: { name: "GEN Mid", team: "GEN", role: "Mid" },
+      edgePlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
+      opponentPlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
+      edgeWinnerTeam: "T1",
+      reasons: [
+        { metric: "DPM", winnerValue: 720, loserValue: 360, delta: 360 },
+        { metric: "KP%", winnerValue: 0.86, loserValue: 0.48, delta: 0.38 },
+      ],
+    },
+    proofSegment: {
+      player: { name: "GEN Mid", team: "GEN", role: "Mid" },
+      proofReasons: [
+        { metric: "KP%", rawValue: "84%", score: 90 },
+        { metric: "DPM", rawValue: "720", score: 88 },
+      ],
+    },
+    ...overrides,
+  };
+}
+
 test("analyze API guard rejects removed dataTypes before invoking analysis dependencies", () => {
   const { validateAnalyzeRequest } = require(path.join(ROOT, "utils/apiGuards.js"));
 
@@ -283,6 +308,90 @@ test("render boundary rejects player radar evidence with incomplete segment iden
         },
       }),
       /Player Radar .*needs complete player identity/
+    );
+
+    assert.equal(renderCalls, 0);
+    const rendersDir = path.join(dir, "public", "renders");
+    assert.deepEqual(fs.existsSync(rendersDir) ? fs.readdirSync(rendersDir) : [], []);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("render boundary rejects non-string identities and non-scalar numeric evidence", async () => {
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-type-boundary-"));
+  process.chdir(dir);
+  try {
+    const { renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService.js"));
+    let renderCalls = 0;
+
+    await assert.rejects(
+      () => renderVideosFromRequest(makeValidPlayerRadarAnalysis({
+        matchupSegment: {
+          ...makeValidPlayerRadarAnalysis().matchupSegment,
+          focusPlayer: { name: 123, team: "GEN", role: "Mid" },
+          reasons: [
+            { metric: "DPM", winnerValue: true, loserValue: false, delta: [1] },
+            { metric: "KP%", winnerValue: ["0.86"], loserValue: "0.48", delta: "0.38" },
+          ],
+        },
+        proofSegment: {
+          player: { name: "GEN Mid", team: "GEN", role: "Mid" },
+          proofReasons: [
+            { metric: "KP%", rawValue: "84%", score: true },
+            { metric: "DPM", rawValue: "720", score: [88] },
+          ],
+        },
+      }), {
+        execRenderImpl: async () => {
+          renderCalls += 1;
+          return null;
+        },
+      }),
+      /Player Radar .*needs at least 2 verifiable reasons/
+    );
+
+    assert.equal(renderCalls, 0);
+    const rendersDir = path.join(dir, "public", "renders");
+    assert.deepEqual(fs.existsSync(rendersDir) ? fs.readdirSync(rendersDir) : [], []);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("render boundary validates every localized player radar payload before rendering any locale", async () => {
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-localized-boundary-"));
+  process.chdir(dir);
+  try {
+    const { renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService.js"));
+    let renderCalls = 0;
+
+    await assert.rejects(
+      () => renderVideosFromRequest({
+        ...makeValidPlayerRadarAnalysis(),
+        renderLanguages: ["zh", "en"],
+        localizedPayloads: {
+          en: makeValidPlayerRadarAnalysis({
+            proofSegment: {
+              player: { name: "GEN Mid", team: "GEN", role: "Mid" },
+              proofReasons: [
+                { metric: "KP%", rawValue: "84%", score: "elite" },
+                { metric: "DPM", rawValue: "720", score: "high" },
+              ],
+            },
+          }),
+        },
+      }, {
+        execRenderImpl: async () => {
+          renderCalls += 1;
+          return null;
+        },
+      }),
+      /Player Radar .*needs at least 2 verifiable reasons/
     );
 
     assert.equal(renderCalls, 0);

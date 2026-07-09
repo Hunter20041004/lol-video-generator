@@ -409,10 +409,14 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
   const languages = [...new Set(requestedLanguages)].slice(0, 2);
   const sharedBgmFile = requestData.bgmFile || options.sharedBgmFile || `audio/bgm${Math.floor(Math.random() * 3) + 1}.mp3`;
 
+  const payloads = languages.map((lang) => ({
+    lang,
+    payload: getPayloadForLanguage(requestData, lang),
+  }));
+  payloads.forEach(({ payload }) => assertPlayerRadarEvidence(payload));
+
   const videos = [];
-  for (const lang of languages) {
-    const payload = getPayloadForLanguage(requestData, lang);
-    assertPlayerRadarEvidence(payload);
+  for (const { lang, payload } of payloads) {
     payload.bgmFile = payload.bgmFile || sharedBgmFile;
     videos.push(await renderOne(payload, {
       timestamp,

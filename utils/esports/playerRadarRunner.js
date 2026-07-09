@@ -228,19 +228,21 @@ function selectProofSegment(series = {}, proofPlayerName = "", locale = "zh") {
 
 function buildPlayerRadarStoryboard(payload = {}, locale = "zh") {
   const matchupName = payload.matchupSegment?.focusPlayer?.name || payload.matchupSegment?.edgePlayer?.name || "對位焦點";
+  const edgeName = payload.matchupSegment?.edgePlayer?.name || "";
   const proofName = payload.proofSegment?.player?.name || "關鍵人物";
   const samePlayer = normalizePlayerName(matchupName) === normalizePlayerName(proofName);
+  const focusOwnsEdge = normalizePlayerName(matchupName) === normalizePlayerName(edgeName);
   if (locale === "en") {
     return [
       { tag: "HOOK", text: "Biggest lane gap\nsame as MVP?", durationInFrames: 90 },
-      { tag: "MATCHUP_EDGE", text: `${matchupName}\ncreated the matchup gap`, durationInFrames: 126 },
+      { tag: "MATCHUP_EDGE", text: focusOwnsEdge ? `${matchupName}\ncreated the matchup gap` : `${matchupName}\nwhere the matchup swung`, durationInFrames: 126 },
       { tag: "PLAYER_PROOF", text: `${proofName}\ncheck the player case`, durationInFrames: 126 },
       { tag: "CONCLUSION_CTA", text: samePlayer ? "One player, two cases\ncomment your read" : "Gap and MVP split\ncomment your read", durationInFrames: 90 },
     ];
   }
   return [
     { tag: "HOOK", text: "最大差距和 MVP\n是同一個人嗎", durationInFrames: 90 },
-    { tag: "MATCHUP_EDGE", text: `${matchupName}\n打出最大對位差`, durationInFrames: 126 },
+    { tag: "MATCHUP_EDGE", text: focusOwnsEdge ? `${matchupName}\n打出最大對位差` : `${matchupName}\n這路差距最關鍵`, durationInFrames: 126 },
     { tag: "PLAYER_PROOF", text: `${proofName}\n關鍵人物證明`, durationInFrames: 126 },
     { tag: "CONCLUSION_CTA", text: samePlayer ? "同一人雙重證明\n你同意嗎" : "對位差和關鍵人物\n你怎麼看", durationInFrames: 90 },
   ];
