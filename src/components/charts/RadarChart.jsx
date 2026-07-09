@@ -13,6 +13,20 @@ const polarToXY = (cx, cy, radius, axisIndex, axisCount) => {
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
+const hasRenderableAxis = (stat) => {
+  if (!stat || typeof stat !== "object") {
+    return false;
+  }
+  const label = typeof stat.label === "string" ? stat.label.trim() : stat.label;
+  const rawValue = typeof stat.rawValue === "string" ? stat.rawValue.trim() : stat.rawValue;
+  return label !== undefined
+    && label !== null
+    && label !== ""
+    && rawValue !== undefined
+    && rawValue !== null
+    && rawValue !== "";
+};
+
 // =========================================================================
 // 動畫：所有頂點從中心 (0,0) 一起 expand 到最終座標，前 30 frame 完成
 // 多邊形 fill / stroke 在 expand 過程同步漸入；軸標籤 fade in 跟隨
@@ -30,7 +44,7 @@ export const RadarChart = ({
   const { fps } = useVideoConfig();
 
   // 安全化：只畫傳入且已驗證的軸，不合成任何 fallback 證據
-  const stats = (Array.isArray(radarStats) ? radarStats.slice(0, 5) : []);
+  const stats = (Array.isArray(radarStats) ? radarStats.filter(hasRenderableAxis).slice(0, 5) : []);
 
   const cx = size / 2;
   const cy = size / 2;
@@ -118,7 +132,7 @@ export const RadarChart = ({
           dominantBaseline="middle"
           style={{ letterSpacing: 3 }}
         >
-          {s.label || "?"}
+          {s.label}
         </text>
         {/* 原始數值（rawValue），小一級放在 label 下方 */}
         <text
@@ -131,7 +145,7 @@ export const RadarChart = ({
           dominantBaseline="middle"
           opacity={0.92}
         >
-          {String(s.rawValue ?? "—")}
+          {String(s.rawValue)}
         </text>
       </g>
     );
