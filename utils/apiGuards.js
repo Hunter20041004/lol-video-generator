@@ -1,4 +1,5 @@
 const { assertSupportedDataType } = require("./pipelineRegistry");
+const { assertPlayerRadarEvidence } = require("./esports/playerRadarEvidence");
 const {
   DEFAULT_PLATFORMS,
   assertSupportedPlatform,
@@ -34,6 +35,10 @@ function requestedPlatforms(body = {}) {
 function validatePublishRequest(body = {}) {
   try {
     const dataType = assertSupportedDataType(body.analysis?.dataType || body.dataType || "PATCH");
+    if (dataType === "PLAYER_RADAR") {
+      const analysis = body.analysis && typeof body.analysis === "object" ? body.analysis : body;
+      assertPlayerRadarEvidence({ ...analysis, dataType });
+    }
     const platforms = requestedPlatforms(body).map(assertSupportedPlatform);
     return {
       dataType,

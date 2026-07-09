@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const { normalizePipelinePayload } = require("../../src/schemas/pipelineSchemas");
 const { assertSupportedDataType } = require("../pipelineRegistry");
+const { assertPlayerRadarEvidence } = require("../esports/playerRadarEvidence");
 const { getChampionEntry, getChampionTWName, getItemEntry, getRuneEntry } = require("../riotLocalization");
 const { splitDenseSkillScenes } = require("../patchStoryboard");
 const { localizeRemoteImageAssets } = require("./remoteAssetCache");
@@ -411,6 +412,7 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
   const videos = [];
   for (const lang of languages) {
     const payload = getPayloadForLanguage(requestData, lang);
+    assertPlayerRadarEvidence(payload);
     payload.bgmFile = payload.bgmFile || sharedBgmFile;
     videos.push(await renderOne(payload, {
       timestamp,
