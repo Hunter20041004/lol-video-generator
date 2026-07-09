@@ -297,10 +297,11 @@ test("Player radar conclusion uses loser-focused selected matchup subject", () =
     },
   });
 
-  assert.equal(verdict.isSamePlayer, true);
+  assert.equal(verdict.isSamePlayer, false);
   assert.equal(verdict.matchupName, "GEN Mid");
   assert.match(verdict.body, /GEN Mid/);
-  assert.doesNotMatch(verdict.body, /T1 Mid/);
+  assert.match(verdict.body, /T1 Mid/);
+  assert.doesNotMatch(verdict.body, /owns both/);
 });
 
 test("Player radar English locale copy comes from behavior helpers", () => {
