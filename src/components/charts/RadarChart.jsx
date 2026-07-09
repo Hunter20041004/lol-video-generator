@@ -19,12 +19,16 @@ const hasRenderableAxis = (stat) => {
   }
   const label = typeof stat.label === "string" ? stat.label.trim() : stat.label;
   const rawValue = typeof stat.rawValue === "string" ? stat.rawValue.trim() : stat.rawValue;
+  const score = Number(stat.normalizedScore);
   return label !== undefined
     && label !== null
     && label !== ""
     && rawValue !== undefined
     && rawValue !== null
-    && rawValue !== "";
+    && rawValue !== ""
+    && Number.isFinite(score)
+    && score >= 0
+    && score <= 100;
 };
 
 // =========================================================================
@@ -98,7 +102,7 @@ export const RadarChart = ({
 
   // 數據多邊形 — 每個頂點半徑 = (normalizedScore / 100) × expand
   const dataPoints = stats.map((s, i) => {
-    const score = clamp01((Number(s.normalizedScore) || 0) / 100);
+    const score = clamp01(Number(s.normalizedScore) / 100);
     const r = radius * score * expand;
     return polarToXY(cx, cy, r, i, axisCount);
   });

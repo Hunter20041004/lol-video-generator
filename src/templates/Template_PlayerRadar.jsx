@@ -17,7 +17,7 @@ import {
 } from "../video-system/VideoPrimitives";
 import playerRadarHelpers from "./playerRadarHelpers";
 
-const { buildConclusionVerdict, deriveMatchupDisplayPlayers, getHookProofPillValue, getPlayer, getPlayerRadarCopy, getRoleLabel, isEnglishLocale } = playerRadarHelpers;
+const { buildConclusionVerdict, deriveMatchupDisplayPlayers, getHookProofPillValue, getMatchupMetricDisplay, getPlayer, getPlayerRadarCopy, getRoleLabel, isEnglishLocale } = playerRadarHelpers;
 
 const getProofBadgeLabel = (proofType, data = {}) => {
   const copy = getPlayerRadarCopy(data);
@@ -27,7 +27,7 @@ const getProofBadgeLabel = (proofType, data = {}) => {
 const buildRadarStoryboard = (data = {}) => {
   if (Array.isArray(data.storyboard) && data.storyboard.length > 0) return data.storyboard;
   const copy = getPlayerRadarCopy(data);
-  const playerName = data.player?.name || (isEnglishLocale(data) ? "Player" : "選手");
+  const playerName = data.player?.name || data.proofSegment?.player?.name || "";
   return copy.storyboard.map((scene) => ({
     ...scene,
     text: scene.text.replace("(playerName)", playerName),
@@ -47,15 +47,15 @@ const HookScene = ({ data, theme, localFrame }) => {
     <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 30 }}>
       <PipelineBadge theme={theme} localFrame={localFrame}>{copy.hookBadge}</PipelineBadge>
       <KineticTitle
-        eyebrow={`${match.league || "LCK"} · ${match.teamA || "T1"} vs ${match.teamB || "GEN"} · ${match.seriesScore || "Game 1"}`}
-        title={player.name || "Player"}
+        eyebrow={`${match.league} · ${match.teamA} vs ${match.teamB} · ${match.seriesScore}`}
+        title={player.name}
         subtitle={`${getRoleLabel(player.role, data)}${player.championPlayed ? ` · ${player.championPlayed}` : ""}`}
         theme={theme}
         localFrame={localFrame}
         size={128}
       />
       <div style={{ display: "flex", gap: 16, marginTop: 18 }}>
-        <DataPill label={copy.hookSeriesLabel} value={match.seriesScore || "Game 1"} color={theme.accent} />
+        <DataPill label={copy.hookSeriesLabel} value={match.seriesScore} color={theme.accent} />
         <DataPill label={proofBadgeLabel} value={getHookProofPillValue(data)} color={HEXTECH_COLORS.gold} />
         <DataPill label={copy.hookRoleLabel} value={getRoleLabel(player.role, data)} color={theme.secondary} />
       </div>
@@ -63,17 +63,20 @@ const HookScene = ({ data, theme, localFrame }) => {
   );
 };
 
-const MetricRow = ({ reason, accent }) => (
-  <div style={{ display: "grid", gridTemplateColumns: "120px 1fr 116px", gap: 18, alignItems: "center" }}>
-    <div style={{ color: accent, fontSize: 26, fontWeight: 950 }}>{reason.metric}</div>
-    <div style={{ color: "rgba(219,234,254,0.78)", fontSize: 23, fontWeight: 800 }}>
-      {reason.winnerValue} vs {reason.loserValue}
+const MetricRow = ({ reason, segment, accent }) => {
+  const values = getMatchupMetricDisplay(reason, segment);
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "120px 1fr 116px", gap: 18, alignItems: "center" }}>
+      <div style={{ color: accent, fontSize: 26, fontWeight: 950 }}>{reason.metric}</div>
+      <div style={{ color: "rgba(219,234,254,0.78)", fontSize: 23, fontWeight: 800 }}>
+        {values.leftValue} vs {values.rightValue}
+      </div>
+      <div style={{ color: HEXTECH_COLORS.gold, fontSize: 30, fontWeight: 950, textAlign: "right" }}>
+        +{reason.delta}
+      </div>
     </div>
-    <div style={{ color: HEXTECH_COLORS.gold, fontSize: 30, fontWeight: 950, textAlign: "right" }}>
-      +{reason.delta}
-    </div>
-  </div>
-);
+  );
+};
 
 const MatchupEdgeScene = ({ data, theme, localFrame }) => {
   const segment = data.matchupSegment || {};
@@ -88,9 +91,9 @@ const MatchupEdgeScene = ({ data, theme, localFrame }) => {
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", gap: 34 }}>
       <KineticTitle
-        eyebrow={`${segment.role || focusPlayer.role || "ROLE"} MATCHUP EDGE`}
+        eyebrow={`${segment.role || focusPlayer.role} MATCHUP EDGE`}
         title={copy.matchupTitle}
-        subtitle={`${focusPlayer.name || edgePlayer.name || "Focus"} vs ${opponentPlayer.name || "Opponent"} · ${label}`}
+        subtitle={`${focusPlayer.name || edgePlayer.name} vs ${opponentPlayer.name} · ${label}`}
         theme={theme}
         localFrame={localFrame}
         size={64}
@@ -108,7 +111,7 @@ const MatchupEdgeScene = ({ data, theme, localFrame }) => {
         </div>
         <GlassPanel accent={theme.secondary} style={{ minHeight: 250 }}>
           <div style={{ color: theme.secondary, fontSize: 20, fontWeight: 950, letterSpacing: 4 }}>OPPONENT</div>
-          <div style={{ marginTop: 16, color: "#fff", fontSize: 48, fontWeight: 950 }}>{opponentPlayer.name || "Opponent"}</div>
+          <div style={{ marginTop: 16, color: "#fff", fontSize: 48, fontWeight: 950 }}>{opponentPlayer.name}</div>
           <div style={{ marginTop: 10, color: "rgba(219,234,254,0.78)", fontSize: 28, fontWeight: 850 }}>
             {opponentPlayer.team || ""} · {getRoleLabel(opponentPlayer.role || segment.role, data)}
           </div>
@@ -116,9 +119,9 @@ const MatchupEdgeScene = ({ data, theme, localFrame }) => {
       </div>
       <GlassPanel accent={HEXTECH_COLORS.gold} style={{ display: "grid", gap: 18 }}>
         <div style={{ color: "#fff", fontSize: 34, fontWeight: 950 }}>
-          {copy.edgeLeadLabel}: {edgePlayer.name || "Edge player"} · {Math.round(segment.edgeScore || 0)}
+          {copy.edgeLeadLabel}: {edgePlayer.name} · {Math.round(segment.edgeScore)}
         </div>
-        {reasons.map((reason) => <MetricRow key={reason.metric} reason={reason} accent={theme.accent} />)}
+        {reasons.map((reason) => <MetricRow key={reason.metric} reason={reason} segment={segment} accent={theme.accent} />)}
       </GlassPanel>
     </div>
   );
@@ -127,7 +130,7 @@ const MatchupEdgeScene = ({ data, theme, localFrame }) => {
 const PlayerProofScene = ({ data, theme, localFrame }) => {
   const segment = data.proofSegment || {};
   const copy = getPlayerRadarCopy(data);
-  const player = segment.player || getPlayer(data);
+  const player = segment.player || {};
   const reasons = Array.isArray(segment.proofReasons) ? segment.proofReasons.slice(0, 3) : [];
   const proofReasons = reasons;
   const proofLabel = segment.proofType === "mvp" ? copy.proofBadgeLabels.mvp : copy.proofBadgeLabels.key_player;
@@ -141,7 +144,7 @@ const PlayerProofScene = ({ data, theme, localFrame }) => {
           <PipelineBadge theme={theme} localFrame={localFrame}>{proofLabel}</PipelineBadge>
           <KineticTitle
             eyebrow={`${player.team || ""} · ${getRoleLabel(player.role, data)}`}
-            title={player.name || "Player"}
+            title={player.name}
             subtitle={segment.verdict || data.verdict || copy.proofSubtitle}
             theme={theme}
             localFrame={localFrame}

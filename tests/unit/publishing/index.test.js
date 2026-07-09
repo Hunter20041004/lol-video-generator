@@ -39,13 +39,23 @@ function makePlayerRadarAnalysis() {
     dataType: "PLAYER_RADAR",
     title: "T1 vs GEN 選手雷達",
     matchContext: { league: "LCK", teamA: "T1", teamB: "GEN", seriesScore: "Game 3" },
+    player: {
+      name: "Oner",
+      team: "T1",
+      role: "Jungle",
+      rawStats: { kp: 0.84, dpm: 720 },
+      radarStats: [
+        { label: "KP%", rawValue: "84%", normalizedScore: 90 },
+        { label: "DPM", rawValue: "720", normalizedScore: 88 },
+      ],
+    },
     matchupSegment: {
       role: "Mid",
       edgeType: "winner-breakpoint",
       edgeScore: 360,
-      focusPlayer: { name: "Faker", team: "T1", role: "Mid" },
-      edgePlayer: { name: "Faker", team: "T1", role: "Mid" },
-      opponentPlayer: { name: "Chovy", team: "GEN", role: "Mid" },
+      focusPlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: { dpm: 720, kp: 0.86 } },
+      edgePlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: { dpm: 720, kp: 0.86 } },
+      opponentPlayer: { name: "Chovy", team: "GEN", role: "Mid", rawStats: { dpm: 360, kp: 0.48 } },
       edgeWinnerTeam: "T1",
       reasons: [
         { metric: "DPM", winnerValue: 720, loserValue: 360, delta: 360 },
@@ -57,6 +67,7 @@ function makePlayerRadarAnalysis() {
         name: "Oner",
         team: "T1",
         role: "Jungle",
+        rawStats: { kp: 0.84, dpm: 720 },
         radarStats: [
           { label: "KP%", rawValue: "84%", normalizedScore: 90 },
           { label: "DPM", rawValue: "720", normalizedScore: 88 },
