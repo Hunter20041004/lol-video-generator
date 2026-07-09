@@ -472,8 +472,9 @@ function normalizeMatchRow(row) {
   const team2 = row.Team2 || '';
   const winTeam = row.WinTeam || '';
   const gameNum = '1';
-  const gamelengthMin = 30;
   const gamelengthStr = row.Gamelength || '';
+  const durationSeconds = parseGameLengthSeconds(gamelengthStr);
+  const gamelengthMin = durationSeconds ? durationSeconds / 60 : null;
   const dateUtc = row['DateTime UTC'] || row.DateTime_UTC || '';
   const gameId = row.GameId || '';
 
@@ -485,6 +486,7 @@ function normalizeMatchRow(row) {
     gameId,
     dateUtc,
     tournament,
+    durationSeconds,
     gamelengthMin,
     gamelengthStr,
     winTeam,
@@ -497,6 +499,27 @@ function normalizeMatchRow(row) {
   };
 }
 
+function parseGameLengthSeconds(value = "") {
+  const text = String(value || "").trim();
+  if (!text) return null;
+  const colon = text.match(/^(\d+):(\d{1,2})$/);
+  if (colon) return Number(colon[1]) * 60 + Number(colon[2]);
+  const minutesSeconds = text.match(/^(\d+)\s*m(?:in(?:ute)?s?)?\s*(?:(\d+)\s*s(?:ec(?:ond)?s?)?)?$/i);
+  if (minutesSeconds) return Number(minutesSeconds[1]) * 60 + Number(minutesSeconds[2] || 0);
+  const numericMinutes = Number(text);
+  return Number.isFinite(numericMinutes) && numericMinutes > 0 ? numericMinutes * 60 : null;
+}
+
+function parseNullableInteger(value) {
+  if (value === null || value === undefined || String(value).trim() === "") return null;
+  const parsed = Number.parseInt(String(value).replace(/,/g, ""), 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function stringifyNullable(value) {
+  return value === null || value === undefined ? null : String(value);
+}
+
 /**
  * Normalizes a ScoreboardPlayers row into our internal player format.
  */
@@ -506,20 +529,25 @@ function normalizePlayerRow(row, match) {
   const role = normalizeRole(row.Role || '');
   const team = row.Team || '';
 
-  const kills = parseInt(row.Kills || '0', 10);
-  const deaths = parseInt(row.Deaths || '0', 10);
-  const assists = parseInt(row.Assists || '0', 10);
-  const cs = parseInt(row.CS || '0', 10);
-  const gold = parseInt(row.Gold || '0', 10);
-  const damageToChamps = parseInt(row.DamageToChampions || row['DamageToChampions'] || row.DamageToChamps || row['DamageToChamps'] || '0', 10);
-  const visionScore = parseInt(row.VisionScore || '0', 10);
+  const kills = parseNullableInteger(row.Kills);
+  const deaths = parseNullableInteger(row.Deaths);
+  const assists = parseNullableInteger(row.Assists);
+  const cs = parseNullableInteger(row.CS);
+  const gold = parseNullableInteger(row.Gold);
+  const damageToChamps = parseNullableInteger(row.DamageToChampions ?? row.DamageToChamps);
+  const visionScore = parseNullableInteger(row.VisionScore);
 
   // Calculate derived stats
-  const kda = deaths === 0 ? kills + assists : parseFloat(((kills + assists) / deaths).toFixed(2));
-  const gameMins = match?.gamelengthMin || 30; // fallback 30 min
-  const dpm = gameMins > 0 ? Math.round(damageToChamps / gameMins) : 0;
-  const gpm = gameMins > 0 ? Math.round(gold / gameMins) : 0;
-  const cspm = gameMins > 0 ? parseFloat((cs / gameMins).toFixed(1)) : 0;
+  const hasKdaInputs = [kills, deaths, assists].every((value) => Number.isFinite(value));
+  const kda = hasKdaInputs
+    ? (deaths === 0 ? kills + assists : parseFloat(((kills + assists) / deaths).toFixed(2)))
+    : null;
+  const gameMins = Number(match?.durationSeconds) > 0
+    ? Number(match.durationSeconds) / 60
+    : (Number(match?.gamelengthMin) > 0 ? Number(match.gamelengthMin) : null);
+  const dpm = gameMins && Number.isFinite(damageToChamps) ? Math.round(damageToChamps / gameMins) : null;
+  const gpm = gameMins && Number.isFinite(gold) ? Math.round(gold / gameMins) : null;
+  const cspm = gameMins && Number.isFinite(cs) ? parseFloat((cs / gameMins).toFixed(1)) : null;
 
   return {
     name,
@@ -535,133 +563,19 @@ function normalizePlayerRow(row, match) {
     damageToChampions: damageToChamps,
     visionScore,
     stats: {
-      kda: String(kda),
+      kda: stringifyNullable(kda),
       kills, deaths, assists,
-      dpm: String(dpm),
+      dpm: stringifyNullable(dpm),
       kp: '0', // KP% requires team total kills — calculated in aggregation step
-      vision: String(visionScore),
-      gold: String(gpm),
-      rawGold: String(gold),
-      damageToChampions: String(damageToChamps),
-      cs: String(cs),
-      cspm: String(cspm),
-      damageToChamps: String(damageToChamps),
+      vision: stringifyNullable(visionScore),
+      gold: stringifyNullable(gpm),
+      rawGold: stringifyNullable(gold),
+      damageToChampions: stringifyNullable(damageToChamps),
+      cs: stringifyNullable(cs),
+      cspm: stringifyNullable(cspm),
+      damageToChamps: stringifyNullable(damageToChamps),
     },
   };
-}
-
-// =========================================================================
-// SECTION 4 · Data Transformation (Cargo → v2 PLAYER_RADAR Schema)
-// =========================================================================
-
-/**
- * Transforms Cargo player + match data into the v2 PLAYER_RADAR schema
- * ready for reasoning.js or autoDispatcher consumption.
- *
- * @param {Object} cargoPlayer — Normalized player object from normalizePlayerRow
- * @param {Object} cargoMatch — Normalized match object from normalizeMatchRow
- * @param {Array} [allPlayers] — All players in the match (for KP% calculation)
- * @returns {Object} — v2 PLAYER_RADAR payload
- */
-function transformCargoToRadarSchema(cargoPlayer, cargoMatch, allPlayers = []) {
-  // Calculate Kill Participation if we have the full roster
-  let kpPercent = 0;
-  if (allPlayers.length > 0) {
-    const teamPlayers = allPlayers.filter(p => p.team === cargoPlayer.team);
-    const teamTotalKills = teamPlayers.reduce((sum, p) => sum + (p.stats?.kills || 0), 0);
-    if (teamTotalKills > 0) {
-      const playerKA = (cargoPlayer.stats?.kills || 0) + (cargoPlayer.stats?.assists || 0);
-      kpPercent = Math.round((playerKA / teamTotalKills) * 100);
-    }
-  }
-
-  // Build the 5-axis radarStats matching SYSTEM_PROMPT_BASE recommendations
-  const radarStats = buildRadarStats(cargoPlayer, kpPercent);
-
-  return {
-    dataType: 'PLAYER_RADAR',
-    matchContext: cargoMatch.matchContext,
-    playerName: cargoPlayer.name,
-    playerRole: cargoPlayer.role,
-    player: {
-      name: cargoPlayer.name,
-      role: cargoPlayer.role,
-      championPlayed: cargoPlayer.champion,
-    },
-    radarStats,
-    // Pass raw stats for the LLM to have context
-    stats: {
-      kda: cargoPlayer.stats.kda,
-      dpm: cargoPlayer.stats.dpm,
-      kp: String(kpPercent),
-      vision: cargoPlayer.stats.vision,
-      gold: cargoPlayer.stats.gold,
-    },
-  };
-}
-
-/**
- * Builds role-aware 5-axis radarStats from raw player stats.
- * Uses the normalizeStatValue function from autoDispatcher benchmarks.
- */
-function buildRadarStats(player, kpPercent) {
-  const s = player.stats || {};
-  const role = player.role || 'Mid';
-
-  // Role-specific label sets (matching SYSTEM_PROMPT_BASE spec)
-  const LABEL_SETS = {
-    Top:     ['KDA', 'DPM', 'KP%', 'Vision', 'CS Diff'],
-    Mid:     ['KDA', 'DPM', 'KP%', 'Vision', 'CS Diff'],
-    Jungle:  ['KDA', 'DPM', 'KP%', 'Vision Score', 'Obj Control'],
-    Adc:     ['KDA', 'DPM', 'KP%', 'Crit Damage', 'GPM'],
-    Support: ['KDA', 'KP%', 'Vision Score', 'CC Score', 'DMG Mitigated'],
-  };
-
-  const labels = LABEL_SETS[role] || LABEL_SETS.Mid;
-
-  // Map labels to raw values from Cargo data
-  const rawValueMap = {
-    'KDA':           s.kda || '0',
-    'DPM':           s.dpm || '0',
-    'KP%':           `${kpPercent}%`,
-    'Vision':        s.vision || '0',
-    'Vision Score':  s.vision || '0',
-    'CS Diff':       s.cspm || '0', // Using CSPM as proxy (no lane opponent data from Cargo)
-    'GPM':           s.gold || '0',
-    'Obj Control':   '—',           // Not available from Cargo
-    'Crit Damage':   s.damageToChamps || '0',
-    'CC Score':      '—',           // Not available from Cargo
-    'DMG Mitigated': '—',           // Not available from Cargo
-  };
-
-  // Normalization benchmarks (pro-play calibrated, same as autoDispatcher)
-  const BENCHMARKS = {
-    'KDA':           { floor: 1.0, ceiling: 12.0 },
-    'DPM':           { floor: 200, ceiling: 800  },
-    'KP%':           { floor: 40,  ceiling: 95   },
-    'Vision':        { floor: 10,  ceiling: 60   },
-    'Vision Score':  { floor: 10,  ceiling: 60   },
-    'CS Diff':       { floor: 5.0, ceiling: 10.0 }, // CSPM as proxy
-    'GPM':           { floor: 250, ceiling: 500  },
-    'Obj Control':   { floor: 20,  ceiling: 80   },
-    'Crit Damage':   { floor: 8000, ceiling: 30000 },
-    'CC Score':      { floor: 10,  ceiling: 80   },
-    'DMG Mitigated': { floor: 200, ceiling: 700  },
-  };
-
-  return labels.map(label => {
-    const rawStr = rawValueMap[label] || '—';
-    const rawNum = parseFloat(String(rawStr).replace(/[^0-9.\-]/g, '')) || 0;
-    const bench = BENCHMARKS[label] || { floor: 0, ceiling: 100 };
-    const clamped = Math.max(bench.floor, Math.min(bench.ceiling, rawNum));
-    const normalizedScore = Math.round(((clamped - bench.floor) / (bench.ceiling - bench.floor)) * 100);
-
-    return {
-      label,
-      rawValue: rawStr,
-      normalizedScore: Math.max(0, Math.min(100, normalizedScore)),
-    };
-  });
 }
 
 // =========================================================================
@@ -721,10 +635,6 @@ module.exports = {
   fetchRecentMatches,
   fetchMatchPlayers,
   fetchRecentMatchesWithPlayers,
-
-  // Data transformation
-  transformCargoToRadarSchema,
-  buildRadarStats,
 
   // Low-level
   cargoQuery,

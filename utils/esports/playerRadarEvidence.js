@@ -18,6 +18,10 @@ function hasFiniteNumber(value) {
   return false;
 }
 
+function toFiniteNumber(value) {
+  return hasFiniteNumber(value) ? Number(value) : NaN;
+}
+
 function hasEvidenceDisplayValue(value) {
   if (typeof value === "number") return Number.isFinite(value);
   if (typeof value !== "string") return false;
@@ -43,6 +47,45 @@ function isVerifiableRadarStat(stat = {}) {
   return hasText(stat.label)
     && hasEvidenceDisplayValue(stat.rawValue)
     && hasFiniteNumber(stat.normalizedScore);
+}
+
+const VALID_EDGE_TYPES = new Set(["winner-breakpoint", "loser-highlight"]);
+
+function metricKey(value = "") {
+  return String(value || "").trim().toLowerCase();
+}
+
+function hasUniqueMetrics(entries = [], field = "metric") {
+  const keys = entries.map((entry) => metricKey(entry?.[field])).filter(Boolean);
+  return keys.length === new Set(keys).size;
+}
+
+function hasConsistentPositiveDelta(reason = {}) {
+  const winnerValue = toFiniteNumber(reason.winnerValue);
+  const loserValue = toFiniteNumber(reason.loserValue);
+  const delta = toFiniteNumber(reason.delta);
+  if (![winnerValue, loserValue, delta].every(Number.isFinite)) return false;
+  const computedDelta = winnerValue - loserValue;
+  const tolerance = Math.max(0.001, Math.abs(computedDelta) * 0.001);
+  return computedDelta > 0
+    && delta > 0
+    && Math.abs(computedDelta - delta) <= tolerance;
+}
+
+function sameDisplayValue(left, right) {
+  return String(left ?? "").trim() === String(right ?? "").trim();
+}
+
+function proofReasonsMatchRadarStats(reasons = [], radarStats = []) {
+  const statsByMetric = new Map(
+    radarStats.map((stat) => [metricKey(stat.label), stat])
+  );
+  return reasons.every((reason) => {
+    const stat = statsByMetric.get(metricKey(reason.metric));
+    return Boolean(stat)
+      && sameDisplayValue(reason.rawValue, stat.rawValue)
+      && toFiniteNumber(reason.score) === toFiniteNumber(stat.normalizedScore);
+  });
 }
 
 function hasCompletePlayerIdentity(player = {}) {
@@ -98,6 +141,19 @@ function assertSinglePlayerRadarEvidence(payload = {}) {
   if (!displayedMatchupReasons.every(isVerifiableMatchupReason)) {
     throw new Error(`Player Radar matchup segment contains unverifiable displayed reasons for ${matchupSegment.role}.`);
   }
+  if (!VALID_EDGE_TYPES.has(String(matchupSegment.edgeType || ""))) {
+    throw new Error("Player Radar matchup segment needs a valid edge type.");
+  }
+  const edgeScore = toFiniteNumber(matchupSegment.edgeScore);
+  if (!Number.isFinite(edgeScore) || edgeScore < 0) {
+    throw new Error("Player Radar matchup segment needs a finite nonnegative edge score.");
+  }
+  if (!hasUniqueMetrics(displayedMatchupReasons)) {
+    throw new Error("Player Radar matchup segment needs unique displayed metrics.");
+  }
+  if (!displayedMatchupReasons.every(hasConsistentPositiveDelta)) {
+    throw new Error("Player Radar matchup segment contains inconsistent displayed deltas.");
+  }
   if (!hasCompletePlayerIdentity(matchupSegment.focusPlayer)
     || !hasCompletePlayerIdentity(matchupSegment.edgePlayer)
     || !hasCompletePlayerIdentity(matchupSegment.opponentPlayer)) {
@@ -129,6 +185,12 @@ function assertSinglePlayerRadarEvidence(payload = {}) {
   }
   if (!displayedRadarStats.every(isVerifiableRadarStat)) {
     throw new Error(`Player Radar proof segment contains unverifiable displayed radar stats for ${proofSegment.player?.name}.`);
+  }
+  if (!hasUniqueMetrics(displayedProofReasons) || !hasUniqueMetrics(displayedRadarStats, "label")) {
+    throw new Error("Player Radar proof segment needs unique displayed metrics.");
+  }
+  if (!proofReasonsMatchRadarStats(displayedProofReasons, displayedRadarStats)) {
+    throw new Error("Player Radar proof segment reasons must match displayed radar stats.");
   }
 
   return payload;

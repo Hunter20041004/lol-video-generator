@@ -29,6 +29,8 @@ function makeValidPlayerRadarAnalysis(overrides = {}) {
     dataType: "PLAYER_RADAR",
     matchupSegment: {
       role: "Mid",
+      edgeType: "loser-highlight",
+      edgeScore: 360,
       focusPlayer: { name: "GEN Mid", team: "GEN", role: "Mid" },
       edgePlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
       opponentPlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
@@ -586,6 +588,8 @@ test("render boundary rejects player radar evidence with incomplete segment iden
         dataType: "PLAYER_RADAR",
         matchupSegment: {
           role: "Mid",
+          edgeType: "winner-breakpoint",
+          edgeScore: 360,
           focusPlayer: { name: "GEN Mid", team: "GEN" },
           edgePlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
           opponentPlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
@@ -695,6 +699,94 @@ test("render boundary rejects bogus player radar proof raw values even with fini
   } finally {
     process.chdir(originalCwd);
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("render boundary rejects semantically malformed player radar matchup and proof evidence", async () => {
+  const { renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService.js"));
+  const cases = [
+    {
+      name: "missing edge type",
+      analysis: makeValidPlayerRadarAnalysis({
+        matchupSegment: {
+          ...makeValidPlayerRadarAnalysis().matchupSegment,
+          edgeType: undefined,
+        },
+      }),
+      message: /Player Radar matchup segment needs a valid edge type/,
+    },
+    {
+      name: "invalid edge score",
+      analysis: makeValidPlayerRadarAnalysis({
+        matchupSegment: {
+          ...makeValidPlayerRadarAnalysis().matchupSegment,
+          edgeScore: -1,
+        },
+      }),
+      message: /Player Radar matchup segment needs a finite nonnegative edge score/,
+    },
+    {
+      name: "duplicate metric",
+      analysis: makeValidPlayerRadarAnalysis({
+        matchupSegment: {
+          ...makeValidPlayerRadarAnalysis().matchupSegment,
+          reasons: [
+            { metric: "DPM", winnerValue: 720, loserValue: 360, delta: 360 },
+            { metric: "DPM", winnerValue: 0.86, loserValue: 0.48, delta: 0.38 },
+          ],
+        },
+      }),
+      message: /Player Radar matchup segment needs unique displayed metrics/,
+    },
+    {
+      name: "inconsistent delta",
+      analysis: makeValidPlayerRadarAnalysis({
+        matchupSegment: {
+          ...makeValidPlayerRadarAnalysis().matchupSegment,
+          reasons: [
+            { metric: "DPM", winnerValue: 720, loserValue: 360, delta: 10 },
+            { metric: "KP%", winnerValue: 0.86, loserValue: 0.48, delta: 0.38 },
+          ],
+        },
+      }),
+      message: /Player Radar matchup segment contains inconsistent displayed deltas/,
+    },
+    {
+      name: "proof reason missing chart stat",
+      analysis: makeValidPlayerRadarAnalysis({
+        proofSegment: {
+          player: {
+            name: "GEN Mid",
+            team: "GEN",
+            role: "Mid",
+            radarStats: [
+              { label: "KP%", rawValue: "84%", normalizedScore: 90 },
+              { label: "DPM", rawValue: "720", normalizedScore: 88 },
+            ],
+          },
+          proofReasons: [
+            { metric: "KP%", rawValue: "84%", score: 90 },
+            { metric: "GPM", rawValue: "420", score: 88 },
+          ],
+        },
+      }),
+      message: /Player Radar proof segment reasons must match displayed radar stats/,
+    },
+  ];
+
+  for (const scenario of cases) {
+    let renderCalls = 0;
+    await assert.rejects(
+      () => renderVideosFromRequest(scenario.analysis, {
+        execRenderImpl: async () => {
+          renderCalls += 1;
+          return null;
+        },
+      }),
+      scenario.message,
+      scenario.name
+    );
+    assert.equal(renderCalls, 0, scenario.name);
   }
 });
 
