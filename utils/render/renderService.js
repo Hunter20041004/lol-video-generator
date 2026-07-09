@@ -114,7 +114,7 @@ const getPayloadForLanguage = (requestData = {}, locale = "zh") => {
   if (hasPlayerRadarPayload(requestData) && !localized) {
     const rootLocale = String(requestData.locale || "zh").toLowerCase().startsWith("en") ? "en" : "zh";
     const requestedLocale = String(locale || "zh").toLowerCase().startsWith("en") ? "en" : "zh";
-    if (rootLocale !== requestedLocale) {
+    if (String(requestData.dataType || "").toUpperCase() !== "PLAYER_RADAR" || rootLocale !== requestedLocale) {
       throw new Error(`Player Radar localized payload missing for locale: ${requestedLocale}`);
     }
   }

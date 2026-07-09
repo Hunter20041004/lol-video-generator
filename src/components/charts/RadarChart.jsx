@@ -12,6 +12,21 @@ const polarToXY = (cx, cy, radius, axisIndex, axisCount) => {
 };
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
+const isNumericText = (value) => /^-?(?:\d+|\d*\.\d+)(?:e[+-]?\d+)?$/i.test(String(value).trim());
+
+const hasEvidenceDisplayValue = (value) => {
+  if (typeof value === "number") {
+    return Number.isFinite(value);
+  }
+  if (typeof value !== "string") {
+    return false;
+  }
+  const text = value.trim();
+  if (!text) {
+    return false;
+  }
+  return isNumericText(text.endsWith("%") ? text.slice(0, -1) : text);
+};
 
 const hasRenderableAxis = (stat) => {
   if (!stat || typeof stat !== "object") {
@@ -23,9 +38,7 @@ const hasRenderableAxis = (stat) => {
   return label !== undefined
     && label !== null
     && label !== ""
-    && rawValue !== undefined
-    && rawValue !== null
-    && rawValue !== ""
+    && hasEvidenceDisplayValue(rawValue)
     && Number.isFinite(score)
     && score >= 0
     && score <= 100;
@@ -157,7 +170,7 @@ export const RadarChart = ({
 
   // 頂點圓點（最終位置才畫，跟著多邊形動畫）
   const dataDots = dataPoints.map((p, i) => {
-    const score = (Number(stats[i].normalizedScore) || 0);
+    const score = Number(stats[i].normalizedScore);
     return (
       <circle
         key={`dot-${i}`}

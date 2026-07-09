@@ -71,3 +71,18 @@ test("player radar route returns 400 for semantic evidence validation failures",
     error: "Player Radar matchup segment contains inconsistent displayed deltas.",
   });
 });
+
+test("player radar route returns 400 for all player radar validation messages", async () => {
+  const POST = loadPostRouteWithRunner(async () => {
+    throw new Error("Player Radar matchup segment players must be one opposing pair.");
+  });
+
+  const response = await POST({ json: async () => ({ seriesId: "series-1" }) });
+  const body = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(body, {
+    success: false,
+    error: "Player Radar matchup segment players must be one opposing pair.",
+  });
+});

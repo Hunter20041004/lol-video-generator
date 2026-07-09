@@ -125,6 +125,19 @@ test("buildPlayerRadarPayload auto-selects max matchup edge and MVP proof segmen
   });
 });
 
+test("buildPlayerRadarPayload emits fractional KDA evidence that passes the render boundary", async () => {
+  await withTempProject(async () => {
+    const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
+    const series = makeSnapshot().candidates[0];
+
+    const payload = buildPlayerRadarPayload(series, { matchupPlayerName: "GEN Mid" }, "zh");
+
+    assert.equal(payload.matchupSegment.reasons.some((reason) => reason.metric === "KDA"), true);
+    assert.doesNotThrow(() => assertPlayerRadarEvidence(payload));
+  });
+});
+
 test("playerName overrides both matchup focus and proof player", async () => {
   await withTempProject(async () => {
     const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
@@ -186,6 +199,26 @@ test("mvpPlayerName and matchupPlayerName can override separate segments", async
     assert.equal(payload.matchupSegment.edgePlayer.name, "T1 Mid");
     assert.equal(payload.proofSegment.player.name, "T1 Top");
     assert.equal(payload.proofSegment.proofType, "key-player");
+  });
+});
+
+test("split overrides treat edge player and proof player as one case even with losing-side focus", async () => {
+  await withTempProject(async () => {
+    const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    const series = makeSnapshot().candidates[0];
+
+    const payload = buildPlayerRadarPayload(series, {
+      matchupPlayerName: "GEN Mid",
+      mvpPlayerName: "T1 Mid",
+    }, "zh");
+
+    assert.equal(payload.matchupSegment.focusPlayer.name, "GEN Mid");
+    assert.equal(payload.matchupSegment.edgePlayer.name, "T1 Mid");
+    assert.equal(payload.proofSegment.player.name, "T1 Mid");
+    assert.match(
+      payload.storyboard.find((scene) => scene.tag === "CONCLUSION_CTA").text,
+      /同一人雙重證明/
+    );
   });
 });
 
@@ -424,18 +457,47 @@ test("player radar payloads handle empty stats and stale MVP names", async () =>
   });
 });
 
+test("auto proof selection ignores sparse high-score players without minimum source coverage", async () => {
+  await withTempProject(async () => {
+    const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    const series = makeSnapshot().candidates[0];
+    delete series.recommendedMvp;
+    series.players.push({
+      name: "Sparse Star",
+      team: "T1",
+      role: "Mid",
+      rawStats: { role: "Mid", kda: 20, kp: 0.95 },
+      radarStats: [
+        { label: "KDA", rawValue: "20", normalizedScore: 100 },
+        { label: "KP%", rawValue: "95%", normalizedScore: 100 },
+      ],
+    });
+
+    const autoPayload = buildPlayerRadarPayload(series, {}, "zh");
+    const manualPayload = buildPlayerRadarPayload(series, {
+      matchupPlayerName: "T1 Mid",
+      mvpPlayerName: "Sparse Star",
+    }, "zh");
+
+    assert.equal(autoPayload.proofSegment.player.name, "T1 Mid");
+    assert.equal(manualPayload.proofSegment.player.name, "Sparse Star");
+    assert.equal(manualPayload.proofSegment.proofReasons.length, 2);
+  });
+});
+
 test("runPlayerRadarFromSnapshot rejects label-only and NaN proof stats before render and publish", async () => {
   await withTempProject(async () => {
     const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
     const snapshot = makeSnapshot();
     const jungle = snapshot.candidates[0].players.find((player) => player.name === "T1 Jungle");
-    jungle.radarStats = [
-      { label: "KDA" },
-      { label: "DPM", rawValue: String(jungle.rawStats.dpm), normalizedScore: Number.NaN },
-      { label: "KP%", rawValue: `${Math.round(jungle.rawStats.kp * 100)}%` },
-      { label: "GPM", normalizedScore: 84 },
-      { label: "CSM", rawValue: String(jungle.rawStats.csm), normalizedScore: null },
-    ];
+    jungle.rawStats = {
+      role: "Jungle",
+      kda: null,
+      dpm: Number.NaN,
+      kp: "",
+      gpm: undefined,
+      csm: null,
+    };
     writeCandidateSnapshot(snapshot);
 
     const { runPlayerRadarFromSnapshot } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
@@ -514,6 +576,7 @@ test("player radar rejects matchup reasons with missing opponent raw stats befor
       () => runPlayerRadarFromSnapshot({
         scanId: "scan-radar",
         seriesId: "series-1",
+        matchupPlayerName: "T1 Mid",
         languages: ["zh"],
       }, {
         renderVideosFromRequest: async () => {

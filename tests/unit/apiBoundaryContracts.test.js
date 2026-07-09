@@ -7,28 +7,42 @@ const path = require("node:path");
 const ROOT = path.resolve(__dirname, "../..");
 const PLAYER_RADAR_EVIDENCE_ERROR = /Player Radar .*(needs at least 2 verifiable reasons|contains unverifiable displayed)/;
 
+function buildTestRadarStats(rawStats = {}) {
+  const { buildRadarStats } = require(path.join(ROOT, "utils/esports/seriesAggregator.js"));
+  return buildRadarStats(rawStats);
+}
+
+function statByLabel(stats = [], label = "") {
+  return stats.find((stat) => stat.label === label);
+}
+
 function makeValidPlayerRadarAnalysis(overrides = {}) {
+  const proofRawStats = { role: "Mid", dpm: 720, kp: 0.84 };
+  const proofRadarStats = buildTestRadarStats(proofRawStats);
+  const edgeRawStats = { role: "Mid", dpm: 720, kp: 0.86 };
+  const loserRawStats = { role: "Mid", dpm: 360, kp: 0.48 };
+  const edgeRadarStats = buildTestRadarStats(edgeRawStats);
+  const loserRadarStats = buildTestRadarStats(loserRawStats);
+  const edgeScore = ((statByLabel(edgeRadarStats, "DPM").normalizedScore + statByLabel(edgeRadarStats, "KP%").normalizedScore) / 2)
+    - ((statByLabel(loserRadarStats, "DPM").normalizedScore + statByLabel(loserRadarStats, "KP%").normalizedScore) / 2);
   return {
     dataType: "PLAYER_RADAR",
     locale: "zh",
-    matchContext: { league: "LCK", teamA: "GEN", teamB: "T1", seriesScore: "Game 3" },
+    matchContext: { league: "LCK", teamA: "GEN", teamB: "T1", winningTeam: "GEN", seriesScore: "Game 3" },
     player: {
       name: "GEN Mid",
       team: "GEN",
       role: "Mid",
-      rawStats: { dpm: 720, kp: 0.84 },
-      radarStats: [
-        { label: "KP%", rawValue: "84%", normalizedScore: 90 },
-        { label: "DPM", rawValue: "720", normalizedScore: 88 },
-      ],
+      rawStats: proofRawStats,
+      radarStats: proofRadarStats,
     },
     matchupSegment: {
       role: "Mid",
       edgeType: "loser-highlight",
-      edgeScore: 360,
-      focusPlayer: { name: "GEN Mid", team: "GEN", role: "Mid", rawStats: { dpm: 360, kp: 0.48 } },
-      edgePlayer: { name: "T1 Mid", team: "T1", role: "Mid", rawStats: { dpm: 720, kp: 0.86 } },
-      opponentPlayer: { name: "T1 Mid", team: "T1", role: "Mid", rawStats: { dpm: 720, kp: 0.86 } },
+      edgeScore,
+      focusPlayer: { name: "GEN Mid", team: "GEN", role: "Mid", rawStats: loserRawStats, radarStats: loserRadarStats },
+      edgePlayer: { name: "T1 Mid", team: "T1", role: "Mid", rawStats: edgeRawStats, radarStats: edgeRadarStats },
+      opponentPlayer: { name: "T1 Mid", team: "T1", role: "Mid", rawStats: edgeRawStats, radarStats: edgeRadarStats },
       edgeWinnerTeam: "T1",
       reasons: [
         { metric: "DPM", winnerValue: 720, loserValue: 360, delta: 360 },
@@ -40,15 +54,12 @@ function makeValidPlayerRadarAnalysis(overrides = {}) {
         name: "GEN Mid",
         team: "GEN",
         role: "Mid",
-        rawStats: { dpm: 720, kp: 0.84 },
-        radarStats: [
-          { label: "KP%", rawValue: "84%", normalizedScore: 90 },
-          { label: "DPM", rawValue: "720", normalizedScore: 88 },
-        ],
+        rawStats: proofRawStats,
+        radarStats: proofRadarStats,
       },
       proofReasons: [
-        { metric: "KP%", rawValue: "84%", score: 90 },
-        { metric: "DPM", rawValue: "720", score: 88 },
+        { metric: "KP%", rawValue: statByLabel(proofRadarStats, "KP%").rawValue, score: statByLabel(proofRadarStats, "KP%").normalizedScore },
+        { metric: "DPM", rawValue: statByLabel(proofRadarStats, "DPM").rawValue, score: statByLabel(proofRadarStats, "DPM").normalizedScore },
       ],
     },
     ...overrides,
@@ -867,6 +878,101 @@ test("render boundary rejects player radar evidence without source-backed stats 
   }
 });
 
+test("render boundary rejects forged player radar scores even when raw stats match", async () => {
+  const { renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService.js"));
+  const valid = makeValidPlayerRadarAnalysis();
+  const forgedProofStats = valid.proofSegment.player.radarStats.map((stat) =>
+    stat.label === "KP%" ? { ...stat, normalizedScore: 99 } : stat
+  );
+  const forgedAnalysis = makeValidPlayerRadarAnalysis({
+    matchupSegment: {
+      ...valid.matchupSegment,
+      edgeScore: 99,
+    },
+    player: {
+      ...valid.player,
+      radarStats: forgedProofStats,
+    },
+    proofSegment: {
+      ...valid.proofSegment,
+      player: {
+        ...valid.proofSegment.player,
+        radarStats: forgedProofStats,
+      },
+      proofReasons: valid.proofSegment.proofReasons.map((reason) =>
+        reason.metric === "KP%" ? { ...reason, score: 99 } : reason
+      ),
+    },
+  });
+  let renderCalls = 0;
+
+  await assert.rejects(
+    () => renderVideosFromRequest(forgedAnalysis, {
+      execRenderImpl: async () => {
+        renderCalls += 1;
+        return null;
+      },
+    }),
+    /Player Radar .*score must match source stats/
+  );
+  assert.equal(renderCalls, 0);
+});
+
+test("player radar evidence rejects forged matchup pair semantics", () => {
+  const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
+  const base = makeValidPlayerRadarAnalysis();
+  const sameTeamOpponent = {
+    name: "T1 Academy Mid",
+    team: "T1",
+    role: "Mid",
+    rawStats: { dpm: 360, kp: 0.48 },
+  };
+  const otherFocus = {
+    name: "GEN Other Mid",
+    team: "GEN",
+    role: "Mid",
+    rawStats: { dpm: 360, kp: 0.48 },
+  };
+
+  assert.throws(
+    () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
+      matchContext: { ...base.matchContext, winningTeam: "T1" },
+      matchupSegment: {
+        ...base.matchupSegment,
+        edgeType: "winner-breakpoint",
+        focusPlayer: base.matchupSegment.edgePlayer,
+        opponentPlayer: sameTeamOpponent,
+        reasons: [
+          { metric: "DPM", winnerValue: 720, loserValue: 360, delta: 360 },
+          { metric: "KP%", winnerValue: 0.86, loserValue: 0.48, delta: 0.38 },
+        ],
+      },
+    })),
+    /Player Radar matchup segment players must be one opposing pair/
+  );
+
+  assert.throws(
+    () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
+      matchupSegment: {
+        ...base.matchupSegment,
+        focusPlayer: otherFocus,
+        opponentPlayer: { name: "GEN Mid", team: "GEN", role: "Mid", rawStats: { dpm: 360, kp: 0.48 } },
+      },
+    })),
+    /Player Radar matchup segment players must be one opposing pair/
+  );
+
+  assert.throws(
+    () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
+      matchupSegment: {
+        ...base.matchupSegment,
+        edgeType: "winner-breakpoint",
+      },
+    })),
+    /Player Radar matchup edge type must match winning team/
+  );
+});
+
 test("render boundary validates every localized player radar payload before rendering any locale", async () => {
   const originalCwd = process.cwd();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-localized-boundary-"));
@@ -945,6 +1051,71 @@ test("render and publish boundaries reject missing requested player radar locali
         platforms: ["instagram"],
       }),
       /Player Radar localized payload missing for locale: en/
+    );
+
+    const queuePath = path.join(dir, ".data", "publish-queue.json");
+    const packagesDir = path.join(dir, "public", "publish-packages");
+    assert.deepEqual(fs.existsSync(queuePath) ? JSON.parse(fs.readFileSync(queuePath, "utf8")) : [], []);
+    assert.deepEqual(fs.existsSync(packagesDir) ? fs.readdirSync(packagesDir) : [], []);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("render boundary rejects localized-only player radar wrappers for missing requested locales", async () => {
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-localized-only-render-"));
+  process.chdir(dir);
+  try {
+    const { renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService.js"));
+    let renderCalls = 0;
+
+    await assert.rejects(
+      () => renderVideosFromRequest({
+        renderLanguages: ["zh"],
+        localizedPayloads: {
+          en: makeValidPlayerRadarAnalysis({ locale: "en" }),
+        },
+      }, {
+        execRenderImpl: async () => {
+          renderCalls += 1;
+          return null;
+        },
+      }),
+      /Player Radar localized payload missing for locale: zh/
+    );
+
+    assert.equal(renderCalls, 0);
+    const rendersDir = path.join(dir, "public", "renders");
+    assert.deepEqual(fs.existsSync(rendersDir) ? fs.readdirSync(rendersDir) : [], []);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("publish boundary rejects localized-only player radar wrappers for missing requested video locales", async () => {
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-localized-only-publish-missing-"));
+  process.chdir(dir);
+  try {
+    const videoPath = path.join(dir, "public", "renders", "clip-zh.mp4");
+    fs.mkdirSync(path.dirname(videoPath), { recursive: true });
+    fs.writeFileSync(videoPath, "fake video", "utf8");
+    const { createPublishJobs } = require(path.join(ROOT, "utils/publishing/index.js"));
+
+    await assert.rejects(
+      () => createPublishJobs({
+        videos: [{ locale: "zh", videoUrl: "/renders/clip-zh.mp4" }],
+        analysis: {
+          localizedPayloads: {
+            en: makeValidPlayerRadarAnalysis({ locale: "en" }),
+          },
+        },
+        platforms: ["instagram"],
+      }),
+      /Player Radar localized payload missing for locale: zh/
     );
 
     const queuePath = path.join(dir, ".data", "publish-queue.json");
