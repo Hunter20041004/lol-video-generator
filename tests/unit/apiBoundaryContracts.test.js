@@ -205,6 +205,56 @@ test("publish job creation rejects player radar without dual-read evidence befor
   }
 });
 
+test("publish boundaries validate localized player radar payloads before queueing tasks", async () => {
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-localized-publish-"));
+  process.chdir(dir);
+  try {
+    const videoPath = path.join(dir, "public", "renders", "clip-en.mp4");
+    fs.mkdirSync(path.dirname(videoPath), { recursive: true });
+    fs.writeFileSync(videoPath, "fake video", "utf8");
+
+    const analysis = makeValidPlayerRadarAnalysis({
+      localizedPayloads: {
+        en: makeValidPlayerRadarAnalysis({
+          proofSegment: {
+            player: { name: "GEN Mid", team: "GEN", role: "Mid" },
+            proofReasons: [
+              { metric: "KP%", rawValue: "trust me", score: 90 },
+              { metric: "DPM", rawValue: "720", score: 88 },
+            ],
+          },
+        }),
+      },
+    });
+
+    const { validatePublishRequest } = require(path.join(ROOT, "utils/apiGuards.js"));
+    const { createPublishJobs } = require(path.join(ROOT, "utils/publishing/index.js"));
+
+    assert.throws(
+      () => validatePublishRequest({ analysis, platforms: ["instagram"] }),
+      /Player Radar .*needs at least 2 verifiable reasons/
+    );
+
+    await assert.rejects(
+      () => createPublishJobs({
+        videos: [{ locale: "en", videoUrl: "/renders/clip-en.mp4" }],
+        analysis,
+        platforms: ["instagram"],
+      }),
+      /Player Radar .*needs at least 2 verifiable reasons/
+    );
+
+    const queuePath = path.join(dir, ".data", "publish-queue.json");
+    const packagesDir = path.join(dir, "public", "publish-packages");
+    assert.deepEqual(fs.existsSync(queuePath) ? JSON.parse(fs.readFileSync(queuePath, "utf8")) : [], []);
+    assert.deepEqual(fs.existsSync(packagesDir) ? fs.readdirSync(packagesDir) : [], []);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("render and publish boundaries reject bogus player radar evidence before side effects", async () => {
   const originalCwd = process.cwd();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-bogus-boundary-"));
@@ -342,6 +392,41 @@ test("render boundary rejects non-string identities and non-scalar numeric evide
           proofReasons: [
             { metric: "KP%", rawValue: "84%", score: true },
             { metric: "DPM", rawValue: "720", score: [88] },
+          ],
+        },
+      }), {
+        execRenderImpl: async () => {
+          renderCalls += 1;
+          return null;
+        },
+      }),
+      /Player Radar .*needs at least 2 verifiable reasons/
+    );
+
+    assert.equal(renderCalls, 0);
+    const rendersDir = path.join(dir, "public", "renders");
+    assert.deepEqual(fs.existsSync(rendersDir) ? fs.readdirSync(rendersDir) : [], []);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("render boundary rejects bogus player radar proof raw values even with finite scores", async () => {
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-proof-raw-boundary-"));
+  process.chdir(dir);
+  try {
+    const { renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService.js"));
+    let renderCalls = 0;
+
+    await assert.rejects(
+      () => renderVideosFromRequest(makeValidPlayerRadarAnalysis({
+        proofSegment: {
+          player: { name: "GEN Mid", team: "GEN", role: "Mid" },
+          proofReasons: [
+            { metric: "KP%", rawValue: "trust me", score: 90 },
+            { metric: "DPM", rawValue: [720], score: 88 },
           ],
         },
       }), {

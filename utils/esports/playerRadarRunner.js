@@ -230,8 +230,8 @@ function buildPlayerRadarStoryboard(payload = {}, locale = "zh") {
   const matchupName = payload.matchupSegment?.focusPlayer?.name || payload.matchupSegment?.edgePlayer?.name || "對位焦點";
   const edgeName = payload.matchupSegment?.edgePlayer?.name || "";
   const proofName = payload.proofSegment?.player?.name || "關鍵人物";
-  const samePlayer = normalizePlayerName(matchupName) === normalizePlayerName(proofName);
   const focusOwnsEdge = normalizePlayerName(matchupName) === normalizePlayerName(edgeName);
+  const samePlayer = focusOwnsEdge && normalizePlayerName(edgeName) === normalizePlayerName(proofName);
   if (locale === "en") {
     return [
       { tag: "HOOK", text: "Biggest lane gap\nsame as MVP?", durationInFrames: 90 },
@@ -320,7 +320,12 @@ async function runPlayerRadarFromSnapshot(options = {}, deps = {}) {
     videos,
     platforms: PLAYER_RADAR_PLATFORMS,
     action: "queue",
-    analysis: payloads[0] || { dataType: "PLAYER_RADAR" },
+    analysis: payloads[0]
+      ? {
+        ...payloads[0],
+        localizedPayloads: Object.fromEntries(payloads.map((payload) => [payload.locale, payload])),
+      }
+      : { dataType: "PLAYER_RADAR" },
     scheduledAt: options.scheduledAt,
   });
 

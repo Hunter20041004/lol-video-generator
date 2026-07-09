@@ -18,6 +18,14 @@ function hasFiniteNumber(value) {
   return false;
 }
 
+function hasEvidenceDisplayValue(value) {
+  if (typeof value === "number") return Number.isFinite(value);
+  if (typeof value !== "string") return false;
+  const text = value.trim();
+  if (!text) return false;
+  return isNumericString(text.endsWith("%") ? text.slice(0, -1) : text);
+}
+
 function isVerifiableMatchupReason(reason = {}) {
   return hasText(reason.metric)
     && hasFiniteNumber(reason.winnerValue)
@@ -27,7 +35,7 @@ function isVerifiableMatchupReason(reason = {}) {
 
 function isVerifiableProofReason(reason = {}) {
   return hasText(reason.metric)
-    && hasValue(reason.rawValue)
+    && hasEvidenceDisplayValue(reason.rawValue)
     && hasFiniteNumber(reason.score);
 }
 
@@ -37,9 +45,7 @@ function hasCompletePlayerIdentity(player = {}) {
     && hasText(player.role);
 }
 
-function assertPlayerRadarEvidence(payload = {}) {
-  if (String(payload?.dataType || "").toUpperCase() !== "PLAYER_RADAR") return payload;
-
+function assertSinglePlayerRadarEvidence(payload = {}) {
   const matchupSegment = payload.matchupSegment;
   if (!matchupSegment || typeof matchupSegment !== "object") {
     throw new Error("Player Radar matchup segment needs a complete role matchup.");
@@ -70,6 +76,21 @@ function assertPlayerRadarEvidence(payload = {}) {
   }
   if (!hasCompletePlayerIdentity(proofSegment.player)) {
     throw new Error("Player Radar proof segment needs complete player identity.");
+  }
+
+  return payload;
+}
+
+function assertPlayerRadarEvidence(payload = {}) {
+  if (String(payload?.dataType || "").toUpperCase() !== "PLAYER_RADAR") return payload;
+
+  assertSinglePlayerRadarEvidence(payload);
+  if (payload.localizedPayloads && typeof payload.localizedPayloads === "object") {
+    Object.values(payload.localizedPayloads)
+      .filter((localizedPayload) => localizedPayload && typeof localizedPayload === "object")
+      .forEach((localizedPayload) => {
+        assertSinglePlayerRadarEvidence({ ...localizedPayload, dataType: "PLAYER_RADAR" });
+      });
   }
 
   return payload;

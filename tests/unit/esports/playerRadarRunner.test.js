@@ -161,6 +161,14 @@ test("manual losing-side matchup selection uses the selected player in visible s
     assert.doesNotMatch(matchupScene.text, /created the matchup gap/);
     assert.match(zhMatchupScene.text, /GEN Mid/);
     assert.doesNotMatch(zhMatchupScene.text, /打出最大對位差/);
+    assert.doesNotMatch(
+      payload.storyboard.find((scene) => scene.tag === "CONCLUSION_CTA").text,
+      /One player, two cases/
+    );
+    assert.doesNotMatch(
+      zhPayload.storyboard.find((scene) => scene.tag === "CONCLUSION_CTA").text,
+      /同一人雙重證明/
+    );
   });
 });
 
@@ -263,6 +271,9 @@ test("runPlayerRadarFromSnapshot renders one dual-read video per locale and queu
     assert.equal(renderedPayloads[1].renderLanguages[0], "en");
     assert.equal(result.videos.length, 2);
     assert.deepEqual(queued[0].platforms, ["instagram", "threads"]);
+    assert.equal(queued[0].analysis.locale, "zh");
+    assert.equal(queued[0].analysis.localizedPayloads.en.locale, "en");
+    assert.equal(queued[0].analysis.localizedPayloads.en.storyboard[0].text.startsWith("Biggest lane gap"), true);
     assert.equal(result.publish.jobs.length, 4);
   });
 });
