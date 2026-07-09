@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { assertPlayerRadarEvidence } = require("../esports/playerRadarEvidence");
 const { buildSocialCopy } = require("./copy");
 const { getPublicVideoUrl, normalizeLocale } = require("./accounts");
 const { createTaskId, upsertTask, updateTask, listTasks } = require("./queueStore");
@@ -154,6 +155,8 @@ async function createPublishJobs({
   action = "queue",
   scheduledAt,
 }) {
+  assertPlayerRadarEvidence(analysis);
+
   const entries = resolveVideoEntries({ videoUrl, videos, locale });
   if (entries.length === 0) {
     throw new Error("videoUrl or videos[] is required.");
