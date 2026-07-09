@@ -97,6 +97,25 @@ test("aggregateSeries marks incomplete role matchups when players are missing", 
   assert.deepEqual(series.completeness.missingRoles, ["Support"]);
 });
 
+test("aggregateSeries marks per-minute stats unavailable when any contributing game lacks duration", () => {
+  const { aggregateSeries } = require("../../../utils/esports/seriesAggregator");
+  const games = makeTwoGameSeries();
+  delete games[1].durationSeconds;
+  delete games[1].durationMinutes;
+  delete games[1].gamelengthMin;
+  delete games[1].gamelengthStr;
+
+  const series = aggregateSeries(games);
+  const mid = series.players.find((seriesPlayer) => seriesPlayer.name === "Blue Mid");
+
+  assert.equal(mid.rawStats.damageToChampions, 42000);
+  assert.equal(mid.rawStats.dpm, null);
+  assert.equal(mid.rawStats.gpm, null);
+  assert.equal(mid.rawStats.csm, null);
+  assert.equal(mid.rawStats.vpm, null);
+  assert.equal(mid.radarStats.some((stat) => ["DPM", "GPM", "CSM"].includes(stat.label)), false);
+});
+
 test("aggregateSeries accepts matchContext teams, nested stats, and zero-duration fallbacks", () => {
   const { aggregateSeries } = require("../../../utils/esports/seriesAggregator");
   const roles = ["Top", "Jungle", "Mid", "Adc", "Support"];

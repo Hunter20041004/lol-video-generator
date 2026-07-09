@@ -5,7 +5,7 @@ const os = require("os");
 const path = require("path");
 
 const ROOT = path.resolve(__dirname, "../../..");
-const { renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService"));
+const { renderOne, renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService"));
 const {
   RENDER_ASSET_FALLBACK_PUBLIC_PATH,
   localizeRemoteImageAssets,
@@ -151,6 +151,35 @@ test("renderVideosFromRequest routes esports daily payloads to dedicated composi
     assert.equal(commands.length, 1);
     assert.ok(commands[0].args.includes("EsportsMatchRecapVideo"));
   });
+});
+
+test("renderOne rejects malformed player radar before render artifacts", async () => {
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-render-one-gate-"));
+  process.chdir(dir);
+  try {
+    const commands = [];
+    await assert.rejects(
+      () => renderOne({
+        dataType: "PLAYER_RADAR",
+        matchupSegment: { role: "Mid", reasons: [{ metric: "DPM", winnerValue: 720 }] },
+      }, {
+        timestamp: 999,
+        locale: "zh",
+        execRenderImpl: async (command) => {
+          commands.push(command);
+          return null;
+        },
+      }),
+      /Player Radar .*needs at least 2 verifiable reasons/
+    );
+
+    assert.deepEqual(commands, []);
+    assert.equal(fs.existsSync(path.join(dir, "public", "renders", "props_999.json")), false);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("localizeRemoteImageAssets caches remote render images before Remotion runs", async () => {

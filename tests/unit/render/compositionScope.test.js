@@ -221,6 +221,18 @@ test("Player radar template renders dual-read matchup and proof scenes", () => {
   assert.equal(source.includes("不是只有 KDA"), false);
 });
 
+test("Player radar template does not render synthetic match placeholders", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+
+  assert.equal(source.includes('match.league || "LCK"'), false);
+  assert.equal(source.includes('match.teamA || "T1"'), false);
+  assert.equal(source.includes('match.teamB || "GEN"'), false);
+  assert.equal(source.includes('match.seriesScore || "Game 1"'), false);
+  assert.equal(source.includes('player.name || "Player"'), false);
+  assert.equal(source.includes('opponentPlayer.name || "Opponent"'), false);
+  assert.equal(source.includes('edgePlayer.name || "Edge player"'), false);
+});
+
 test("Radar chart does not synthesize fallback evidence axes", () => {
   const source = fs.readFileSync(path.join(ROOT, "src/components/charts/RadarChart.jsx"), "utf8");
 
@@ -229,6 +241,7 @@ test("Radar chart does not synthesize fallback evidence axes", () => {
   assert.equal(source.includes("label: `?"), false);
   assert.equal(source.includes("|| \"?\""), false);
   assert.equal(source.includes("?? \"—\""), false);
+  assert.equal(source.includes("Number(s.normalizedScore) || 0"), false);
 });
 
 test("Remotion root player radar preview uses the dual-read payload shape", () => {
@@ -241,6 +254,7 @@ test("Remotion root player radar preview uses the dual-read payload shape", () =
   assert.match(playerRadarSource, /matchupSegment:/);
   assert.match(playerRadarSource, /proofSegment:/);
   assert.match(playerRadarSource, /player:\s*\{/);
+  assert.match(playerRadarSource, /rawStats:\s*\{/);
   assert.match(playerRadarSource, /radarStats:\s*\[/);
   assert.match(playerRadarSource, /tag: "HOOK"/);
   assert.match(playerRadarSource, /tag: "MATCHUP_EDGE"/);
@@ -267,19 +281,22 @@ test("Player radar hook proof pill uses the explicit proof player before MVP fal
 });
 
 test("Player radar matchup display keeps loser-focus scenes paired against the actual opponent", () => {
-  const { deriveMatchupDisplayPlayers } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
+  const { deriveMatchupDisplayPlayers, getMatchupMetricDisplay } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
 
-  const matchup = deriveMatchupDisplayPlayers({
+  const segment = {
     edgeType: "loser-highlight",
     focusPlayer: { name: "Chovy", team: "GEN", role: "Mid" },
     edgePlayer: { name: "Knight", team: "BLG", role: "Mid" },
     opponentPlayer: { name: "Knight", team: "BLG", role: "Mid" },
-  });
+  };
+  const matchup = deriveMatchupDisplayPlayers(segment);
+  const metric = getMatchupMetricDisplay({ winnerValue: 720, loserValue: 360 }, segment);
 
   assert.equal(matchup.focusPlayer.name, "Chovy");
   assert.equal(matchup.edgePlayer.name, "Knight");
   assert.equal(matchup.opponentPlayer.name, "Knight");
   assert.notEqual(matchup.focusPlayer.name, matchup.opponentPlayer.name);
+  assert.deepEqual(metric, { leftValue: 360, rightValue: 720 });
 });
 
 test("Player radar conclusion keeps missing players on the split-read path", () => {

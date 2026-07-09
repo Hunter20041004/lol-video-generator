@@ -139,6 +139,10 @@ function addKnownStat(target, field, value) {
   }
 }
 
+function markMissingStat(target, field) {
+  if (target.missingStats) target.missingStats.add(field);
+}
+
 function statIsComplete(total, field) {
   return !total.missingStats?.has(field);
 }
@@ -208,6 +212,9 @@ function aggregateSeries(gamesInput = []) {
       addKnownStat(aggregate.totals, "cs", player.cs);
       addKnownStat(aggregate.totals, "visionScore", player.visionScore);
       aggregate.totals.durationSeconds += durationSeconds;
+      if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+        markMissingStat(aggregate.totals, "durationSeconds");
+      }
       addKnownStat(aggregate.totals, "teamKills", perTeamKills[player.team]);
 
       if (teamStats[player.team]) {
@@ -226,7 +233,9 @@ function aggregateSeries(gamesInput = []) {
     const totals = player.totals;
     const minutes = totals.durationSeconds > 0 ? totals.durationSeconds / 60 : null;
     const hasKda = statIsComplete(totals, "kills") && statIsComplete(totals, "deaths") && statIsComplete(totals, "assists");
-    const hasPerMinuteDenominator = Number.isFinite(minutes) && minutes > 0;
+    const hasPerMinuteDenominator = Number.isFinite(minutes)
+      && minutes > 0
+      && statIsComplete(totals, "durationSeconds");
     const rawStats = {
       role: player.role,
       kills: statIsComplete(totals, "kills") ? totals.kills : null,

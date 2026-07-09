@@ -162,7 +162,15 @@ function stripEnglishFallback(text = "", locale = "zh") {
 
 const getLocalizedPayload = (analysis = {}, locale = "zh") => {
   const lang = normalizeLocale(locale);
-  return analysis.localizedPayloads?.[lang] || analysis.localizedPayloads?.[locale] || analysis;
+  const localized = analysis.localizedPayloads?.[lang] || analysis.localizedPayloads?.[locale];
+  const isPlayerRadar = String(analysis.dataType || localized?.dataType || "").toUpperCase() === "PLAYER_RADAR";
+  if (isPlayerRadar && !localized) {
+    const rootLocale = normalizeLocale(analysis.locale || "zh");
+    if (rootLocale !== lang) {
+      throw new Error(`Player Radar localized payload missing for locale: ${lang}`);
+    }
+  }
+  return localized || analysis;
 };
 
 function normalizePatchVersion(data = {}) {

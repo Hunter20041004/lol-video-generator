@@ -120,6 +120,17 @@ const deriveMatchupDisplayPlayers = (segment = {}) => {
   };
 };
 
+const getMatchupMetricDisplay = (reason = {}, segment = {}) => {
+  const { focusPlayer, edgePlayer, opponentPlayer } = deriveMatchupDisplayPlayers(segment);
+  const valueForPlayer = (player = {}) => (
+    samePlayer(player, edgePlayer) ? reason.winnerValue : reason.loserValue
+  );
+  return {
+    leftValue: valueForPlayer(focusPlayer),
+    rightValue: valueForPlayer(opponentPlayer),
+  };
+};
+
 const getHookProofPillValue = (data = {}) => {
   const proofPlayerName = data.proofSegment?.player?.name;
   if (proofPlayerName) return proofPlayerName;
@@ -159,6 +170,7 @@ const buildConclusionVerdict = (data = {}) => {
 module.exports = {
   buildConclusionVerdict,
   deriveMatchupDisplayPlayers,
+  getMatchupMetricDisplay,
   getHookProofPillValue,
   getPlayer,
   getPlayerRadarCopy,
