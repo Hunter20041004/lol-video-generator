@@ -56,3 +56,18 @@ test("player radar route returns 400 for evidence validation failures", async ()
     error: "Player Radar matchup segment needs at least 2 verifiable reasons for Mid.",
   });
 });
+
+test("player radar route returns 400 for semantic evidence validation failures", async () => {
+  const POST = loadPostRouteWithRunner(async () => {
+    throw new Error("Player Radar matchup segment contains inconsistent displayed deltas.");
+  });
+
+  const response = await POST({ json: async () => ({ seriesId: "series-1" }) });
+  const body = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(body, {
+    success: false,
+    error: "Player Radar matchup segment contains inconsistent displayed deltas.",
+  });
+});

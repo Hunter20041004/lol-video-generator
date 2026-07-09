@@ -80,3 +80,15 @@ test("generic analyze entrypoints do not expose retired player radar prompts or 
   assert.equal(playerRadarPrompt.includes('"tag": "STAT_REVEAL"'), false);
   assert.equal(analyzeRouteSource.includes("PLAYER_RADAR:  ['dataType'"), false);
 });
+
+test("Leaguepedia API does not export retired single-player radar payload builders", () => {
+  const leaguepedia = require(path.join(ROOT, "utils/leaguepediaApi.js"));
+  const source = fs.readFileSync(path.join(ROOT, "utils/leaguepediaApi.js"), "utf8");
+
+  assert.equal(Object.hasOwn(leaguepedia, "transformCargoToRadarSchema"), false);
+  assert.equal(Object.hasOwn(leaguepedia, "buildRadarStats"), false);
+  assert.equal(source.includes("transformCargoToRadarSchema"), false);
+  assert.equal(source.includes("'Obj Control':   '—'"), false);
+  assert.equal(source.includes("'CC Score':      '—'"), false);
+  assert.equal(source.includes("'DMG Mitigated': '—'"), false);
+});

@@ -33,9 +33,15 @@ function normalizeRole(role = "") {
   return ROLE_ALIASES[key] || role || "Mid";
 }
 
+function parseNumber(value) {
+  if (value === null || value === undefined || String(value).trim() === "") return null;
+  const parsed = Number(String(value).replace(/,/g, ""));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function number(value, fallback = 0) {
-  const parsed = Number(String(value ?? "").replace(/,/g, ""));
-  return Number.isFinite(parsed) ? parsed : fallback;
+  const parsed = parseNumber(value);
+  return parsed === null ? fallback : parsed;
 }
 
 function round(value, digits = 2) {
@@ -60,17 +66,25 @@ function getTeams(game = {}) {
 }
 
 function getTeamKills(players = [], team) {
-  return players
-    .filter((player) => player.team === team || player.Team === team)
-    .reduce((sum, player) => sum + number(player.kills ?? player.Kills ?? player.stats?.kills), 0);
+  let total = 0;
+  let hasMissingKills = false;
+  for (const player of players.filter((candidate) => candidate.team === team || candidate.Team === team)) {
+    const kills = readPlayerStat(player, ["kills", "Kills"]);
+    if (kills === null) {
+      hasMissingKills = true;
+    } else {
+      total += kills;
+    }
+  }
+  return hasMissingKills ? null : total;
 }
 
 function readPlayerStat(player = {}, names = []) {
   for (const name of names) {
-    if (player[name] !== undefined) return number(player[name]);
-    if (player.stats?.[name] !== undefined) return number(player.stats[name]);
+    if (player[name] !== undefined) return parseNumber(player[name]);
+    if (player.stats?.[name] !== undefined) return parseNumber(player.stats[name]);
   }
-  return 0;
+  return null;
 }
 
 function normalizePlayer(player = {}) {
@@ -101,17 +115,32 @@ function buildRadarStats(rawStats = {}) {
     ["KP%", rawStats.kp],
     ["GPM", rawStats.gpm],
     [rawStats.role === "Support" ? "VPM" : "CSM", rawStats.role === "Support" ? rawStats.vpm : rawStats.csm],
-  ].map(([label, value]) => ({
-    label,
-    rawValue: label === "KP%" ? `${Math.round(value * 100)}%` : String(value),
-    normalizedScore: normalizeScore(value, RADAR_BOUNDS[label] || RADAR_BOUNDS.CSM),
-  }));
+  ]
+    .map(([label, value]) => [label, parseNumber(value)])
+    .filter(([, value]) => value !== null)
+    .map(([label, value]) => ({
+      label,
+      rawValue: label === "KP%" ? `${Math.round(value * 100)}%` : String(value),
+      normalizedScore: normalizeScore(value, RADAR_BOUNDS[label] || RADAR_BOUNDS.CSM),
+    }));
 }
 
 function comparePlayers(a, b) {
   const teamCompare = String(a.team).localeCompare(String(b.team));
   if (teamCompare !== 0) return teamCompare;
   return ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role);
+}
+
+function addKnownStat(target, field, value) {
+  if (Number.isFinite(value)) {
+    target[field] += value;
+  } else if (target.missingStats) {
+    target.missingStats.add(field);
+  }
+}
+
+function statIsComplete(total, field) {
+  return !total.missingStats?.has(field);
 }
 
 function aggregateSeries(gamesInput = []) {
@@ -164,55 +193,59 @@ function aggregateSeries(gamesInput = []) {
             visionScore: 0,
             durationSeconds: 0,
             teamKills: 0,
+            missingStats: new Set(),
           },
         });
       }
 
       const aggregate = playerMap.get(key);
       if (player.champion) aggregate.champions.push(player.champion);
-      aggregate.totals.kills += player.kills;
-      aggregate.totals.deaths += player.deaths;
-      aggregate.totals.assists += player.assists;
-      aggregate.totals.damageToChampions += player.damageToChampions;
-      aggregate.totals.gold += player.gold;
-      aggregate.totals.cs += player.cs;
-      aggregate.totals.visionScore += player.visionScore;
+      addKnownStat(aggregate.totals, "kills", player.kills);
+      addKnownStat(aggregate.totals, "deaths", player.deaths);
+      addKnownStat(aggregate.totals, "assists", player.assists);
+      addKnownStat(aggregate.totals, "damageToChampions", player.damageToChampions);
+      addKnownStat(aggregate.totals, "gold", player.gold);
+      addKnownStat(aggregate.totals, "cs", player.cs);
+      addKnownStat(aggregate.totals, "visionScore", player.visionScore);
       aggregate.totals.durationSeconds += durationSeconds;
-      aggregate.totals.teamKills += perTeamKills[player.team] || 0;
+      addKnownStat(aggregate.totals, "teamKills", perTeamKills[player.team]);
 
       if (teamStats[player.team]) {
-        teamStats[player.team].kills += player.kills;
-        teamStats[player.team].deaths += player.deaths;
-        teamStats[player.team].assists += player.assists;
-        teamStats[player.team].damageToChampions += player.damageToChampions;
-        teamStats[player.team].gold += player.gold;
-        teamStats[player.team].cs += player.cs;
-        teamStats[player.team].visionScore += player.visionScore;
+        addKnownStat(teamStats[player.team], "kills", player.kills);
+        addKnownStat(teamStats[player.team], "deaths", player.deaths);
+        addKnownStat(teamStats[player.team], "assists", player.assists);
+        addKnownStat(teamStats[player.team], "damageToChampions", player.damageToChampions);
+        addKnownStat(teamStats[player.team], "gold", player.gold);
+        addKnownStat(teamStats[player.team], "cs", player.cs);
+        addKnownStat(teamStats[player.team], "visionScore", player.visionScore);
       }
     }
   }
 
   const players = [...playerMap.values()].map((player) => {
-    const minutes = player.totals.durationSeconds / 60 || 1;
+    const totals = player.totals;
+    const minutes = totals.durationSeconds > 0 ? totals.durationSeconds / 60 : null;
+    const hasKda = statIsComplete(totals, "kills") && statIsComplete(totals, "deaths") && statIsComplete(totals, "assists");
+    const hasPerMinuteDenominator = Number.isFinite(minutes) && minutes > 0;
     const rawStats = {
       role: player.role,
-      kills: player.totals.kills,
-      deaths: player.totals.deaths,
-      assists: player.totals.assists,
-      damageToChampions: player.totals.damageToChampions,
-      gold: player.totals.gold,
-      cs: player.totals.cs,
-      visionScore: player.totals.visionScore,
-      kda: player.totals.deaths === 0
-        ? player.totals.kills + player.totals.assists
-        : round((player.totals.kills + player.totals.assists) / player.totals.deaths, 2),
-      dpm: Math.round(player.totals.damageToChampions / minutes),
-      gpm: Math.round(player.totals.gold / minutes),
-      csm: round(player.totals.cs / minutes, 2),
-      vpm: round(player.totals.visionScore / minutes, 2),
-      kp: player.totals.teamKills > 0
-        ? round((player.totals.kills + player.totals.assists) / player.totals.teamKills, 2)
-        : 0,
+      kills: statIsComplete(totals, "kills") ? totals.kills : null,
+      deaths: statIsComplete(totals, "deaths") ? totals.deaths : null,
+      assists: statIsComplete(totals, "assists") ? totals.assists : null,
+      damageToChampions: statIsComplete(totals, "damageToChampions") ? totals.damageToChampions : null,
+      gold: statIsComplete(totals, "gold") ? totals.gold : null,
+      cs: statIsComplete(totals, "cs") ? totals.cs : null,
+      visionScore: statIsComplete(totals, "visionScore") ? totals.visionScore : null,
+      kda: hasKda
+        ? (totals.deaths === 0 ? totals.kills + totals.assists : round((totals.kills + totals.assists) / totals.deaths, 2))
+        : null,
+      dpm: hasPerMinuteDenominator && statIsComplete(totals, "damageToChampions") ? Math.round(totals.damageToChampions / minutes) : null,
+      gpm: hasPerMinuteDenominator && statIsComplete(totals, "gold") ? Math.round(totals.gold / minutes) : null,
+      csm: hasPerMinuteDenominator && statIsComplete(totals, "cs") ? round(totals.cs / minutes, 2) : null,
+      vpm: hasPerMinuteDenominator && statIsComplete(totals, "visionScore") ? round(totals.visionScore / minutes, 2) : null,
+      kp: hasKda && statIsComplete(totals, "teamKills") && totals.teamKills > 0
+        ? round((totals.kills + totals.assists) / totals.teamKills, 2)
+        : null,
     };
     return {
       name: player.name,

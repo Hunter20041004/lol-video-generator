@@ -24,6 +24,10 @@ const PLATFORM_TAGS = {
 };
 
 const DATA_TYPE_TAGS = {
+  PLAYER_RADAR: {
+    zh: ["#LoLEsports", "#選手雷達", "#賽事分析"],
+    en: ["#LoLEsports", "#PlayerRadar", "#EsportsAnalysis"],
+  },
   META_OFFMETA_PICK: {
     zh: ["#MetaFactory", "#黑科技", "#LoLMeta"],
     en: ["#MetaFactory", "#OffMeta", "#LoLMeta"],
@@ -31,6 +35,17 @@ const DATA_TYPE_TAGS = {
   META_TIER_RANKING: {
     zh: ["#MetaFactory", "#梯度榜", "#LoLMeta"],
     en: ["#MetaFactory", "#TierRanking", "#LoLMeta"],
+  },
+};
+
+const PLAYER_RADAR_PLATFORM_TAGS = {
+  instagram: {
+    zh: ["#英雄聯盟", "#LoLEsports", "#選手雷達", "#shorts", "#reels"],
+    en: ["#leagueoflegends", "#LoLEsports", "#PlayerRadar", "#reels", "#shorts"],
+  },
+  threads: {
+    zh: ["#英雄聯盟", "#LoLEsports", "#選手雷達"],
+    en: ["#LeagueOfLegends", "#LoLEsports", "#PlayerRadar"],
   },
 };
 
@@ -129,6 +144,16 @@ function inferTitle(data = {}, locale = "zh") {
     const explicitTitle = stripEnglishFallback(data.socialCopy.title, lang);
     if (explicitTitle) return withPatchVersion(explicitTitle, patchVersion, lang);
   }
+  if (type === "PLAYER_RADAR") {
+    const explicitTitle = stripEnglishFallback(data.title || data.headline || "", lang);
+    if (explicitTitle) return explicitTitle;
+    const context = data.matchContext || {};
+    const matchup = [context.teamA, context.teamB].filter(Boolean).join(" vs ");
+    if (matchup) {
+      return lang === "zh" ? `${matchup} 選手雷達` : `${matchup} Player Radar`;
+    }
+    return typeLabel;
+  }
   if (type === "META_OFFMETA_PICK" || type === "META_TIER_RANKING") {
     const explicitTitle = stripEnglishFallback(data.title || data.headline || "", lang);
     if (explicitTitle) return withPatchVersion(explicitTitle, patchVersion, lang);
@@ -178,6 +203,11 @@ function inferDescription(data = {}, locale = "zh") {
     .map((candidate) => stripEnglishFallback(String(candidate).replace(/\n+/g, " "), lang))
     .find(Boolean) || "";
   if (text) return String(text).replace(/\n+/g, " ").trim();
+  if (data.dataType === "PLAYER_RADAR") {
+    return lang === "zh"
+      ? "用對位差和關鍵人物證據拆解這場比賽。"
+      : "A matchup-edge and key-player read from this match.";
+  }
   return lang === "zh"
     ? "快速拆解這波版本改動的實戰影響。"
     : "A fast breakdown of what this patch change means in game.";
@@ -224,6 +254,10 @@ function extractCopyBullets(data = {}, locale = "zh") {
 
 function buildHook(data = {}, locale = "zh") {
   const lang = normalizeLocale(locale);
+  if (data.dataType === "PLAYER_RADAR") {
+    const verdict = stripEnglishFallback(data.verdict || data.proofSegment?.verdict || inferDescription(data, lang), lang);
+    return truncate(verdict, lang === "zh" ? 56 : 120);
+  }
   const verdict = stripEnglishFallback(
     data.actionableVerdict?.oneLineVerdict || data.actionableVerdict?.body || inferDescription(data, lang),
     lang
@@ -249,9 +283,17 @@ function assertSupportedCopyPlatform(platformKey = "instagram") {
   return normalized;
 }
 
-function buildPlatformCta(platformKey = "instagram", locale = "zh") {
+function buildPlatformCta(platformKey = "instagram", locale = "zh", dataType = "") {
   const lang = normalizeLocale(locale);
   const platform = assertSupportedCopyPlatform(platformKey);
+  if (dataType === "PLAYER_RADAR") {
+    if (lang === "zh") {
+      if (platform === "threads") return "這場你站對位差，還是 MVP 理由？";
+      return "你覺得這場關鍵人物是誰？留言告訴我。";
+    }
+    if (platform === "threads") return "Matchup gap or MVP case?";
+    return "Who was the real key player in this match?";
+  }
   if (lang === "zh") {
     if (platform === "threads") return "你覺得這波是實質增強，還是版本陷阱？";
     return "你會怎麼調整打法？留言告訴我。";
@@ -260,21 +302,25 @@ function buildPlatformCta(platformKey = "instagram", locale = "zh") {
   return "Would you change your build or keep the old setup?";
 }
 
-function buildCaption({ title, hook, bullets, tags, locale = "zh", platform = "instagram" }) {
+function buildCaption({ title, hook, bullets, tags, locale = "zh", platform = "instagram", dataType = "" }) {
   const lang = normalizeLocale(locale);
   const platformKey = assertSupportedCopyPlatform(platform);
   const tagLine = tags.map((tag) => `#${tag}`).join(" ");
-  const cta = buildPlatformCta(platformKey, lang);
+  const cta = buildPlatformCta(platformKey, lang, dataType);
 
   if (platformKey === "threads") {
     const bulletLines = bullets.map((bullet, index) => `${index + 1}. ${bullet}`);
-    const label = lang === "zh" ? "我的判斷：" : "My read:";
+    const label = dataType === "PLAYER_RADAR"
+      ? (lang === "zh" ? "賽事判斷：" : "Match read:")
+      : (lang === "zh" ? "我的判斷：" : "My read:");
     return [title, hook, label, bulletLines.join("\n"), cta, tagLine].filter(Boolean).join("\n\n").trim();
   }
 
   if (platformKey === "instagram") {
     const bulletLines = bullets.map((bullet) => `• ${bullet}`);
-    const label = lang === "zh" ? "這波重點：" : "What changed:";
+    const label = dataType === "PLAYER_RADAR"
+      ? (lang === "zh" ? "賽事重點：" : "Match notes:")
+      : (lang === "zh" ? "這波重點：" : "What changed:");
     return [title, hook, label, bulletLines.join("\n"), cta, tagLine].filter(Boolean).join("\n\n").trim();
   }
 
@@ -287,7 +333,9 @@ function buildSocialCopy({ analysis = {}, locale = "zh", platform = "instagram" 
   const lang = normalizeLocale(locale);
   const data = getLocalizedPayload(analysis, lang);
   const platformKey = assertSupportedCopyPlatform(platform);
-  const baseTags = PLATFORM_TAGS[platformKey][lang];
+  const baseTags = data.dataType === "PLAYER_RADAR"
+    ? PLAYER_RADAR_PLATFORM_TAGS[platformKey][lang]
+    : PLATFORM_TAGS[platformKey][lang];
   const dataTypeTags = DATA_TYPE_TAGS[data.dataType]?.[lang] || [];
   const aiTags = Array.isArray(data.socialCopy?.tags) ? data.socialCopy.tags : [];
   const mergedTags = [...new Set([...aiTags, ...dataTypeTags, ...baseTags].map(removeHashtagPrefix).filter(Boolean))].slice(0, 12);
@@ -304,6 +352,7 @@ function buildSocialCopy({ analysis = {}, locale = "zh", platform = "instagram" 
     tags: mergedTags,
     locale: lang,
     platform: platformKey,
+    dataType: data.dataType,
   });
 
   return {
