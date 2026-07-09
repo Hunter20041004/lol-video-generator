@@ -101,41 +101,11 @@ Required root JSON:
 }
 `;
 
-const PLAYER_RADAR_PROMPT = `${ZERO_OUTPUT}
-You generate League pro player radar-analysis videos only.
-${COMMON_VIDEO_FIELDS}
-
-Required root JSON:
-{
-  "dataType": "PLAYER_RADAR",
-  "matchContext": { "league": "LCK/LPL/LEC/LCS", "teamA": "T1", "teamB": "GEN", "seriesScore": "Game 3" },
-  "player": { "name": "<from input>", "role": "Top|Jungle|Mid|Adc|Support", "championPlayed": "Azir" },
-  "radarStats": [
-    { "label": "KDA", "rawValue": "8.2", "normalizedScore": 88 },
-    { "label": "DPM", "rawValue": "612", "normalizedScore": 82 },
-    { "label": "KP%", "rawValue": "78%", "normalizedScore": 92 },
-    { "label": "Vision", "rawValue": "1.8/分", "normalizedScore": 64 },
-    { "label": "Gold", "rawValue": "412 GPM", "normalizedScore": 85 }
-  ],
-  "highlight": "Best label",
-  "weakness": "Weakest label",
-  "verdict": "20字內總結",
-  "storyboard": [
-    { "tag": "HOOK", "text": "第一行\\n第二行" },
-    { "tag": "STAT_REVEAL", "text": "第一行\\n第二行" },
-    { "tag": "STAT_REVEAL", "text": "第一行\\n第二行" },
-    { "tag": "CONCLUSION_CTA", "text": "第一行\\n第二行" }
-  ]
-}
-radarStats must be exactly 5 entries. normalizedScore is integer 0-100 only.
-`;
-
 const PROMPTS_BY_DATA_TYPE = {
   PATCH: PATCH_PROMPT,
   SYSTEM_UPDATE: SYSTEM_UPDATE_PROMPT,
   ITEM_UPDATE: ITEM_RUNE_PROMPT,
   RUNE_UPDATE: ITEM_RUNE_PROMPT,
-  PLAYER_RADAR: PLAYER_RADAR_PROMPT,
 };
 
 function getPipelinePromptForDataType(dataType = "PATCH") {

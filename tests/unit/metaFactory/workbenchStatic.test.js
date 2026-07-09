@@ -39,6 +39,12 @@ test("workbench marks implemented Meta factory modes as supported", () => {
   assert.match(page, /id: "tier", label: "梯度榜單", status: "已支援"/);
 });
 
+test("workbench marks the player radar runner as supported", () => {
+  const page = fs.readFileSync(path.join(ROOT, "app/page.jsx"), "utf8");
+
+  assert.match(page, /id: "player", label: "選手雷達", status: "已支援"/);
+});
+
 test("workbench shell styles are server-loaded for the full workbench canvas", () => {
   const page = fs.readFileSync(path.join(ROOT, "app/page.jsx"), "utf8");
   const globals = fs.readFileSync(path.join(ROOT, "app/globals.css"), "utf8");
