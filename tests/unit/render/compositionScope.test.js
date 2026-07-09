@@ -217,6 +217,14 @@ test("Player radar template renders dual-read matchup and proof scenes", () => {
   assert.equal(source.includes("不是只有 KDA"), false);
 });
 
+test("Radar chart does not synthesize fallback evidence axes", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/components/charts/RadarChart.jsx"), "utf8");
+
+  assert.equal(source.includes("while (stats.length < 5)"), false);
+  assert.equal(source.includes("rawValue: \"—\""), false);
+  assert.equal(source.includes("label: `?"), false);
+});
+
 test("Remotion root player radar preview uses the dual-read payload shape", () => {
   const rootSource = fs.readFileSync(path.join(ROOT, "src/Root.jsx"), "utf8");
   const playerRadarBlock = rootSource.match(/const mockPlayerRadarData = \{[\s\S]*?\n\};\n\nconst mockEsportsH2HRadarData = \{/);
