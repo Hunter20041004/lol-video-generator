@@ -409,6 +409,7 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
   const languages = [...new Set(requestedLanguages)].slice(0, 2);
   const sharedBgmFile = requestData.bgmFile || options.sharedBgmFile || `audio/bgm${Math.floor(Math.random() * 3) + 1}.mp3`;
 
+  assertPlayerRadarEvidence(requestData);
   const payloads = languages.map((lang) => ({
     lang,
     payload: getPayloadForLanguage(requestData, lang),

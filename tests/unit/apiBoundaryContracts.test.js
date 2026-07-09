@@ -255,6 +255,73 @@ test("publish boundaries validate localized player radar payloads before queuein
   }
 });
 
+test("render and publish boundaries reject malformed localized player radar payload entries", async () => {
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-malformed-localized-"));
+  process.chdir(dir);
+  try {
+    const videoPath = path.join(dir, "public", "renders", "clip-en.mp4");
+    fs.mkdirSync(path.dirname(videoPath), { recursive: true });
+    fs.writeFileSync(videoPath, "fake video", "utf8");
+
+    const { validatePublishRequest } = require(path.join(ROOT, "utils/apiGuards.js"));
+    const { renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService.js"));
+    const { createPublishJobs } = require(path.join(ROOT, "utils/publishing/index.js"));
+    let renderCalls = 0;
+
+    await assert.rejects(
+      () => renderVideosFromRequest({
+        ...makeValidPlayerRadarAnalysis(),
+        renderLanguages: ["zh", "en"],
+        localizedPayloads: { en: null },
+      }, {
+        execRenderImpl: async () => {
+          renderCalls += 1;
+          return null;
+        },
+      }),
+      /Player Radar localized payload must be an object/
+    );
+
+    assert.equal(renderCalls, 0);
+
+    const malformedPublishAnalysis = makeValidPlayerRadarAnalysis({
+      localizedPayloads: { en: "not a payload" },
+    });
+
+    assert.throws(
+      () => validatePublishRequest({ analysis: malformedPublishAnalysis, platforms: ["instagram"] }),
+      /Player Radar localized payload must be an object/
+    );
+    assert.throws(
+      () => validatePublishRequest({
+        analysis: makeValidPlayerRadarAnalysis({ localizedPayloads: [] }),
+        platforms: ["instagram"],
+      }),
+      /Player Radar localizedPayloads must be an object/
+    );
+
+    await assert.rejects(
+      () => createPublishJobs({
+        videos: [{ locale: "en", videoUrl: "/renders/clip-en.mp4" }],
+        analysis: malformedPublishAnalysis,
+        platforms: ["instagram"],
+      }),
+      /Player Radar localized payload must be an object/
+    );
+
+    const rendersDir = path.join(dir, "public", "renders");
+    assert.deepEqual(fs.readdirSync(rendersDir), ["clip-en.mp4"]);
+    const queuePath = path.join(dir, ".data", "publish-queue.json");
+    const packagesDir = path.join(dir, "public", "publish-packages");
+    assert.deepEqual(fs.existsSync(queuePath) ? JSON.parse(fs.readFileSync(queuePath, "utf8")) : [], []);
+    assert.deepEqual(fs.existsSync(packagesDir) ? fs.readdirSync(packagesDir) : [], []);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("render and publish boundaries reject bogus player radar evidence before side effects", async () => {
   const originalCwd = process.cwd();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-bogus-boundary-"));
