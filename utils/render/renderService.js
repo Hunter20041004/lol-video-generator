@@ -422,6 +422,7 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
     ? requestData.renderLanguages.filter(Boolean).map((lang) => String(lang).toLowerCase().startsWith("en") ? "en" : "zh")
     : (requestData.bilingual || requestData.generateBilingual ? ["zh", "en"] : [requestData.locale || "zh"]);
   const languages = [...new Set(requestedLanguages)].slice(0, 2);
+  assertPlayerRadarEvidence(requestData);
   const payloads = languages.map((lang) => ({
     lang,
     payload: getPayloadForLanguage(requestData, lang),

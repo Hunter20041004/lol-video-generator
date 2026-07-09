@@ -45,6 +45,10 @@ function hasCompletePlayerIdentity(player = {}) {
     && hasText(player.role);
 }
 
+function isPlainPayloadObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 function assertSinglePlayerRadarEvidence(payload = {}) {
   const matchupSegment = payload.matchupSegment;
   if (!matchupSegment || typeof matchupSegment !== "object") {
@@ -85,12 +89,16 @@ function assertPlayerRadarEvidence(payload = {}) {
   if (String(payload?.dataType || "").toUpperCase() !== "PLAYER_RADAR") return payload;
 
   assertSinglePlayerRadarEvidence(payload);
-  if (payload.localizedPayloads && typeof payload.localizedPayloads === "object") {
-    Object.values(payload.localizedPayloads)
-      .filter((localizedPayload) => localizedPayload && typeof localizedPayload === "object")
-      .forEach((localizedPayload) => {
-        assertSinglePlayerRadarEvidence({ ...localizedPayload, dataType: "PLAYER_RADAR" });
-      });
+  if (payload.localizedPayloads !== null && payload.localizedPayloads !== undefined) {
+    if (typeof payload.localizedPayloads !== "object" || Array.isArray(payload.localizedPayloads)) {
+      throw new Error("Player Radar localizedPayloads must be an object.");
+    }
+    Object.values(payload.localizedPayloads).forEach((localizedPayload) => {
+      if (!isPlainPayloadObject(localizedPayload)) {
+        throw new Error("Player Radar localized payload must be an object.");
+      }
+      assertSinglePlayerRadarEvidence({ ...localizedPayload, dataType: "PLAYER_RADAR" });
+    });
   }
 
   return payload;
