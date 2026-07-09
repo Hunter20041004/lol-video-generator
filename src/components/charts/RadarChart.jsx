@@ -18,7 +18,7 @@ const clamp01 = (v) => Math.max(0, Math.min(1, v));
 // 多邊形 fill / stroke 在 expand 過程同步漸入；軸標籤 fade in 跟隨
 // =========================================================================
 export const RadarChart = ({
-  radarStats,            // [{ label, rawValue, normalizedScore }] (恰 5 個)
+  radarStats,            // [{ label, rawValue, normalizedScore }]
   size = 720,
   fillColor = "#0AC8B9",      // 主色：cyan
   strokeColor = "#0AC8B9",
@@ -29,14 +29,13 @@ export const RadarChart = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // 安全化：保證恰 5 個 entry，缺的補 0、多的截掉
+  // 安全化：只畫傳入且已驗證的軸，不合成任何 fallback 證據
   const stats = (Array.isArray(radarStats) ? radarStats.slice(0, 5) : []);
-  while (stats.length < 5) stats.push({ label: `?${stats.length + 1}`, rawValue: "—", normalizedScore: 0 });
 
   const cx = size / 2;
   const cy = size / 2;
   const radius = size * 0.38;
-  const axisCount = 5;
+  const axisCount = stats.length;
 
   // 展開進度 0~1 — spring 擺脫線性、給雷達圖一點生命感
   const expandProgress = spring({
