@@ -39,6 +39,12 @@ function isVerifiableProofReason(reason = {}) {
     && hasFiniteNumber(reason.score);
 }
 
+function isVerifiableRadarStat(stat = {}) {
+  return hasText(stat.label)
+    && hasEvidenceDisplayValue(stat.rawValue)
+    && hasFiniteNumber(stat.normalizedScore);
+}
+
 function hasCompletePlayerIdentity(player = {}) {
   return hasText(player.name)
     && hasText(player.team)
@@ -114,6 +120,15 @@ function assertSinglePlayerRadarEvidence(payload = {}) {
   }
   if (!hasCompletePlayerIdentity(proofSegment.player)) {
     throw new Error("Player Radar proof segment needs complete player identity.");
+  }
+  const displayedRadarStats = Array.isArray(proofSegment.player?.radarStats)
+    ? proofSegment.player.radarStats.slice(0, 5)
+    : [];
+  if (displayedRadarStats.length < 2) {
+    throw new Error(`Player Radar proof segment needs at least 2 verifiable radar stats for ${proofSegment.player?.name}.`);
+  }
+  if (!displayedRadarStats.every(isVerifiableRadarStat)) {
+    throw new Error(`Player Radar proof segment contains unverifiable displayed radar stats for ${proofSegment.player?.name}.`);
   }
 
   return payload;

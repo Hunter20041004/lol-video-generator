@@ -22,7 +22,15 @@ function makeValidPlayerRadarAnalysis(overrides = {}) {
       ],
     },
     proofSegment: {
-      player: { name: "GEN Mid", team: "GEN", role: "Mid" },
+      player: {
+        name: "GEN Mid",
+        team: "GEN",
+        role: "Mid",
+        radarStats: [
+          { label: "KP%", rawValue: "84%", normalizedScore: 90 },
+          { label: "DPM", rawValue: "720", normalizedScore: 88 },
+        ],
+      },
       proofReasons: [
         { metric: "KP%", rawValue: "84%", score: 90 },
         { metric: "DPM", rawValue: "720", score: 88 },
@@ -473,6 +481,70 @@ test("render boundary rejects malformed displayed player radar reasons even when
         },
       }),
       /Player Radar .*contains unverifiable displayed/
+    );
+
+    assert.equal(renderCalls, 0);
+    const rendersDir = path.join(dir, "public", "renders");
+    assert.deepEqual(fs.existsSync(rendersDir) ? fs.readdirSync(rendersDir) : [], []);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("render boundary rejects player radar proof charts without verifiable displayed stats", async () => {
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-chart-stats-"));
+  process.chdir(dir);
+  try {
+    const { renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService.js"));
+    let renderCalls = 0;
+
+    await assert.rejects(
+      () => renderVideosFromRequest(makeValidPlayerRadarAnalysis({
+        proofSegment: {
+          player: { name: "GEN Mid", team: "GEN", role: "Mid" },
+          proofReasons: [
+            { metric: "KP%", rawValue: "84%", score: 90 },
+            { metric: "DPM", rawValue: "720", score: 88 },
+          ],
+        },
+      }), {
+        execRenderImpl: async () => {
+          renderCalls += 1;
+          return null;
+        },
+      }),
+      /Player Radar proof segment needs at least 2 verifiable radar stats/
+    );
+
+    assert.equal(renderCalls, 0);
+
+    await assert.rejects(
+      () => renderVideosFromRequest(makeValidPlayerRadarAnalysis({
+        proofSegment: {
+          player: {
+            name: "GEN Mid",
+            team: "GEN",
+            role: "Mid",
+            radarStats: [
+              { label: "KP%", rawValue: "84%", normalizedScore: 90 },
+              { label: "DPM", rawValue: "720", normalizedScore: 88 },
+              { label: "GPM", rawValue: "trust me", normalizedScore: 87 },
+            ],
+          },
+          proofReasons: [
+            { metric: "KP%", rawValue: "84%", score: 90 },
+            { metric: "DPM", rawValue: "720", score: 88 },
+          ],
+        },
+      }), {
+        execRenderImpl: async () => {
+          renderCalls += 1;
+          return null;
+        },
+      }),
+      /Player Radar proof segment contains unverifiable displayed radar stats/
     );
 
     assert.equal(renderCalls, 0);

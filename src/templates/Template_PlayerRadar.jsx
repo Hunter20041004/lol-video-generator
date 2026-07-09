@@ -35,14 +35,7 @@ const buildRadarStoryboard = (data = {}) => {
 };
 
 const normalizeStats = (data = {}) => {
-  const fallback = [
-    { label: "KDA", rawValue: "8.2", normalizedScore: 88 },
-    { label: "DPM", rawValue: "612", normalizedScore: 82 },
-    { label: "KP%", rawValue: "78%", normalizedScore: 92 },
-    { label: "Vision", rawValue: "1.8/分", normalizedScore: 64 },
-    { label: "Gold", rawValue: "412 GPM", normalizedScore: 85 },
-  ];
-  return (Array.isArray(data.radarStats) && data.radarStats.length > 0 ? data.radarStats : fallback).slice(0, 5);
+  return (Array.isArray(data.radarStats) ? data.radarStats : []).slice(0, 5);
 };
 
 const HookScene = ({ data, theme, localFrame }) => {
