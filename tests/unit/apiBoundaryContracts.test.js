@@ -18,6 +18,15 @@ test("analyze API guard rejects removed dataTypes before invoking analysis depen
   });
 });
 
+test("analyze API guard rejects player radar on the generic route with a redirect message", () => {
+  const { validateAnalyzeRequest } = require(path.join(ROOT, "utils/apiGuards.js"));
+
+  assert.throws(
+    () => validateAnalyzeRequest({ dataType: "PLAYER_RADAR", playerName: "Faker" }),
+    /PLAYER_RADAR must use \/api\/esports\/player-radar/
+  );
+});
+
 test("render service rejects removed dataTypes without producing render files", async () => {
   const originalCwd = process.cwd();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-render-boundary-"));

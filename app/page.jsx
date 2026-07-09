@@ -19,7 +19,7 @@ const workspaces = [
     status: "需補後端",
     modes: [
       { id: "daily", label: "每日系列賽", status: "部分已支援" },
-      { id: "player", label: "選手雷達", status: "需補後端" },
+      { id: "player", label: "選手雷達", status: "已支援" },
     ],
   },
   {
@@ -895,7 +895,7 @@ function EsportsFactory() {
           <div className="contractList">
             <div><span>Candidates scan</span><StatusBadge value="需補後端" /></div>
             <div><span>Daily Gate first</span><StatusBadge value="部分已支援" /></div>
-            <div><span>Player Radar runner</span><StatusBadge value="需補後端" /></div>
+            <div><span>Player Radar runner</span><StatusBadge value="已支援" /></div>
             <div><span>Queue handoff</span><StatusBadge value="已支援" /></div>
           </div>
         </section>

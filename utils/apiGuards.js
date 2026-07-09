@@ -11,8 +11,12 @@ function badRequest(error) {
 
 function validateAnalyzeRequest(body = {}) {
   try {
+    const dataType = assertSupportedDataType(body.dataType || "PATCH");
+    if (dataType === "PLAYER_RADAR") {
+      throw new Error("PLAYER_RADAR must use /api/esports/player-radar because the generic /api/analyze path does not run the required evidence gates.");
+    }
     return {
-      dataType: assertSupportedDataType(body.dataType || "PATCH"),
+      dataType,
     };
   } catch (error) {
     throw badRequest(error);

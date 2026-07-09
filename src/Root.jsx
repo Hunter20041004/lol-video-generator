@@ -44,17 +44,60 @@ const mockRuneUpdateData = {
 
 const mockPlayerRadarData = {
   dataType: "PLAYER_RADAR",
+  locale: "zh",
+  title: "T1 vs GEN 選手雷達",
   matchContext: { league: "LCK", teamA: "T1", teamB: "GEN", seriesScore: "Game 3" },
-  player: { name: "Faker", role: "Mid", championPlayed: "Azir" },
+  matchupSegment: {
+    role: "Mid",
+    edgeType: "winner-breakpoint",
+    edgeWinnerTeam: "T1",
+    edgeScore: 28,
+    focusPlayer: { name: "Faker", team: "T1", role: "Mid", championPlayed: "Azir" },
+    edgePlayer: { name: "Faker", team: "T1", role: "Mid", championPlayed: "Azir" },
+    opponentPlayer: { name: "Chovy", team: "GEN", role: "Mid", championPlayed: "Orianna" },
+    reasons: [
+      { metric: "KP%", winnerValue: "78%", loserValue: "61%", delta: 17 },
+      { metric: "DPM", winnerValue: "612", loserValue: "488", delta: 124 },
+      { metric: "Vision", winnerValue: "1.8/分", loserValue: "1.1/分", delta: 7 },
+    ],
+  },
+  proofSegment: {
+    proofType: "mvp",
+    isRecommendedMvp: true,
+    player: {
+      name: "Oner",
+      team: "T1",
+      role: "Jungle",
+      championPlayed: "Viego",
+      radarStats: [
+        { label: "KDA", rawValue: "9.4", normalizedScore: 91 },
+        { label: "DPM", rawValue: "584", normalizedScore: 84 },
+        { label: "KP%", rawValue: "81%", normalizedScore: 94 },
+        { label: "Vision", rawValue: "1.6/分", normalizedScore: 76 },
+        { label: "Gold", rawValue: "418 GPM", normalizedScore: 88 },
+      ],
+    },
+    proofReasons: [
+      { metric: "KP%", rawValue: "81%", score: 94 },
+      { metric: "KDA", rawValue: "9.4", score: 91 },
+      { metric: "Gold", rawValue: "418 GPM", score: 88 },
+    ],
+    verdict: "Oner 有這場最清楚的 MVP 理由。",
+  },
+  player: { name: "Oner", team: "T1", role: "Jungle", championPlayed: "Viego" },
   radarStats: [
-    { label: "KDA", rawValue: "8.2", normalizedScore: 88 },
-    { label: "DPM", rawValue: "612", normalizedScore: 82 },
-    { label: "KP%", rawValue: "78%", normalizedScore: 92 },
+    { label: "KDA", rawValue: "9.4", normalizedScore: 91 },
+    { label: "DPM", rawValue: "584", normalizedScore: 84 },
+    { label: "KP%", rawValue: "81%", normalizedScore: 94 },
+    { label: "Vision", rawValue: "1.6/分", normalizedScore: 76 },
+    { label: "Gold", rawValue: "418 GPM", normalizedScore: 88 },
   ],
+  verdict: "Oner 有這場最清楚的 MVP 理由。",
   storyboard: [
-    { text: "Faker 的真實數據\n你看過嗎？", tag: "HOOK" },
-    { text: "團戰參與率 92%\n中路全聯盟最強", tag: "STAT_REVEAL" },
-    { text: "這場是不是 MVP\n留言告訴我", tag: "CONCLUSION_CTA" },
+    { text: "最大差距和 MVP\n是同一個人嗎", tag: "HOOK" },
+    { text: "Faker\n打出最大對位差", tag: "MATCHUP_EDGE" },
+    { text: "Oner\n關鍵人物證明", tag: "PLAYER_PROOF" },
+    { text: "對位差和關鍵人物\n你怎麼看", tag: "CONCLUSION_CTA" },
   ],
 };
 

@@ -67,3 +67,16 @@ test("removed platform adapters and retired parser modules are deleted", () => {
     assert.equal(fs.existsSync(path.join(ROOT, relativePath)), false, `${relativePath} should be removed`);
   });
 });
+
+test("generic analyze entrypoints do not expose retired player radar prompts or whitelists", () => {
+  const { PROMPTS_BY_DATA_TYPE, getPipelinePromptForDataType } = require(path.join(ROOT, "utils/pipelinePrompts.js"));
+  const promptSource = fs.readFileSync(path.join(ROOT, "utils/pipelinePrompts.js"), "utf8");
+  const analyzeRouteSource = fs.readFileSync(path.join(ROOT, "app/api/analyze/route.js"), "utf8");
+  const playerRadarPrompt = getPipelinePromptForDataType("PLAYER_RADAR");
+
+  assert.equal(Object.hasOwn(PROMPTS_BY_DATA_TYPE, "PLAYER_RADAR"), false);
+  assert.equal(promptSource.includes("const PLAYER_RADAR_PROMPT"), false);
+  assert.equal(playerRadarPrompt.includes('"dataType": "PLAYER_RADAR"'), false);
+  assert.equal(playerRadarPrompt.includes('"tag": "STAT_REVEAL"'), false);
+  assert.equal(analyzeRouteSource.includes("PLAYER_RADAR:  ['dataType'"), false);
+});

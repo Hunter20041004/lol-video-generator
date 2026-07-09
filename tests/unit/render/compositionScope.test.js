@@ -217,6 +217,24 @@ test("Player radar template renders dual-read matchup and proof scenes", () => {
   assert.equal(source.includes("不是只有 KDA"), false);
 });
 
+test("Remotion root player radar preview uses the dual-read payload shape", () => {
+  const rootSource = fs.readFileSync(path.join(ROOT, "src/Root.jsx"), "utf8");
+  const playerRadarBlock = rootSource.match(/const mockPlayerRadarData = \{[\s\S]*?\n\};\n\nconst mockEsportsH2HRadarData = \{/);
+
+  assert.ok(playerRadarBlock, "expected mockPlayerRadarData block");
+  const playerRadarSource = playerRadarBlock[0];
+
+  assert.match(playerRadarSource, /matchupSegment:/);
+  assert.match(playerRadarSource, /proofSegment:/);
+  assert.match(playerRadarSource, /player:\s*\{/);
+  assert.match(playerRadarSource, /radarStats:\s*\[/);
+  assert.match(playerRadarSource, /tag: "HOOK"/);
+  assert.match(playerRadarSource, /tag: "MATCHUP_EDGE"/);
+  assert.match(playerRadarSource, /tag: "PLAYER_PROOF"/);
+  assert.match(playerRadarSource, /tag: "CONCLUSION_CTA"/);
+  assert.equal(playerRadarSource.includes('tag: "STAT_REVEAL"'), false);
+});
+
 test("Player radar hook proof pill uses the explicit proof player before MVP fallback", () => {
   const { getHookProofPillValue } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
 
