@@ -128,8 +128,11 @@ function buildMatchupCandidate(series = {}, matchup = {}, focusPlayer = null) {
   const leftScore = averageRadarScore(matchup.left);
   const rightScore = averageRadarScore(matchup.right);
   const edgePlayer = leftScore >= rightScore ? matchup.left : matchup.right;
-  const opponentPlayer = edgePlayer === matchup.left ? matchup.right : matchup.left;
-  const reasons = buildEdgeReasons(edgePlayer, opponentPlayer);
+  const metricOpponentPlayer = edgePlayer === matchup.left ? matchup.right : matchup.left;
+  const opponentPlayer = focusPlayer
+    ? (normalizePlayerName(focusPlayer.name) === normalizePlayerName(matchup.left.name) ? matchup.right : matchup.left)
+    : metricOpponentPlayer;
+  const reasons = buildEdgeReasons(edgePlayer, metricOpponentPlayer);
   const winningTeam = series.winningTeam || "";
   return {
     role: matchup.role,
