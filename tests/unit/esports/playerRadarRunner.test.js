@@ -144,6 +144,21 @@ test("playerName overrides both matchup focus and proof player", async () => {
   });
 });
 
+test("manual losing-side matchup selection uses the selected player in visible storyboard copy", async () => {
+  await withTempProject(async () => {
+    const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    const series = makeSnapshot().candidates[0];
+
+    const payload = buildPlayerRadarPayload(series, { playerName: "GEN Mid" }, "en");
+    const matchupScene = payload.storyboard.find((scene) => scene.tag === "MATCHUP_EDGE");
+
+    assert.equal(payload.matchupSegment.focusPlayer.name, "GEN Mid");
+    assert.equal(payload.matchupSegment.edgePlayer.name, "T1 Mid");
+    assert.match(matchupScene.text, /GEN Mid/);
+    assert.doesNotMatch(matchupScene.text, /T1 Mid/);
+  });
+});
+
 test("mvpPlayerName and matchupPlayerName can override separate segments", async () => {
   await withTempProject(async () => {
     const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));

@@ -282,6 +282,27 @@ test("Player radar conclusion keeps missing players on the split-read path", () 
   assert.deepEqual(verdict.chips, ["Matchup edge", "Key player", "Dual read"]);
 });
 
+test("Player radar conclusion uses loser-focused selected matchup subject", () => {
+  const { buildConclusionVerdict } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
+
+  const verdict = buildConclusionVerdict({
+    locale: "en",
+    matchupSegment: {
+      focusPlayer: { name: "GEN Mid", team: "GEN", role: "Mid" },
+      edgePlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
+      opponentPlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
+    },
+    proofSegment: {
+      player: { name: "GEN Mid", team: "GEN", role: "Mid" },
+    },
+  });
+
+  assert.equal(verdict.isSamePlayer, true);
+  assert.equal(verdict.matchupName, "GEN Mid");
+  assert.match(verdict.body, /GEN Mid/);
+  assert.doesNotMatch(verdict.body, /T1 Mid/);
+});
+
 test("Player radar English locale copy comes from behavior helpers", () => {
   const { getPlayerRadarCopy } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
 

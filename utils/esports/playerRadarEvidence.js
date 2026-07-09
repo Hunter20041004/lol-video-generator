@@ -4,17 +4,28 @@ function hasValue(value) {
   return String(value).trim().length > 0;
 }
 
+function hasFiniteNumber(value) {
+  if (!hasValue(value)) return false;
+  return Number.isFinite(Number(value));
+}
+
 function isVerifiableMatchupReason(reason = {}) {
   return hasValue(reason.metric)
-    && hasValue(reason.winnerValue)
-    && hasValue(reason.loserValue)
-    && hasValue(reason.delta);
+    && hasFiniteNumber(reason.winnerValue)
+    && hasFiniteNumber(reason.loserValue)
+    && hasFiniteNumber(reason.delta);
 }
 
 function isVerifiableProofReason(reason = {}) {
   return hasValue(reason.metric)
     && hasValue(reason.rawValue)
-    && hasValue(reason.score);
+    && hasFiniteNumber(reason.score);
+}
+
+function hasCompletePlayerIdentity(player = {}) {
+  return hasValue(player.name)
+    && hasValue(player.team)
+    && hasValue(player.role);
 }
 
 function assertPlayerRadarEvidence(payload = {}) {
@@ -31,6 +42,11 @@ function assertPlayerRadarEvidence(payload = {}) {
   if (matchupReasons.length < 2) {
     throw new Error(`Player Radar matchup segment needs at least 2 verifiable reasons for ${matchupSegment.role}.`);
   }
+  if (!hasCompletePlayerIdentity(matchupSegment.focusPlayer)
+    || !hasCompletePlayerIdentity(matchupSegment.edgePlayer)
+    || !hasCompletePlayerIdentity(matchupSegment.opponentPlayer)) {
+    throw new Error("Player Radar matchup segment needs complete player identity.");
+  }
 
   const proofSegment = payload.proofSegment;
   if (!proofSegment || typeof proofSegment !== "object") {
@@ -42,6 +58,9 @@ function assertPlayerRadarEvidence(payload = {}) {
     : [];
   if (proofReasons.length < 2) {
     throw new Error(`Player Radar proof segment needs at least 2 verifiable reasons for ${proofSegment.player?.name}.`);
+  }
+  if (!hasCompletePlayerIdentity(proofSegment.player)) {
+    throw new Error("Player Radar proof segment needs complete player identity.");
   }
 
   return payload;

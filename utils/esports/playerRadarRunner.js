@@ -227,7 +227,7 @@ function selectProofSegment(series = {}, proofPlayerName = "", locale = "zh") {
 }
 
 function buildPlayerRadarStoryboard(payload = {}, locale = "zh") {
-  const matchupName = payload.matchupSegment?.edgePlayer?.name || "對位焦點";
+  const matchupName = payload.matchupSegment?.focusPlayer?.name || payload.matchupSegment?.edgePlayer?.name || "對位焦點";
   const proofName = payload.proofSegment?.player?.name || "關鍵人物";
   const samePlayer = normalizePlayerName(matchupName) === normalizePlayerName(proofName);
   if (locale === "en") {
