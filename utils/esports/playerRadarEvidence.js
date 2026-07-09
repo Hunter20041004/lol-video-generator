@@ -49,17 +49,48 @@ function isPlainPayloadObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function isPlayerRadarPayload(payload = {}) {
+  return String(payload?.dataType || "").toUpperCase() === "PLAYER_RADAR";
+}
+
+function localizedPayloadValues(payload = {}) {
+  if (payload.localizedPayloads === null || payload.localizedPayloads === undefined) return [];
+  if (typeof payload.localizedPayloads === "object") return Object.values(payload.localizedPayloads);
+  return [];
+}
+
+function hasPlayerRadarPayload(payload = {}) {
+  return isPlayerRadarPayload(payload)
+    || localizedPayloadValues(payload).some((localizedPayload) => isPlainPayloadObject(localizedPayload) && isPlayerRadarPayload(localizedPayload));
+}
+
+function localizedPayloadEntries(payload = {}) {
+  if (payload.localizedPayloads === null || payload.localizedPayloads === undefined) return [];
+  if (typeof payload.localizedPayloads !== "object" || Array.isArray(payload.localizedPayloads)) {
+    throw new Error("Player Radar localizedPayloads must be an object.");
+  }
+  return Object.values(payload.localizedPayloads).map((localizedPayload) => {
+    if (!isPlainPayloadObject(localizedPayload)) {
+      throw new Error("Player Radar localized payload must be an object.");
+    }
+    return localizedPayload;
+  });
+}
+
 function assertSinglePlayerRadarEvidence(payload = {}) {
   const matchupSegment = payload.matchupSegment;
   if (!matchupSegment || typeof matchupSegment !== "object") {
     throw new Error("Player Radar matchup segment needs a complete role matchup.");
   }
 
-  const matchupReasons = Array.isArray(matchupSegment.reasons)
-    ? matchupSegment.reasons.filter(isVerifiableMatchupReason)
+  const displayedMatchupReasons = Array.isArray(matchupSegment.reasons)
+    ? matchupSegment.reasons.slice(0, 3)
     : [];
-  if (matchupReasons.length < 2) {
+  if (displayedMatchupReasons.length < 2) {
     throw new Error(`Player Radar matchup segment needs at least 2 verifiable reasons for ${matchupSegment.role}.`);
+  }
+  if (!displayedMatchupReasons.every(isVerifiableMatchupReason)) {
+    throw new Error(`Player Radar matchup segment contains unverifiable displayed reasons for ${matchupSegment.role}.`);
   }
   if (!hasCompletePlayerIdentity(matchupSegment.focusPlayer)
     || !hasCompletePlayerIdentity(matchupSegment.edgePlayer)
@@ -72,11 +103,14 @@ function assertSinglePlayerRadarEvidence(payload = {}) {
     throw new Error("Player Radar proof segment needs a complete player proof.");
   }
 
-  const proofReasons = Array.isArray(proofSegment.proofReasons)
-    ? proofSegment.proofReasons.filter(isVerifiableProofReason)
+  const displayedProofReasons = Array.isArray(proofSegment.proofReasons)
+    ? proofSegment.proofReasons.slice(0, 3)
     : [];
-  if (proofReasons.length < 2) {
+  if (displayedProofReasons.length < 2) {
     throw new Error(`Player Radar proof segment needs at least 2 verifiable reasons for ${proofSegment.player?.name}.`);
+  }
+  if (!displayedProofReasons.every(isVerifiableProofReason)) {
+    throw new Error(`Player Radar proof segment contains unverifiable displayed reasons for ${proofSegment.player?.name}.`);
   }
   if (!hasCompletePlayerIdentity(proofSegment.player)) {
     throw new Error("Player Radar proof segment needs complete player identity.");
@@ -86,24 +120,24 @@ function assertSinglePlayerRadarEvidence(payload = {}) {
 }
 
 function assertPlayerRadarEvidence(payload = {}) {
-  if (String(payload?.dataType || "").toUpperCase() !== "PLAYER_RADAR") return payload;
+  const shouldValidate = hasPlayerRadarPayload(payload);
+  if (!shouldValidate) return payload;
 
-  assertSinglePlayerRadarEvidence(payload);
-  if (payload.localizedPayloads !== null && payload.localizedPayloads !== undefined) {
-    if (typeof payload.localizedPayloads !== "object" || Array.isArray(payload.localizedPayloads)) {
-      throw new Error("Player Radar localizedPayloads must be an object.");
-    }
-    Object.values(payload.localizedPayloads).forEach((localizedPayload) => {
-      if (!isPlainPayloadObject(localizedPayload)) {
-        throw new Error("Player Radar localized payload must be an object.");
-      }
-      assertSinglePlayerRadarEvidence({ ...localizedPayload, dataType: "PLAYER_RADAR" });
-    });
+  const localizedPayloads = localizedPayloadEntries(payload);
+  if (isPlayerRadarPayload(payload)) {
+    assertSinglePlayerRadarEvidence(payload);
   }
+  localizedPayloads.forEach((localizedPayload) => {
+    if (isPlayerRadarPayload(payload) || isPlayerRadarPayload(localizedPayload)) {
+      assertSinglePlayerRadarEvidence({ ...localizedPayload, dataType: "PLAYER_RADAR" });
+    }
+  });
 
   return payload;
 }
 
 module.exports = {
+  hasPlayerRadarPayload,
   assertPlayerRadarEvidence,
+  isPlayerRadarPayload,
 };
