@@ -87,7 +87,11 @@ function getRoleMatchups(series = {}) {
 
 function getMetricValue(player = {}, label = "") {
   const field = METRIC_FIELDS[label];
-  return field ? number(player.rawStats?.[field]) : 0;
+  if (!field) return null;
+  const rawValue = player.rawStats?.[field];
+  if (rawValue === null || rawValue === undefined || String(rawValue).trim() === "") return null;
+  const value = Number(rawValue);
+  return Number.isFinite(value) ? value : null;
 }
 
 function getMetricDisplayValue(player = {}, label = "") {
@@ -106,6 +110,7 @@ function buildEdgeReasons(winner = {}, loser = {}) {
     .map((label) => {
       const winnerValue = getMetricValue(winner, label);
       const loserValue = getMetricValue(loser, label);
+      if (!Number.isFinite(winnerValue) || !Number.isFinite(loserValue)) return null;
       return {
         metric: label,
         winnerValue,
@@ -113,7 +118,7 @@ function buildEdgeReasons(winner = {}, loser = {}) {
         delta: round(winnerValue - loserValue, label === "KP%" || label === "CSM" || label === "VPM" ? 2 : 0),
       };
     })
-    .filter((reason) => reason.delta > 0)
+    .filter((reason) => reason && reason.delta > 0)
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
     .slice(0, 3);
 }
