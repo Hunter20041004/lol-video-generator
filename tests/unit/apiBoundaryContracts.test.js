@@ -180,6 +180,120 @@ test("publish job creation rejects player radar without dual-read evidence befor
   }
 });
 
+test("render and publish boundaries reject bogus player radar evidence before side effects", async () => {
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-bogus-boundary-"));
+  process.chdir(dir);
+  try {
+    const videoPath = path.join(dir, "public", "renders", "clip.mp4");
+    fs.mkdirSync(path.dirname(videoPath), { recursive: true });
+    fs.writeFileSync(videoPath, "fake video", "utf8");
+
+    const bogusAnalysis = {
+      dataType: "PLAYER_RADAR",
+      matchupSegment: {
+        role: "Mid",
+        focusPlayer: { name: "GEN Mid", team: "GEN", role: "Mid" },
+        edgePlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
+        opponentPlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
+        edgeWinnerTeam: "T1",
+        reasons: [
+          { metric: "DPM", winnerValue: "trust me", loserValue: "?", delta: "huge" },
+          { metric: "KP%", winnerValue: "ahead", loserValue: "behind", delta: "a lot" },
+        ],
+      },
+      proofSegment: {
+        player: { name: "GEN Mid", team: "GEN", role: "Mid" },
+        proofReasons: [
+          { metric: "KP%", rawValue: "84%", score: "elite" },
+          { metric: "DPM", rawValue: "720", score: "high" },
+        ],
+      },
+    };
+
+    const { renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService.js"));
+    const { createPublishJobs } = require(path.join(ROOT, "utils/publishing/index.js"));
+    let renderCalls = 0;
+
+    await assert.rejects(
+      () => renderVideosFromRequest(bogusAnalysis, {
+        execRenderImpl: async () => {
+          renderCalls += 1;
+          return null;
+        },
+      }),
+      /Player Radar .*needs at least 2 verifiable reasons/
+    );
+
+    assert.equal(renderCalls, 0);
+    assert.deepEqual(fs.readdirSync(path.join(dir, "public", "renders")), ["clip.mp4"]);
+
+    await assert.rejects(
+      () => createPublishJobs({
+        videoUrl: "/renders/clip.mp4",
+        analysis: bogusAnalysis,
+        platforms: ["instagram"],
+      }),
+      /Player Radar .*needs at least 2 verifiable reasons/
+    );
+
+    const queuePath = path.join(dir, ".data", "publish-queue.json");
+    const packagesDir = path.join(dir, "public", "publish-packages");
+    assert.deepEqual(fs.existsSync(queuePath) ? JSON.parse(fs.readFileSync(queuePath, "utf8")) : [], []);
+    assert.deepEqual(fs.existsSync(packagesDir) ? fs.readdirSync(packagesDir) : [], []);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("render boundary rejects player radar evidence with incomplete segment identity before rendering", async () => {
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-player-radar-identity-boundary-"));
+  process.chdir(dir);
+  try {
+    const { renderVideosFromRequest } = require(path.join(ROOT, "utils/render/renderService.js"));
+    let renderCalls = 0;
+
+    await assert.rejects(
+      () => renderVideosFromRequest({
+        dataType: "PLAYER_RADAR",
+        matchupSegment: {
+          role: "Mid",
+          focusPlayer: { name: "GEN Mid", team: "GEN" },
+          edgePlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
+          opponentPlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
+          edgeWinnerTeam: "T1",
+          reasons: [
+            { metric: "DPM", winnerValue: "720", loserValue: "360", delta: "360" },
+            { metric: "KP%", winnerValue: "0.86", loserValue: "0.48", delta: "0.38" },
+          ],
+        },
+        proofSegment: {
+          player: { name: "GEN Mid", team: "GEN" },
+          proofReasons: [
+            { metric: "KP%", rawValue: "84%", score: "90" },
+            { metric: "DPM", rawValue: "720", score: "88" },
+          ],
+        },
+      }, {
+        execRenderImpl: async () => {
+          renderCalls += 1;
+          return null;
+        },
+      }),
+      /Player Radar .*needs complete player identity/
+    );
+
+    assert.equal(renderCalls, 0);
+    const rendersDir = path.join(dir, "public", "renders");
+    assert.deepEqual(fs.existsSync(rendersDir) ? fs.readdirSync(rendersDir) : [], []);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("schema normalization accepts new meta payloads while API guards reject retired ones", () => {
   const { validateAnalyzeRequest, validatePublishRequest } = require(path.join(ROOT, "utils/apiGuards.js"));
   const { normalizePipelinePayload } = require(path.join(ROOT, "src/schemas/pipelineSchemas.js"));

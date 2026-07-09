@@ -127,7 +127,7 @@ const getHookProofPillValue = (data = {}) => {
 
 const buildConclusionVerdict = (data = {}) => {
   const copy = getPlayerRadarCopy(data);
-  const matchupPlayer = data.matchupSegment?.edgePlayer || {};
+  const matchupPlayer = data.matchupSegment?.focusPlayer || data.matchupSegment?.edgePlayer || {};
   const proofPlayer = data.proofSegment?.player || {};
   const matchupName = matchupPlayer.name || copy.conclusionFallbackMatchupName;
   const proofName = proofPlayer.name || copy.conclusionFallbackProofName;

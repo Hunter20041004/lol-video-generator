@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 const { runPlayerRadarFromSnapshot } = require('../../../../utils/esports/playerRadarRunner');
 
+function statusForPlayerRadarError(error) {
+  const message = error.message || '';
+  if (/not found|scan/i.test(message)) return 404;
+  if (/needs|invalid|required|unsupported/i.test(message)) return 400;
+  return 500;
+}
+
 export async function POST(request) {
   try {
     const body = await request.json().catch(() => ({}));
@@ -10,6 +17,6 @@ export async function POST(request) {
     return NextResponse.json({
       success: false,
       error: error.message || 'Player radar failed.',
-    }, { status: /not found|scan/i.test(error.message || '') ? 404 : 500 });
+    }, { status: statusForPlayerRadarError(error) });
   }
 }
