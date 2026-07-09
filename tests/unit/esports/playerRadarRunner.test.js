@@ -336,6 +336,16 @@ test("player radar payloads handle empty stats and stale MVP names", async () =>
   await withTempProject(async () => {
     const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
     const snapshot = makeSnapshot();
+    const weakTopOpponent = {
+      ...snapshot.candidates[0].players.find((player) => player.name === "GEN Top"),
+      radarStats: [
+        { label: "KDA", rawValue: "1.8", normalizedScore: 12 },
+        { label: "DPM", rawValue: "280", normalizedScore: 11 },
+        { label: "KP%", rawValue: "41%", normalizedScore: 10 },
+        { label: "GPM", rawValue: "310", normalizedScore: 12 },
+        { label: "CSM", rawValue: "6.1", normalizedScore: 11 },
+      ],
+    };
     snapshot.candidates[0].recommendedMvp = { name: "Stale MVP" };
     snapshot.candidates[0].players.push({
       name: "No Stats",
@@ -347,7 +357,7 @@ test("player radar payloads handle empty stats and stale MVP names", async () =>
     snapshot.candidates[0].roleMatchups.push({
       role: "Top",
       left: snapshot.candidates[0].players.find((player) => player.name === "No Stats"),
-      right: snapshot.candidates[0].players.find((player) => player.name === "GEN Top"),
+      right: weakTopOpponent,
     });
     writeCandidateSnapshot(snapshot);
 
@@ -361,7 +371,10 @@ test("player radar payloads handle empty stats and stale MVP names", async () =>
     assert.deepEqual(normalizeLanguages("en"), ["zh", "en"]);
 
     assert.throws(
-      () => buildPlayerRadarPayload(snapshot.candidates[0], { playerName: "No Stats" }, "zh"),
+      () => buildPlayerRadarPayload(snapshot.candidates[0], {
+        matchupPlayerName: "T1 Mid",
+        mvpPlayerName: "No Stats",
+      }, "zh"),
       /proof segment needs at least 2 verifiable reasons/
     );
 
@@ -417,6 +430,74 @@ test("runPlayerRadarFromSnapshot rejects label-only and NaN proof stats before r
 
     assert.equal(renderCalls, 0);
     assert.equal(publishCalls, 0);
+  });
+});
+
+test("player radar rejects matchup reasons with missing opponent raw stats before render and publish", async () => {
+  await withTempProject(async () => {
+    const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    const snapshot = makeSnapshot();
+    const midMatchup = snapshot.candidates[0].roleMatchups.find((matchup) => matchup.role === "Mid");
+    const midOpponent = snapshot.candidates[0].players.find((player) => player.name === "GEN Mid");
+    const topMatchup = snapshot.candidates[0].roleMatchups.find((matchup) => matchup.role === "Top");
+
+    midMatchup.right = {
+      ...midMatchup.right,
+      rawStats: {
+        role: "Mid",
+        kda: null,
+        dpm: undefined,
+        kp: "",
+        gpm: Number.NaN,
+        csm: null,
+      },
+    };
+    const opponentIndex = snapshot.candidates[0].players.findIndex((player) => player.name === "GEN Mid");
+    snapshot.candidates[0].players[opponentIndex] = midMatchup.right;
+
+    topMatchup.left = {
+      ...topMatchup.left,
+      rawStats: {
+        ...topMatchup.right.rawStats,
+        kda: topMatchup.right.rawStats.kda + 0.1,
+      },
+    };
+
+    writeCandidateSnapshot(snapshot);
+
+    const {
+      buildPlayerRadarPayload,
+      runPlayerRadarFromSnapshot,
+    } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    let renderCalls = 0;
+    let publishCalls = 0;
+
+    assert.throws(
+      () => buildPlayerRadarPayload(snapshot.candidates[0], { matchupPlayerName: "T1 Mid" }, "zh"),
+      /matchup segment needs at least 2 verifiable reasons for Mid/
+    );
+
+    await assert.rejects(
+      () => runPlayerRadarFromSnapshot({
+        scanId: "scan-radar",
+        seriesId: "series-1",
+        languages: ["zh"],
+      }, {
+        renderVideosFromRequest: async () => {
+          renderCalls += 1;
+          return { videoUrl: "/renders/zh.mp4", fileName: "zh.mp4" };
+        },
+        createPublishJobs: async () => {
+          publishCalls += 1;
+          return { success: true, jobs: [] };
+        },
+      }),
+      /matchup segment needs at least 2 verifiable reasons for Mid/
+    );
+
+    assert.equal(renderCalls, 0);
+    assert.equal(publishCalls, 0);
+    assert.equal(midOpponent.name, "GEN Mid");
   });
 });
 
