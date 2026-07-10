@@ -260,7 +260,7 @@ function selectProofSegment(series = {}, proofPlayerName = "", locale = "zh") {
   }
 
   const recommended = isRecommendedMvp(series, player);
-  const proofType = requested && !recommended ? "key-player" : "mvp";
+  const proofType = recommended ? "mvp" : "key-player";
   return {
     player: summarizePlayer(player),
     proofType,
