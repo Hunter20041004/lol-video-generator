@@ -4,8 +4,11 @@ const { listTasks } = require('../../../utils/publishing/queueStore');
 const { ensurePublicMediaBaseUrl } = require('../../../utils/publishing/tunnel');
 const { validatePublishRequest } = require('../../../utils/apiGuards');
 
-function resolvePublishAnalysis(body = {}) {
-  return body.analysis && typeof body.analysis === 'object' ? body.analysis : body;
+function resolvePublishAnalysis(body = {}, policy = {}) {
+  const analysis = body.analysis && typeof body.analysis === 'object' ? body.analysis : body;
+  return analysis.dataType || !policy.dataType
+    ? analysis
+    : { ...analysis, dataType: policy.dataType };
 }
 
 function statusForPublishError(error) {
@@ -36,7 +39,7 @@ export async function POST(request) {
     const policy = validatePublishRequest(body);
     const action = body.action || 'queue';
     const platforms = policy.platforms;
-    const analysis = resolvePublishAnalysis(body);
+    const analysis = resolvePublishAnalysis(body, policy);
     preflightPublishJobs({
       videoUrl: body.videoUrl,
       videos: body.videos,
