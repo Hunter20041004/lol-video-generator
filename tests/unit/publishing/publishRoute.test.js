@@ -112,3 +112,31 @@ test("publish route preserves top-level player radar analysis through preflight 
     ["create", "PLAYER_RADAR"],
   ]);
 });
+
+test("publish route applies top-level player radar type to nested analysis before publishing", async () => {
+  const received = [];
+  const POST = loadPostRoute({
+    preflightPublishJobs: (request) => {
+      received.push(["preflight", request.analysis?.dataType]);
+    },
+    createPublishJobs: async (request) => {
+      received.push(["create", request.analysis?.dataType]);
+      return { success: true, jobs: [] };
+    },
+  });
+
+  const response = await POST({
+    json: async () => ({
+      dataType: "PLAYER_RADAR",
+      analysis: { title: "T1 vs GEN 選手雷達" },
+      videoUrl: "/renders/player-radar.mp4",
+      platforms: ["instagram"],
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(received, [
+    ["preflight", "PLAYER_RADAR"],
+    ["create", "PLAYER_RADAR"],
+  ]);
+});
