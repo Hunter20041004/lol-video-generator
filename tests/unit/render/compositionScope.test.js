@@ -244,6 +244,22 @@ test("Player radar template uses creator-read hero visuals and source-backed sta
   assert.equal(source.includes('width: 320'), false);
 });
 
+test("Player radar template uses polished broadcast visuals instead of draft dashboard cards", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+
+  assert.match(source, /const PlayerRadarBroadcastBackdrop/);
+  assert.match(source, /const BroadcastPanel/);
+  assert.match(source, /const SplitMatchupMeter/);
+  assert.match(source, /const VerdictStatRail/);
+  assert.match(source, /const CompactEvidenceCard/);
+  assert.match(source, /clipPath: "polygon\(16px 0/);
+  assert.match(source, /gridTemplateColumns: "1fr 92px 1fr"/);
+  assert.equal(source.includes("<GlassPanel"), false);
+  assert.equal(source.includes("不是抽象分數"), false);
+  assert.equal(source.includes("不硬補假軸"), false);
+  assert.equal(source.includes("fontSize: 168"), false);
+});
+
 test("Radar chart does not synthesize fallback evidence axes", () => {
   const source = fs.readFileSync(path.join(ROOT, "src/components/charts/RadarChart.jsx"), "utf8");
 

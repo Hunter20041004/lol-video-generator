@@ -6,11 +6,9 @@ import { HextechBackground, HEXTECH_COLORS } from "../video-system/HextechBackgr
 import { SubtitleCaption } from "../video-system/SubtitleCaption";
 import { buildTimeline, getActiveTimelineScene } from "../video-system/pacing";
 import {
-  GlassPanel,
   PipelineBadge,
   PipelineChrome,
   SafeStage,
-  VerdictCard,
   getPipelineTheme,
 } from "../video-system/VideoPrimitives";
 import playerRadarHelpers from "./playerRadarHelpers";
@@ -27,8 +25,10 @@ const {
   samePlayer,
 } = playerRadarHelpers;
 
-const PLAYER_RADAR_STAGE_INSET = "92px 72px 304px";
-const PLAYER_RADAR_SUBTITLE_BOTTOM = 278;
+const PLAYER_RADAR_STAGE_INSET = "86px 64px 276px";
+const PLAYER_RADAR_SUBTITLE_BOTTOM = 248;
+const BROADCAST_CLIP = "polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px)";
+const PANEL_SURFACE = "linear-gradient(135deg, rgba(4,11,24,0.93), rgba(7,21,35,0.86) 48%, rgba(2,7,16,0.95))";
 
 const getProofBadgeLabel = (proofType, data = {}) => {
   const copy = getPlayerRadarCopy(data);
@@ -83,107 +83,192 @@ const getScoreText = (match = {}) => {
 
 const getTeamLine = (match = {}) => [match.teamA, match.teamB].filter(Boolean).join(" vs ");
 
+const joinMetrics = (metrics = [], data = {}) => {
+  const fallback = isEnglishLocale(data) ? "KDA, CSM, DPM" : "KDA、CSM、DPM";
+  const clean = metrics.filter(Boolean).slice(0, 3);
+  if (clean.length === 0) return fallback;
+  return isEnglishLocale(data) ? clean.join(", ") : clean.join("、");
+};
+
 const getTemplateCopy = (data = {}) => {
   const en = isEnglishLocale(data);
   return en
     ? {
-      primaryGap: "PRIMARY GAP",
+      creatorRead: "CREATOR READ",
+      primaryGap: "LANE VERDICT",
       focus: "FOCUS",
       opponent: "OPPONENT",
-      matchupEvidence: (name) => `${name} wins through source stats, not an abstract score`,
-      proofWhyTitle: "SOURCE READ",
-      proofWhyBody: "Three source-backed stats are enough for the MVP case, so the chart does not invent extra axes.",
+      sourceRead: "SOURCE READ",
+      proofCase: "MVP CASE",
+      matchupEvidence: (name) => `${name} created a lane gap the stats can show.`,
+      proofWhyTitle: "WHY IT HOLDS",
+      proofWhyBody: (metrics) => `The case is built on ${joinMetrics(metrics, data)}, all source-backed.`,
+      sourceValue: "source value",
+      conclusionTitleSame: "ONE PLAYER, TWO CASES",
+      conclusionTitleSplit: "GAP AND MVP SPLIT",
     }
     : {
-      primaryGap: "核心差距",
+      creatorRead: "賽後判讀",
+      primaryGap: "這路差距",
       focus: "觀察點",
       opponent: "對手",
-      matchupEvidence: (name) => `${name} 贏在真實數據差距，不是抽象分數`,
-      proofWhyTitle: "證據讀法",
-      proofWhyBody: "三個來源數據足夠建立 MVP 讀法，雷達不硬補假軸。",
+      sourceRead: "來源證據",
+      proofCase: "MVP 證明",
+      matchupEvidence: (name) => `${name} 的領先不是一句打得好，數字直接指向這路。`,
+      proofWhyTitle: "為什麼成立",
+      proofWhyBody: (metrics) => `三項核心數據就夠說服：${joinMetrics(metrics, data)} 都站得住。`,
+      sourceValue: "來源值",
+      conclusionTitleSame: "同一人雙重證明",
+      conclusionTitleSplit: "對位差與 MVP 分開看",
     };
 };
 
-const PlayerRadarHeroBackdrop = ({ data, theme, localFrame = 0, emphasis = "player" }) => {
+const TeamMark = ({ label, side = "left", accent }) => {
+  if (!label) return null;
+  const isLeft = side === "left";
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: isLeft ? 124 : 276,
+        [isLeft ? "left" : "right"]: 42,
+        width: 228,
+        padding: "18px 20px",
+        color: "#fff",
+        fontSize: 36,
+        fontWeight: 950,
+        letterSpacing: 4,
+        lineHeight: 1,
+        textAlign: isLeft ? "left" : "right",
+        border: `1px solid ${accent}4d`,
+        background: `linear-gradient(${isLeft ? 104 : 284}deg, ${accent}24, rgba(3,8,18,0.28) 72%)`,
+        clipPath: BROADCAST_CLIP,
+        opacity: 0.08,
+      }}
+    >
+      {label}
+    </div>
+  );
+};
+
+const PlayerRadarBroadcastBackdrop = ({ data, theme, localFrame = 0, emphasis = "player" }) => {
   const match = data.matchContext || {};
-  const score = getScoreText(match);
   const teamA = String(match.teamA || "");
   const teamB = String(match.teamB || "");
-  const pulse = interpolate((localFrame + 20) % 120, [0, 60, 120], [0.54, 0.92, 0.54]);
-  const scoreOpacity = emphasis === "verdict" ? 0.16 : 0.22;
+  const beam = interpolate((localFrame + 15) % 110, [0, 55, 110], [0.42, 0.72, 0.42]);
 
   return (
-    <div style={{ position: "absolute", inset: -72, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
+    <div style={{ position: "absolute", inset: -64, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
       <div
         style={{
           position: "absolute",
-          inset: "4% 2% auto",
-          height: "42%",
-          background: `radial-gradient(circle at 50% 40%, ${theme.accent}22, transparent 54%)`,
-          opacity: pulse,
+          inset: 0,
+          background: [
+            `radial-gradient(circle at 20% 16%, ${theme.accent}24, transparent 35%)`,
+            `radial-gradient(circle at 82% 24%, ${theme.secondary}24, transparent 36%)`,
+            "linear-gradient(112deg, rgba(3,18,31,0.94) 0%, rgba(3,8,18,0.98) 49%, rgba(22,7,23,0.9) 100%)",
+          ].join(", "),
         }}
       />
       <div
         style={{
           position: "absolute",
-          top: "5%",
-          left: -8,
-          color: "rgba(10,200,185,0.09)",
-          fontSize: 142,
-          fontWeight: 950,
-          letterSpacing: 4,
-          lineHeight: 0.9,
+          inset: "74px 54px auto",
+          height: 520,
+          backgroundImage: "linear-gradient(rgba(255,255,255,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+          maskImage: "linear-gradient(180deg, rgba(0,0,0,0.85), transparent)",
+          opacity: 0.34,
         }}
-      >
-        {teamA}
-      </div>
+      />
       <div
         style={{
           position: "absolute",
-          top: "16%",
-          right: -8,
-          color: "rgba(136,85,255,0.11)",
-          fontSize: 142,
-          fontWeight: 950,
-          letterSpacing: 4,
-          lineHeight: 0.9,
-          textAlign: "right",
+          left: -110,
+          top: 150,
+          width: 610,
+          height: 1040,
+          transform: "skewX(-16deg)",
+          background: `linear-gradient(180deg, ${theme.accent}14, transparent 72%)`,
+          borderRight: `1px solid ${theme.accent}2f`,
         }}
-      >
-        {teamB}
-      </div>
-      {score ? (
-        <div
-          style={{
-            position: "absolute",
-            inset: "16% 0 auto",
-            color: `rgba(240,230,210,${scoreOpacity})`,
-            fontSize: 168,
-            fontWeight: 950,
-            letterSpacing: -3,
-            textAlign: "center",
-            textShadow: "0 26px 70px rgba(0,0,0,0.84)",
-            transform: "skewY(-5deg)",
-          }}
-        >
-          {score}
-        </div>
-      ) : null}
+      />
       <div
         style={{
           position: "absolute",
-          left: "7%",
-          right: "7%",
-          top: "34%",
-          height: 3,
-          background: `linear-gradient(90deg, transparent, ${theme.accent}99, ${HEXTECH_COLORS.gold}aa, ${theme.secondary}99, transparent)`,
-          boxShadow: `0 0 34px ${theme.accent}88`,
-          transform: "rotate(-3deg)",
+          right: -110,
+          top: 224,
+          width: 610,
+          height: 1040,
+          transform: "skewX(16deg)",
+          background: `linear-gradient(180deg, ${theme.secondary}18, transparent 72%)`,
+          borderLeft: `1px solid ${theme.secondary}2f`,
+        }}
+      />
+      <TeamMark label={teamA} side="left" accent={theme.accent} />
+      <TeamMark label={teamB} side="right" accent={theme.secondary} />
+      <div
+        style={{
+          position: "absolute",
+          left: "10%",
+          right: "10%",
+          top: "38%",
+          height: 4,
+          background: `linear-gradient(90deg, transparent, ${theme.accent}99, ${HEXTECH_COLORS.gold}, ${theme.secondary}99, transparent)`,
+          boxShadow: `0 0 38px rgba(200,170,110,${beam})`,
+          transform: "rotate(-5deg)",
+          opacity: beam,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(180deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+          backgroundSize: "100% 7px",
+          opacity: 0.1,
         }}
       />
     </div>
   );
 };
+
+const PlayerRadarHeroBackdrop = PlayerRadarBroadcastBackdrop;
+
+const BroadcastPanel = ({ children, accent = HEXTECH_COLORS.gold, style = {}, innerStyle = {} }) => (
+  <div
+    style={{
+      position: "relative",
+      clipPath: "polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px)",
+      border: `1px solid ${accent}66`,
+      background: PANEL_SURFACE,
+      boxShadow: `0 26px 68px rgba(0,0,0,0.42), inset 0 0 32px ${accent}12`,
+      overflow: "hidden",
+      ...style,
+    }}
+  >
+    <div
+      style={{
+        position: "absolute",
+        inset: "0 0 auto",
+        height: 3,
+        background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+        opacity: 0.9,
+      }}
+    />
+    <div
+      style={{
+        position: "absolute",
+        right: -80,
+        top: -70,
+        width: 220,
+        height: 220,
+        background: `radial-gradient(circle, ${accent}24, transparent 68%)`,
+      }}
+    />
+    <div style={{ position: "relative", zIndex: 1, ...innerStyle }}>{children}</div>
+  </div>
+);
 
 const ScorelineStrip = ({ data, theme }) => {
   const match = data.matchContext || {};
@@ -192,21 +277,18 @@ const ScorelineStrip = ({ data, theme }) => {
   const league = String(match.league || "").trim();
 
   return (
-    <div
-      style={{
-        position: "relative",
-        zIndex: 1,
+    <BroadcastPanel
+      accent={theme.accent}
+      style={{ zIndex: 1 }}
+      innerStyle={{
         display: "grid",
         gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center",
         gap: 18,
-        padding: "15px 22px",
-        border: `1px solid ${theme.accent}55`,
-        background: "linear-gradient(90deg, rgba(3,11,24,0.36), rgba(5,21,37,0.78), rgba(3,11,24,0.36))",
-        boxShadow: `0 16px 38px rgba(0,0,0,0.34), inset 0 0 22px ${theme.accent}12`,
+        padding: "14px 22px",
       }}
     >
-      <div style={{ color: "rgba(240,230,210,0.72)", fontSize: 20, fontWeight: 900, letterSpacing: 4 }}>
+      <div style={{ color: "rgba(240,230,210,0.72)", fontSize: 19, fontWeight: 900, letterSpacing: 4 }}>
         {league}
       </div>
       <div style={{ color: HEXTECH_COLORS.gold, fontSize: 34, fontWeight: 950, lineHeight: 1 }}>
@@ -215,118 +297,187 @@ const ScorelineStrip = ({ data, theme }) => {
       <div style={{ color: "#fff", fontSize: 22, fontWeight: 950, letterSpacing: 3, textAlign: "right" }}>
         {teamLine}
       </div>
-    </div>
+    </BroadcastPanel>
   );
 };
 
-const MatchupStatSpotlight = ({ reason, segment, theme, data = {}, compact = false }) => {
-  if (!reason) return null;
-  const copy = getTemplateCopy(data);
+const getMeterShare = (reason = {}, segment = {}) => {
   const values = getMatchupMetricDisplay(reason, segment);
-  const metric = reason.metric || "";
-  const delta = formatMetricDelta(metric, reason.delta);
-  const leftValue = formatMetricValue(metric, values.leftValue);
-  const rightValue = formatMetricValue(metric, values.rightValue);
-
-  return (
-    <GlassPanel
-      accent={HEXTECH_COLORS.gold}
-      style={{
-        padding: compact ? 22 : 28,
-        background: "linear-gradient(135deg, rgba(4,10,22,0.9), rgba(30,22,5,0.72))",
-      }}
-    >
-      <div style={{ color: "rgba(240,230,210,0.66)", fontSize: compact ? 17 : 19, fontWeight: 950, letterSpacing: 4 }}>
-        {copy.primaryGap}
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr auto", alignItems: "end", gap: 18, marginTop: compact ? 10 : 16 }}>
-        <div>
-          <div style={{ color: "#fff", fontSize: compact ? 42 : 58, fontWeight: 950, lineHeight: 1 }}>
-            {metric}
-          </div>
-          <div style={{ color: "rgba(219,234,254,0.78)", fontSize: compact ? 24 : 30, fontWeight: 900, marginTop: 8 }}>
-            {leftValue} vs {rightValue}
-          </div>
-        </div>
-        <div style={{ color: HEXTECH_COLORS.gold, fontSize: compact ? 44 : 66, fontWeight: 950, lineHeight: 0.92 }}>
-          {delta}
-        </div>
-      </div>
-    </GlassPanel>
-  );
+  const left = Number(values.leftValue);
+  const right = Number(values.rightValue);
+  if (!Number.isFinite(left) || !Number.isFinite(right) || left + right <= 0) {
+    return samePlayer(segment.focusPlayer, segment.edgePlayer) ? 0.66 : 0.34;
+  }
+  return Math.min(0.78, Math.max(0.22, left / (left + right)));
 };
 
-const MetricRow = ({ reason, segment, accent }) => {
-  const values = getMatchupMetricDisplay(reason, segment);
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "118px 1fr 112px", gap: 18, alignItems: "center" }}>
-      <div style={{ color: accent, fontSize: 25, fontWeight: 950 }}>{reason.metric}</div>
-      <div style={{ color: "rgba(219,234,254,0.78)", fontSize: 23, fontWeight: 850 }}>
-        {formatMetricValue(reason.metric, values.leftValue)} vs {formatMetricValue(reason.metric, values.rightValue)}
-      </div>
-      <div style={{ color: HEXTECH_COLORS.gold, fontSize: 31, fontWeight: 950, textAlign: "right" }}>
-        {formatMetricDelta(reason.metric, reason.delta)}
-      </div>
-    </div>
-  );
-};
-
-const PlayerIdentityCard = ({ label, player = {}, accent, data, dominant = false }) => (
-  <GlassPanel
-    accent={accent}
+const PlayerPlate = ({ label, player = {}, accent, align = "left", data = {} }) => (
+  <div
     style={{
-      minHeight: dominant ? 250 : 220,
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "space-between",
-      background: dominant
-        ? `linear-gradient(145deg, rgba(2,6,14,0.94), ${accent}18)`
-        : "rgba(2,6,14,0.7)",
+      minHeight: 154,
+      padding: "24px 22px",
+      border: `1px solid ${accent}55`,
+      background: `linear-gradient(${align === "left" ? 112 : 248}deg, ${accent}18, rgba(3,8,18,0.66))`,
+      clipPath: BROADCAST_CLIP,
+      display: "grid",
+      alignContent: "space-between",
+      textAlign: align,
     }}
   >
-    <div style={{ color: accent, fontSize: 18, fontWeight: 950, letterSpacing: 4 }}>{label}</div>
+    <div style={{ color: accent, fontSize: 17, fontWeight: 950, letterSpacing: 4 }}>{label}</div>
     <div>
-      <div style={{ color: "#fff", fontSize: dominant ? 56 : 46, fontWeight: 950, lineHeight: 1 }}>{player.name}</div>
-      <div style={{ marginTop: 12, color: "rgba(219,234,254,0.8)", fontSize: 26, fontWeight: 850 }}>
-        {player.team || ""} · {getRoleLabel(player.role, data)}
+      <div style={{ color: "#fff", fontSize: 45, fontWeight: 950, lineHeight: 0.96 }}>
+        {player.name}
+      </div>
+      <div style={{ marginTop: 10, color: "rgba(219,234,254,0.78)", fontSize: 23, fontWeight: 850 }}>
+        {[player.team, getRoleLabel(player.role, data)].filter(Boolean).join(" · ")}
       </div>
     </div>
-  </GlassPanel>
+  </div>
 );
 
-const EvidenceCard = ({ reason, index, theme, large = false }) => {
+const SplitMatchupMeter = ({ reason, segment, theme, data = {}, compact = false }) => {
+  if (!reason) return null;
+  const templateCopy = getTemplateCopy(data);
+  const displayPlayers = deriveMatchupDisplayPlayers(segment);
+  const focusPlayer = displayPlayers.focusPlayer;
+  const opponentPlayer = displayPlayers.opponentPlayer;
+  const values = getMatchupMetricDisplay(reason, segment);
   const metric = reason.metric || "";
-  const rawValue = formatMetricValue(metric, reason.rawValue);
+  const leftValue = formatMetricValue(metric, values.leftValue);
+  const rightValue = formatMetricValue(metric, values.rightValue);
+  const leftShare = getMeterShare(reason, segment);
+  const leftOwnsEdge = samePlayer(focusPlayer, displayPlayers.edgePlayer);
+  const rightOwnsEdge = samePlayer(opponentPlayer, displayPlayers.edgePlayer);
+
   return (
-    <GlassPanel
-      accent={index === 0 ? HEXTECH_COLORS.gold : theme.accent}
-      style={{
-        padding: large ? 30 : 24,
-        minHeight: large ? 174 : 132,
-        display: "grid",
-        gridTemplateColumns: large ? "72px 1fr auto" : "56px 1fr auto",
-        alignItems: "center",
-        gap: 18,
-        background: index === 0
-          ? "linear-gradient(135deg, rgba(35,25,8,0.88), rgba(5,12,24,0.86))"
-          : "linear-gradient(135deg, rgba(4,10,22,0.9), rgba(4,22,34,0.72))",
-      }}
+    <BroadcastPanel
+      accent={HEXTECH_COLORS.gold}
+      innerStyle={{ padding: compact ? 22 : 26, display: "grid", gap: compact ? 18 : 22 }}
     >
-      <div style={{ color: HEXTECH_COLORS.gold, fontSize: large ? 52 : 40, fontWeight: 950 }}>{index + 1}</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 92px 1fr", gap: 18, alignItems: "stretch" }}>
+        <PlayerPlate
+          label={leftOwnsEdge ? templateCopy.primaryGap : templateCopy.focus}
+          player={focusPlayer}
+          accent={leftOwnsEdge ? HEXTECH_COLORS.gold : theme.accent}
+          data={data}
+        />
+        <div style={{ display: "grid", placeItems: "center", color: HEXTECH_COLORS.gold, fontSize: 32, fontWeight: 950 }}>
+          VS
+        </div>
+        <PlayerPlate
+          label={rightOwnsEdge ? templateCopy.primaryGap : templateCopy.opponent}
+          player={opponentPlayer}
+          accent={rightOwnsEdge ? HEXTECH_COLORS.gold : theme.secondary}
+          align="right"
+          data={data}
+        />
+      </div>
       <div>
-        <div style={{ color: "#fff", fontSize: large ? 44 : 34, fontWeight: 950, lineHeight: 1 }}>
-          {metric}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "end", gap: 18 }}>
+          <div style={{ color: "#fff", fontSize: compact ? 38 : 48, fontWeight: 950, lineHeight: 1 }}>{leftValue}</div>
+          <div style={{ color: HEXTECH_COLORS.gold, fontSize: compact ? 36 : 50, fontWeight: 950, lineHeight: 1 }}>
+            {metric} {formatMetricDelta(metric, reason.delta)}
+          </div>
+          <div style={{ color: "#fff", fontSize: compact ? 38 : 48, fontWeight: 950, lineHeight: 1, textAlign: "right" }}>{rightValue}</div>
         </div>
-        <div style={{ color: "rgba(219,234,254,0.76)", fontSize: large ? 25 : 21, fontWeight: 850, marginTop: 8 }}>
-          {rawValue}
+        <div style={{ marginTop: 14, height: 18, display: "grid", gridTemplateColumns: `${leftShare}fr ${1 - leftShare}fr`, gap: 4 }}>
+          <div style={{ background: `linear-gradient(90deg, ${leftOwnsEdge ? HEXTECH_COLORS.gold : theme.accent}, rgba(255,255,255,0.18))`, boxShadow: leftOwnsEdge ? `0 0 22px ${HEXTECH_COLORS.gold}55` : "none" }} />
+          <div style={{ background: `linear-gradient(90deg, rgba(255,255,255,0.18), ${rightOwnsEdge ? HEXTECH_COLORS.gold : theme.secondary})`, boxShadow: rightOwnsEdge ? `0 0 22px ${HEXTECH_COLORS.gold}55` : "none" }} />
         </div>
       </div>
-      <div style={{ color: theme.accent, fontSize: large ? 56 : 42, fontWeight: 950, textAlign: "right" }}>
-        {reason.score}
-      </div>
-    </GlassPanel>
+    </BroadcastPanel>
   );
 };
+
+const MatchupStatSpotlight = ({ reason, segment, theme, data = {}, compact = false }) => (
+  <SplitMatchupMeter reason={reason} segment={segment} theme={theme} data={data} compact={compact} />
+);
+
+const VerdictStatRail = ({ reasons = [], segment, theme, max = 3 }) => {
+  const visible = reasons.filter(Boolean).slice(0, max);
+  if (visible.length === 0) return null;
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(${visible.length}, 1fr)`, gap: 12 }}>
+      {visible.map((reason) => {
+        const values = getMatchupMetricDisplay(reason, segment);
+        return (
+          <div
+            key={reason.metric}
+            style={{
+              padding: "16px 18px",
+              border: `1px solid ${theme.accent}33`,
+              background: "rgba(3,8,18,0.58)",
+              clipPath: BROADCAST_CLIP,
+            }}
+          >
+            <div style={{ color: theme.accent, fontSize: 18, fontWeight: 950, letterSpacing: 3 }}>{reason.metric}</div>
+            <div style={{ marginTop: 8, color: "#fff", fontSize: 27, fontWeight: 950, lineHeight: 1 }}>
+              {formatMetricValue(reason.metric, values.leftValue)} / {formatMetricValue(reason.metric, values.rightValue)}
+            </div>
+            <div style={{ marginTop: 6, color: HEXTECH_COLORS.gold, fontSize: 26, fontWeight: 950 }}>
+              {formatMetricDelta(reason.metric, reason.delta)}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const CompactEvidenceCard = ({ reason, index, theme, data = {}, large = false }) => {
+  const metric = reason.metric || "";
+  const rawValue = formatMetricValue(metric, reason.rawValue);
+  const score = Number(reason.score);
+  const scoreText = Number.isFinite(score) ? Math.round(score) : reason.score;
+  const templateCopy = getTemplateCopy(data);
+
+  return (
+    <BroadcastPanel
+      accent={index === 0 ? HEXTECH_COLORS.gold : theme.accent}
+      innerStyle={{
+        padding: large ? "27px 28px" : "22px 24px",
+        display: "grid",
+        gridTemplateColumns: large ? "64px 1fr auto" : "52px 1fr auto",
+        alignItems: "center",
+        gap: 18,
+      }}
+      style={{
+        background: index === 0
+          ? "linear-gradient(135deg, rgba(36,26,8,0.93), rgba(5,13,25,0.9))"
+          : PANEL_SURFACE,
+      }}
+    >
+      <div style={{ color: HEXTECH_COLORS.gold, fontSize: large ? 45 : 36, fontWeight: 950, lineHeight: 1 }}>
+        0{index + 1}
+      </div>
+      <div>
+        <div style={{ color: "#fff", fontSize: large ? 42 : 34, fontWeight: 950, lineHeight: 1 }}>
+          {metric}
+        </div>
+        <div style={{ marginTop: 8, color: "rgba(219,234,254,0.76)", fontSize: large ? 24 : 20, fontWeight: 850 }}>
+          {templateCopy.sourceValue} {rawValue}
+        </div>
+      </div>
+      <div style={{ color: theme.accent, fontSize: large ? 52 : 42, fontWeight: 950, textAlign: "right" }}>
+        {scoreText}
+      </div>
+    </BroadcastPanel>
+  );
+};
+
+const EvidenceCard = ({ reason, index, theme, data = {}, large = false }) => (
+  <CompactEvidenceCard reason={reason} index={index} theme={theme} data={data} large={large} />
+);
+
+const SceneShell = ({ data, theme, localFrame, emphasis, children }) => (
+  <div style={{ position: "relative", height: "100%", display: "grid", gridTemplateRows: "auto 1fr", gap: 24, overflow: "hidden" }}>
+    <PlayerRadarBroadcastBackdrop data={data} theme={theme} localFrame={localFrame} emphasis={emphasis} />
+    <ScorelineStrip data={data} theme={theme} />
+    <div style={{ position: "relative", zIndex: 1, minHeight: 0 }}>{children}</div>
+  </div>
+);
 
 const HookScene = ({ data, theme, localFrame }) => {
   const player = getPlayer(data);
@@ -343,36 +494,49 @@ const HookScene = ({ data, theme, localFrame }) => {
   const isSamePlayer = samePlayer(edgePlayer, proofPlayer);
   const roleLabel = getRoleLabel(edgePlayer.role || player.role, data);
   const headline = isSamePlayer
-    ? (en ? `${proofPlayer.name} owns the ${roleLabel} read` : `${proofPlayer.name} 打穿${roleLabel}`)
+    ? (en ? `${proofPlayer.name} owns the ${roleLabel}` : `${proofPlayer.name} 打穿${roleLabel}`)
     : (en ? `${edgePlayer.name} gap, ${proofPlayer.name} case` : `${edgePlayer.name} 對位差，${proofPlayer.name} 關鍵人物`);
   const subline = en
-    ? `${getTeamLine(match)} ${getScoreText(match)} · matchup edge + ${proofBadgeLabel}`
-    : `${getTeamLine(match)} ${getScoreText(match)} · 最大對位差 + ${proofBadgeLabel}`;
+    ? `${getTeamLine(match)} ${getScoreText(match)} · lane gap plus ${proofBadgeLabel}`
+    : `${getTeamLine(match)} ${getScoreText(match)} · 最大對位差加 ${proofBadgeLabel}`;
+  const cardIn = spring({ frame: Math.max(0, localFrame - 6), fps: 30, config: { stiffness: 155, damping: 18 } });
 
   return (
-    <div style={{ position: "relative", height: "100%", display: "grid", gridTemplateRows: "auto 1fr", gap: 28, overflow: "hidden" }}>
-      <PlayerRadarHeroBackdrop data={data} theme={theme} localFrame={localFrame} />
-      <ScorelineStrip data={data} theme={theme} />
-      <div style={{ position: "relative", zIndex: 1, display: "grid", alignContent: "center", gap: 28 }}>
+    <SceneShell data={data} theme={theme} localFrame={localFrame}>
+      <div
+        style={{
+          height: "100%",
+          display: "grid",
+          gridTemplateRows: "auto auto 1fr",
+          gap: 20,
+          alignContent: "center",
+          transform: `translateY(${interpolate(cardIn, [0, 1], [26, 0])}px)`,
+          opacity: cardIn,
+        }}
+      >
         <div>
-          <PipelineBadge theme={theme} localFrame={localFrame}>{getPlayerRadarCopy(data).hookBadge}</PipelineBadge>
-          <div style={{ marginTop: 28, color: "#fff", fontSize: 84, fontWeight: 950, lineHeight: 1.02, textWrap: "balance", textShadow: `0 0 46px ${theme.accent}55` }}>
+          <PipelineBadge theme={theme} localFrame={localFrame}>{getTemplateCopy(data).creatorRead}</PipelineBadge>
+          <div style={{ marginTop: 24, color: "#fff", fontSize: 86, fontWeight: 950, lineHeight: 0.98, textWrap: "balance", textShadow: `0 0 46px ${theme.accent}55` }}>
             {headline}
           </div>
-          <div style={{ marginTop: 18, color: theme.secondary, fontSize: 35, fontWeight: 950, lineHeight: 1.16 }}>
+          <div style={{ marginTop: 14, color: theme.secondary, fontSize: 33, fontWeight: 950, lineHeight: 1.18 }}>
             {subline}
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1.08fr 0.92fr", gap: 20, alignItems: "stretch" }}>
-          <MatchupStatSpotlight reason={primaryMatchupReason} segment={segment} theme={theme} data={data} compact />
-          <GlassPanel accent={theme.accent} style={{ padding: 24, display: "grid", alignContent: "center", gap: 8 }}>
-            <div style={{ color: "rgba(240,230,210,0.66)", fontSize: 18, fontWeight: 950, letterSpacing: 4 }}>{proofBadgeLabel}</div>
-            <div style={{ color: "#fff", fontSize: 46, fontWeight: 950, lineHeight: 1 }}>{getHookProofPillValue(data)}</div>
-            <div style={{ color: theme.accent, fontSize: 28, fontWeight: 950 }}>{getRoleLabel(proofPlayer.role || player.role, data)}</div>
-          </GlassPanel>
+        <MatchupStatSpotlight reason={primaryMatchupReason} segment={segment} theme={theme} data={data} compact />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 0.62fr", gap: 16, alignSelf: "start" }}>
+          <VerdictStatRail reasons={reasons.slice(1)} segment={segment} theme={theme} max={2} />
+          <BroadcastPanel
+            accent={theme.accent}
+            innerStyle={{ padding: "22px 24px", display: "grid", gap: 8 }}
+          >
+            <div style={{ color: "rgba(240,230,210,0.68)", fontSize: 18, fontWeight: 950, letterSpacing: 4 }}>{proofBadgeLabel}</div>
+            <div style={{ color: "#fff", fontSize: 42, fontWeight: 950, lineHeight: 1 }}>{getHookProofPillValue(data)}</div>
+            <div style={{ color: theme.accent, fontSize: 25, fontWeight: 950 }}>{getRoleLabel(proofPlayer.role || player.role, data)}</div>
+          </BroadcastPanel>
         </div>
       </div>
-    </div>
+    </SceneShell>
   );
 };
 
@@ -390,34 +554,23 @@ const MatchupEdgeScene = ({ data, theme, localFrame }) => {
   const templateCopy = getTemplateCopy(data);
 
   return (
-    <div style={{ position: "relative", height: "100%", display: "grid", gridTemplateRows: "auto 1fr", gap: 24, overflow: "hidden" }}>
-      <PlayerRadarHeroBackdrop data={data} theme={theme} localFrame={localFrame} />
-      <ScorelineStrip data={data} theme={theme} />
-      <div style={{ position: "relative", zIndex: 1, display: "grid", alignContent: "center", gap: 24 }}>
+    <SceneShell data={data} theme={theme} localFrame={localFrame}>
+      <div style={{ height: "100%", display: "grid", gap: 22, alignContent: "start", paddingTop: 310 }}>
         <div>
-          <div style={{ color: theme.accent, fontSize: 24, fontWeight: 950, letterSpacing: 5 }}>
+          <div style={{ color: theme.accent, fontSize: 23, fontWeight: 950, letterSpacing: 5 }}>
             {getRoleLabel(segment.role || focusPlayer.role, data)} MATCHUP · {label}
           </div>
-          <div style={{ marginTop: 10, color: "#fff", fontSize: 64, fontWeight: 950, lineHeight: 1.04 }}>
+          <div style={{ marginTop: 10, color: "#fff", fontSize: 65, fontWeight: 950, lineHeight: 1.02 }}>
             {focusPlayer.name || edgePlayer.name} vs {opponentPlayer.name}
           </div>
-          <div style={{ marginTop: 10, color: theme.secondary, fontSize: 33, fontWeight: 950 }}>
+          <div style={{ marginTop: 10, color: theme.secondary, fontSize: 31, fontWeight: 950, lineHeight: 1.18 }}>
             {templateCopy.matchupEvidence(edgePlayer.name)}
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 112px 1fr", gap: 18, alignItems: "stretch" }}>
-          <PlayerIdentityCard label={templateCopy.focus} player={focusPlayer || edgePlayer} accent={theme.accent} data={data} dominant={samePlayer(focusPlayer, edgePlayer)} />
-          <div style={{ display: "grid", placeItems: "center", color: HEXTECH_COLORS.gold, fontSize: 38, fontWeight: 950 }}>VS</div>
-          <PlayerIdentityCard label={templateCopy.opponent} player={opponentPlayer} accent={theme.secondary} data={data} dominant={samePlayer(opponentPlayer, edgePlayer)} />
-        </div>
-        <MatchupStatSpotlight reason={primaryMatchupReason} segment={segment} theme={theme} data={data} />
-        {secondaryReasons.length > 0 ? (
-          <GlassPanel accent={theme.accent} style={{ display: "grid", gap: 16, padding: "22px 28px" }}>
-            {secondaryReasons.map((reason) => <MetricRow key={reason.metric} reason={reason} segment={segment} accent={theme.accent} />)}
-          </GlassPanel>
-        ) : null}
+        <SplitMatchupMeter reason={primaryMatchupReason} segment={segment} theme={theme} data={data} />
+        <VerdictStatRail reasons={secondaryReasons} segment={segment} theme={theme} />
       </div>
-    </div>
+    </SceneShell>
   );
 };
 
@@ -430,24 +583,43 @@ const PlayerProofScene = ({ data, theme, localFrame }) => {
   const radarStats = normalizeStats({ radarStats: player.radarStats || data.radarStats });
   const showRadar = shouldShowRadarChart(radarStats);
   const templateCopy = getTemplateCopy(data);
+  const metricNames = proofReasons.map((reason) => reason.metric);
   const cardIn = spring({ frame: Math.max(0, localFrame - 8), fps: 30, config: { stiffness: 140, damping: 17 } });
 
   return (
-    <div style={{ position: "relative", height: "100%", display: "grid", gridTemplateRows: "auto 1fr", gap: 24, overflow: "hidden" }}>
-      <PlayerRadarHeroBackdrop data={data} theme={theme} localFrame={localFrame} />
-      <ScorelineStrip data={data} theme={theme} />
-      <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "0.88fr 1.12fr", gap: 30, alignItems: "center" }}>
-        <div style={{ transform: `translateY(${interpolate(cardIn, [0, 1], [24, 0])}px)`, opacity: cardIn }}>
+    <SceneShell data={data} theme={theme} localFrame={localFrame}>
+      <div
+        style={{
+          height: "100%",
+          display: "grid",
+          gridTemplateColumns: "0.88fr 1.12fr",
+          gap: 28,
+          alignItems: "start",
+          paddingTop: 260,
+          transform: `translateY(${interpolate(cardIn, [0, 1], [22, 0])}px)`,
+          opacity: cardIn,
+        }}
+      >
+        <div>
           <PipelineBadge theme={theme} localFrame={localFrame}>{proofLabel}</PipelineBadge>
-          <div style={{ marginTop: 24, color: "rgba(240,230,210,0.72)", fontSize: 24, fontWeight: 950, letterSpacing: 5 }}>
+          <div style={{ marginTop: 22, color: "rgba(240,230,210,0.72)", fontSize: 24, fontWeight: 950, letterSpacing: 5 }}>
             {player.team || ""} · {getRoleLabel(player.role, data)}
           </div>
-          <div style={{ marginTop: 10, color: "#fff", fontSize: 82, fontWeight: 950, lineHeight: 0.98, textShadow: `0 0 46px ${theme.accent}55` }}>
+          <div style={{ marginTop: 10, color: "#fff", fontSize: 84, fontWeight: 950, lineHeight: 0.96, textShadow: `0 0 46px ${theme.accent}55` }}>
             {player.name}
           </div>
-          <div style={{ marginTop: 18, color: theme.secondary, fontSize: 31, fontWeight: 950, lineHeight: 1.2, textWrap: "balance" }}>
+          <div style={{ marginTop: 18, color: theme.secondary, fontSize: 30, fontWeight: 950, lineHeight: 1.2, textWrap: "balance" }}>
             {segment.verdict || data.verdict || copy.proofSubtitle}
           </div>
+          <BroadcastPanel
+            accent={HEXTECH_COLORS.gold}
+            innerStyle={{ marginTop: 24, padding: 22 }}
+          >
+            <div style={{ color: HEXTECH_COLORS.gold, fontSize: 19, fontWeight: 950, letterSpacing: 4 }}>{templateCopy.proofWhyTitle}</div>
+            <div style={{ marginTop: 8, color: "#fff", fontSize: 28, fontWeight: 950, lineHeight: 1.18 }}>
+              {templateCopy.proofWhyBody(metricNames)}
+            </div>
+          </BroadcastPanel>
           {showRadar ? (
             <div style={{ marginTop: 20, width: 238, opacity: 0.86 }}>
               <RadarChart
@@ -460,27 +632,47 @@ const PlayerProofScene = ({ data, theme, localFrame }) => {
                 expandDuration={20}
               />
             </div>
-          ) : (
-            <GlassPanel accent={HEXTECH_COLORS.gold} style={{ marginTop: 24, padding: 22 }}>
-              <div style={{ color: HEXTECH_COLORS.gold, fontSize: 20, fontWeight: 950, letterSpacing: 4 }}>{templateCopy.proofWhyTitle}</div>
-              <div style={{ marginTop: 8, color: "#fff", fontSize: 31, fontWeight: 950, lineHeight: 1.16 }}>
-                {templateCopy.proofWhyBody}
-              </div>
-            </GlassPanel>
-          )}
+          ) : null}
         </div>
-        <div style={{ display: "grid", gap: 18 }}>
+        <div style={{ display: "grid", gap: 16 }}>
           {proofReasons.map((reason, index) => (
             <EvidenceCard
               key={reason.metric || index}
               reason={reason}
               index={index}
               theme={theme}
+              data={data}
               large={index === 0}
             />
           ))}
         </div>
       </div>
+    </SceneShell>
+  );
+};
+
+const ChipRow = ({ chips = [], theme }) => {
+  const visible = chips.filter(Boolean).slice(0, 3);
+  if (visible.length === 0) return null;
+  return (
+    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+      {visible.map((chip) => (
+        <div
+          key={chip}
+          style={{
+            padding: "10px 15px",
+            color: "#fff",
+            fontSize: 19,
+            fontWeight: 900,
+            letterSpacing: 1.6,
+            border: `1px solid ${theme.accent}44`,
+            background: "rgba(255,255,255,0.055)",
+            clipPath: BROADCAST_CLIP,
+          }}
+        >
+          {chip}
+        </div>
+      ))}
     </div>
   );
 };
@@ -493,6 +685,7 @@ const ConclusionScene = ({ data, theme, localFrame }) => {
   const edgePlayer = displayPlayers.edgePlayer || {};
   const reason = Array.isArray(segment.reasons) ? segment.reasons[0] : null;
   const en = isEnglishLocale(data);
+  const templateCopy = getTemplateCopy(data);
   const roleLabel = getRoleLabel(edgePlayer.role || segment.role, data);
   const body = samePlayer(edgePlayer, proofPlayer)
     ? (en
@@ -502,25 +695,27 @@ const ConclusionScene = ({ data, theme, localFrame }) => {
   const chips = reason
     ? [roleLabel, `${reason.metric} ${formatMetricDelta(reason.metric, reason.delta)}`, ...(verdict.chips || []).slice(0, 1)]
     : verdict.chips;
+  const title = verdict.isSamePlayer ? templateCopy.conclusionTitleSame : templateCopy.conclusionTitleSplit;
 
   return (
-    <div style={{ position: "relative", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-      <PlayerRadarHeroBackdrop data={data} theme={theme} localFrame={localFrame} emphasis="verdict" />
-      <div style={{ position: "relative", zIndex: 1, width: "100%" }}>
-        <VerdictCard
-          theme={theme}
-          localFrame={localFrame}
-          title={en ? "CREATOR READ" : "賽後判讀"}
-          body={body}
-          chips={chips}
-          bodySize={44}
-          chipFontSize={19}
-          panelStyle={{
-            background: "linear-gradient(135deg, rgba(4,10,22,0.93), rgba(4,30,42,0.82))",
-          }}
-        />
+    <SceneShell data={data} theme={theme} localFrame={localFrame} emphasis="verdict">
+      <div style={{ height: "100%", display: "grid", alignItems: "start", paddingTop: 360 }}>
+        <BroadcastPanel
+          accent={HEXTECH_COLORS.gold}
+          innerStyle={{ padding: "44px 46px", display: "grid", gap: 22 }}
+          style={{ background: "linear-gradient(135deg, rgba(35,25,8,0.9), rgba(4,17,31,0.92) 48%, rgba(4,9,18,0.96))" }}
+        >
+          <PipelineBadge theme={theme} localFrame={localFrame}>{en ? "FINAL READ" : "最後結論"}</PipelineBadge>
+          <div style={{ color: HEXTECH_COLORS.gold, fontSize: 34, fontWeight: 950, letterSpacing: 5 }}>
+            {title}
+          </div>
+          <div style={{ color: "#fff", fontSize: 58, fontWeight: 950, lineHeight: 1.08, textWrap: "balance" }}>
+            {body}
+          </div>
+          <ChipRow chips={chips} theme={theme} />
+        </BroadcastPanel>
       </div>
-    </div>
+    </SceneShell>
   );
 };
 
