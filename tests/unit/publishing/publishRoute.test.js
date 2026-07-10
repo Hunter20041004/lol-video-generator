@@ -53,7 +53,6 @@ test("publish route preflights player radar locale payloads before public media 
   let tunnelCalls = 0;
   let createCalls = 0;
   const error = new Error("Player Radar localized payload missing for locale: en");
-  error.statusCode = 400;
   const POST = loadPostRoute({
     preflightPublishJobs: () => {
       throw error;
@@ -84,4 +83,32 @@ test("publish route preflights player radar locale payloads before public media 
   assert.equal(body.error, "Player Radar localized payload missing for locale: en");
   assert.equal(tunnelCalls, 0);
   assert.equal(createCalls, 0);
+});
+
+test("publish route preserves top-level player radar analysis through preflight and queue creation", async () => {
+  const received = [];
+  const POST = loadPostRoute({
+    preflightPublishJobs: (request) => {
+      received.push(["preflight", request.analysis?.dataType]);
+    },
+    createPublishJobs: async (request) => {
+      received.push(["create", request.analysis?.dataType]);
+      return { success: true, jobs: [] };
+    },
+  });
+
+  const response = await POST({
+    json: async () => ({
+      dataType: "PLAYER_RADAR",
+      locale: "zh",
+      videoUrl: "/renders/player-radar.mp4",
+      platforms: ["instagram"],
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(received, [
+    ["preflight", "PLAYER_RADAR"],
+    ["create", "PLAYER_RADAR"],
+  ]);
 });

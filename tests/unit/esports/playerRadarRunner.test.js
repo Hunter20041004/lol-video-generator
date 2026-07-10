@@ -389,6 +389,9 @@ test("player radar falls back to radar score, videos array render results, and t
     });
 
     assert.equal(result.player.name, "T1 Mid");
+    assert.equal(result.proofSegment.proofType, "key-player");
+    assert.equal(result.proofSegment.isRecommendedMvp, false);
+    assert.match(result.proofSegment.verdict, /key-player case/);
     assert.deepEqual(result.videos, [{
       locale: "en",
       videoUrl: "/renders/radar-en.mp4",
