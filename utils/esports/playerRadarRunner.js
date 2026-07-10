@@ -251,6 +251,14 @@ function buildProofReasons(player = {}) {
     .slice(0, 3);
 }
 
+function formatStoryboardDelta(reason = {}) {
+  const value = Number(reason.delta);
+  if (!Number.isFinite(value)) return "";
+  if (reason.metric === "KP%") return `+${Math.round(value * 100)}pp`;
+  if (reason.metric === "DPM" || reason.metric === "GPM") return `+${Math.round(value)}`;
+  return `+${Number.isInteger(value) ? value : Math.round(value * 10) / 10}`;
+}
+
 function selectProofSegment(series = {}, proofPlayerName = "", locale = "zh") {
   const requested = String(proofPlayerName || "").trim();
   const player = requested ? findPlayer(series, requested) : selectPlayer(series);
@@ -279,18 +287,22 @@ function buildPlayerRadarStoryboard(payload = {}, locale = "zh") {
   const proofName = payload.proofSegment?.player?.name || "關鍵人物";
   const focusOwnsEdge = normalizePlayerName(matchupName) === normalizePlayerName(edgeName);
   const samePlayer = normalizePlayerName(edgeName) === normalizePlayerName(proofName);
+  const topReason = Array.isArray(payload.matchupSegment?.reasons) ? payload.matchupSegment.reasons[0] : null;
+  const metricLabel = topReason?.metric || (locale === "en" ? "top metric" : "核心數據");
+  const deltaLabel = formatStoryboardDelta(topReason);
+  const edgeLine = [metricLabel, deltaLabel].filter(Boolean).join(" ");
   if (locale === "en") {
     return [
-      { tag: "HOOK", text: "Biggest lane gap\nsame as MVP?", durationInFrames: 90 },
-      { tag: "MATCHUP_EDGE", text: focusOwnsEdge ? `${matchupName}\ncreated the matchup gap` : `${matchupName}\nwhere the matchup swung`, durationInFrames: 126 },
-      { tag: "PLAYER_PROOF", text: `${proofName}\ncheck the player case`, durationInFrames: 126 },
+      { tag: "HOOK", text: samePlayer ? `Creator read\n${proofName} owns gap + MVP` : `Creator read\n${edgeName || matchupName} gap, ${proofName} case`, durationInFrames: 90 },
+      { tag: "MATCHUP_EDGE", text: focusOwnsEdge ? `${matchupName}\nwins through ${edgeLine}` : `${matchupName}\nwhere the matchup swung`, durationInFrames: 126 },
+      { tag: "PLAYER_PROOF", text: `${proofName}\nMVP proof: top 3 stats`, durationInFrames: 126 },
       { tag: "CONCLUSION_CTA", text: samePlayer ? "One player, two cases\ncomment your read" : "Gap and MVP split\ncomment your read", durationInFrames: 90 },
     ];
   }
   return [
-    { tag: "HOOK", text: "最大差距和 MVP\n是同一個人嗎", durationInFrames: 90 },
-    { tag: "MATCHUP_EDGE", text: focusOwnsEdge ? `${matchupName}\n打出最大對位差` : `${matchupName}\n這路差距最關鍵`, durationInFrames: 126 },
-    { tag: "PLAYER_PROOF", text: `${proofName}\n關鍵人物證明`, durationInFrames: 126 },
+    { tag: "HOOK", text: samePlayer ? `${proofName}\n同時拿下差距 + MVP` : `${edgeName || matchupName} 對位差\n${proofName} 關鍵人物`, durationInFrames: 90 },
+    { tag: "MATCHUP_EDGE", text: focusOwnsEdge ? `${matchupName}\n贏在 ${edgeLine}` : `${matchupName}\n看這路輸在哪`, durationInFrames: 126 },
+    { tag: "PLAYER_PROOF", text: `${proofName}\nMVP 證明看前三項`, durationInFrames: 126 },
     { tag: "CONCLUSION_CTA", text: samePlayer ? "同一人雙重證明\n你同意嗎" : "對位差和關鍵人物\n你怎麼看", durationInFrames: 90 },
   ];
 }

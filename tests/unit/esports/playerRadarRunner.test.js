@@ -306,7 +306,11 @@ test("runPlayerRadarFromSnapshot renders one dual-read video per locale and queu
     assert.deepEqual(queued[0].platforms, ["instagram", "threads"]);
     assert.equal(queued[0].analysis.locale, "zh");
     assert.equal(queued[0].analysis.localizedPayloads.en.locale, "en");
-    assert.equal(queued[0].analysis.localizedPayloads.en.storyboard[0].text.startsWith("Biggest lane gap"), true);
+    assert.match(queued[0].analysis.storyboard[0].text, /T1 Mid/);
+    assert.match(queued[0].analysis.storyboard[0].text, /T1 Jungle/);
+    assert.match(queued[0].analysis.storyboard[1].text, /DPM|KDA|KP%|GPM|CSM|VPM/);
+    assert.equal(queued[0].analysis.localizedPayloads.en.storyboard[0].text.startsWith("Creator read"), true);
+    assert.match(queued[0].analysis.localizedPayloads.en.storyboard[1].text, /wins through/);
     assert.equal(result.publish.jobs.length, 4);
   });
 });

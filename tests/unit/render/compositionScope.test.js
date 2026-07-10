@@ -229,6 +229,21 @@ test("Player radar template does not render synthetic match placeholders", () =>
   assert.equal(source.includes('edgePlayer.name || "Edge player"'), false);
 });
 
+test("Player radar template uses creator-read hero visuals and source-backed stat spotlights", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+
+  assert.match(source, /const PlayerRadarHeroBackdrop/);
+  assert.match(source, /const MatchupStatSpotlight/);
+  assert.match(source, /const EvidenceCard/);
+  assert.match(source, /const shouldShowRadarChart/);
+  assert.match(source, /primaryMatchupReason/);
+  assert.match(source, /proofReasons\.map\(\(reason, index\) => \(\s*<EvidenceCard/);
+  assert.match(source, /radarStats\.length >= 4/);
+  assert.equal(source.includes("Math.round(segment.edgeScore)"), false);
+  assert.equal(source.includes("數據領先:"), false);
+  assert.equal(source.includes('width: 320'), false);
+});
+
 test("Radar chart does not synthesize fallback evidence axes", () => {
   const source = fs.readFileSync(path.join(ROOT, "src/components/charts/RadarChart.jsx"), "utf8");
 
