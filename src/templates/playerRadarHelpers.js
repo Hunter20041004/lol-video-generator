@@ -35,8 +35,8 @@ const getPlayerRadarCopy = (data = {}) => {
       matchupWinnerBreak: "勝負突破口",
       edgeLeadLabel: "數據領先",
       proofBadgeLabels: {
-        mvp: "MVP CASE",
-        key_player: "關鍵人物",
+        mvp: "MVP 證明",
+        key_player: "關鍵人物證明",
       },
       proofSubtitle: "用數據建立關鍵人物理由",
       conclusionFallbackMatchupName: "最大對位差選手",
@@ -44,7 +44,7 @@ const getPlayerRadarCopy = (data = {}) => {
       conclusionSamePlayer: "(proofName) 同時拿到最大對位差和關鍵人物理由。",
       conclusionSplit: "最大對位差在 (matchupName)，關鍵人物理由在 (proofName)。",
       conclusionFocusSplit: "(focusName) 是指定觀察點，但這路數據邊在 (edgeName)，關鍵人物理由在 (proofName)。",
-      conclusionChipsSamePlayer: ["最大對位差", "MVP 案例", "同一人"],
+      conclusionChipsSamePlayer: ["最大對位差", "MVP 證明", "同一人"],
       conclusionChipsSplit: ["對位差距", "關鍵人物", "雙判讀"],
       storyboard: [
         { tag: "HOOK", text: "(playerName)賽後雷達\n數據一眼看懂", durationInFrames: 86 },

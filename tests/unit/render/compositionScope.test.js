@@ -260,6 +260,25 @@ test("Player radar template uses polished broadcast visuals instead of draft das
   assert.equal(source.includes("fontSize: 168"), false);
 });
 
+test("Player radar template uses mobile-first shorts layout with one readable focus per scene", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+
+  assert.match(source, /const MobileShortStage/);
+  assert.match(source, /const MinimalScoreBug/);
+  assert.match(source, /const OnePointSceneBody/);
+  assert.match(source, /const HeroNumber/);
+  assert.match(source, /const ShortMetricBar/);
+  assert.match(source, /const VerticalEvidenceStack/);
+  assert.match(source, /const PLAYER_RADAR_STAGE_INSET = "80px 56px 300px"/);
+  assert.match(source, /const PLAYER_RADAR_SUBTITLE_BOTTOM = 235/);
+  assert.equal(source.includes("<RadarChart"), false);
+  assert.equal(source.includes('gridTemplateColumns: "0.88fr 1.12fr"'), false);
+  assert.equal(source.includes('gridTemplateColumns: "1fr 0.62fr"'), false);
+  assert.equal(source.includes("paddingTop: 310"), false);
+  assert.equal(source.includes("paddingTop: 260"), false);
+  assert.equal(source.includes("${getTeamLine(match)} ${getScoreText(match)}"), false);
+});
+
 test("Radar chart does not synthesize fallback evidence axes", () => {
   const source = fs.readFileSync(path.join(ROOT, "src/components/charts/RadarChart.jsx"), "utf8");
 
@@ -373,4 +392,14 @@ test("Player radar English locale copy comes from behavior helpers", () => {
   assert.equal(copy.matchupLoserHighlight, "Loser highlight");
   assert.equal(copy.proofBadgeLabels.key_player, "KEY PLAYER");
   assert.equal(copy.proofSubtitle, "Build the key-player case with numbers.");
+});
+
+test("Player radar Chinese locale copy avoids unfinished English proof labels", () => {
+  const { getPlayerRadarCopy } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
+
+  const copy = getPlayerRadarCopy({ locale: "zh" });
+
+  assert.equal(copy.proofBadgeLabels.mvp, "MVP 證明");
+  assert.equal(copy.proofBadgeLabels.key_player, "關鍵人物證明");
+  assert.doesNotMatch(copy.proofBadgeLabels.mvp, /CASE/);
 });
