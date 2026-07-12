@@ -2011,7 +2011,7 @@ Expected: PASS. If route import style conflicts with existing project convention
 
 - [ ] **Step 1: Invoke frontend-design before editing UI**
 
-Before changing `app/page.jsx`, read and use `/Users/cengweiting/.codex/skills/frontend-design/SKILL.md`.
+Before changing `app/page.jsx`, read and use the installed `frontend-design` skill.
 
 Expected design direction: dense workbench, no landing page, no nested cards, no old `PRO_BUILD` or `TIER_LIST` runtime labels.
 
