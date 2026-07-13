@@ -10,6 +10,28 @@ const { build } = require("esbuild");
 
 const ROOT = path.resolve(__dirname, "../..");
 
+test("CI uses least privilege and non-live local parity", () => {
+  const workflow = fs.readFileSync(
+    path.join(ROOT, ".github/workflows/ci.yml"),
+    "utf8",
+  );
+
+  assert.match(workflow, /permissions:\s*\n\s+contents: read/);
+  assert.match(workflow, /timeout-minutes: 25/);
+  assert.match(workflow, /concurrency:/);
+  assert.match(workflow, /node-version: 22/);
+  for (const command of [
+    "npm ci",
+    "npm run tdd:doctor",
+    "npm run test:coverage",
+    "npx next build",
+    "npm audit --audit-level=high",
+  ]) {
+    assert.equal(workflow.includes(`run: ${command}`), true, command);
+  }
+  assert.doesNotMatch(workflow, /RUN_EXTERNAL_CONTRACTS:\s*1|secrets\.|portfolio:render|\.mp4/);
+});
+
 async function loadRemotionModule(entryFile) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-remotion-contract-"));
   const outfile = path.join(tempDir, "entry.cjs");
