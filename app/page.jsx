@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortfolioDemoState } from "../utils/portfolioDemo";
 
 const workspaces = [
   {
@@ -533,9 +534,10 @@ function VersionFactory({ portfolioReadOnly }) {
   );
 }
 
-function MetaFactory({ portfolioReadOnly }) {
+function MetaFactory({ portfolioReadOnly, portfolioDemoState }) {
   const metaWorkspace = workspaces.find((item) => item.id === "meta");
-  const [metaMode, setMetaMode] = useState("offmeta");
+  const portfolioCandidate = portfolioDemoState?.candidates?.[0];
+  const [metaMode, setMetaMode] = useState(portfolioDemoState ? "tier" : "offmeta");
   const [metaPatch, setMetaPatch] = useState("16.12");
   const [metaRegion, setMetaRegion] = useState("global");
   const [metaQueue, setMetaQueue] = useState("ranked_solo_duo");
@@ -543,10 +545,12 @@ function MetaFactory({ portfolioReadOnly }) {
   const [metaExcludedChampions, setMetaExcludedChampions] = useState("");
   const [metaPosition, setMetaPosition] = useState("Mid");
   const [metaSnapshotId, setMetaSnapshotId] = useState("");
-  const [metaCandidates, setMetaCandidates] = useState(emptyMetaCandidates);
-  const [metaSelectedCandidateId, setMetaSelectedCandidateId] = useState("");
+  const [metaCandidates, setMetaCandidates] = useState(() => portfolioDemoState
+    ? { offmeta: [], tierRankings: portfolioDemoState.candidates }
+    : emptyMetaCandidates);
+  const [metaSelectedCandidateId, setMetaSelectedCandidateId] = useState(() => getMetaCandidateId(portfolioCandidate));
   const [metaSourceStatus, setMetaSourceStatus] = useState(null);
-  const [metaResult, setMetaResult] = useState(null);
+  const [metaResult, setMetaResult] = useState(portfolioDemoState?.renderResult || null);
   const [busy, setBusy] = useState(false);
   const activeMetaMode = metaWorkspace.modes.find((item) => item.id === metaMode) || metaWorkspace.modes[0];
   const metaCandidatePool = getMetaCandidatePool(metaCandidates, metaMode);
@@ -663,6 +667,12 @@ function MetaFactory({ portfolioReadOnly }) {
       <div className="grid">
         <section className="panel actionPanel">
           <h2>Meta 生成控制</h2>
+          {portfolioDemoState ? (
+            <div className="selectedBlockState clear" role="status">
+              <strong>Synthetic portfolio fixture</strong>
+              <span>Deterministic showcase data · not live match or player evidence.</span>
+            </div>
+          ) : null}
           <div className="fieldGrid">
             <label>
               模式
@@ -970,8 +980,17 @@ function PublishConsole({ portfolioReadOnly }) {
 
 export default function HomePage() {
   const [active, setActive] = useState("version");
+  const [portfolioDemoState, setPortfolioDemoState] = useState(null);
   const workspace = useMemo(() => workspaces.find((item) => item.id === active) || workspaces[0], [active]);
   const portfolioReadOnly = process.env.NEXT_PUBLIC_PORTFOLIO_READ_ONLY === "true";
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get("portfolio") === "1") {
+      setPortfolioDemoState(createPortfolioDemoState());
+      setActive("meta");
+    }
+  }, []);
 
   return (
     <div className="hvsShell">
@@ -979,7 +998,7 @@ export default function HomePage() {
       {workspace.id === "version" ? <VersionFactory portfolioReadOnly={portfolioReadOnly} /> : null}
       {workspace.id === "esports" ? <EsportsFactory portfolioReadOnly={portfolioReadOnly} /> : null}
       {workspace.id === "publish" ? <PublishConsole portfolioReadOnly={portfolioReadOnly} /> : null}
-      {workspace.id === "meta" ? <MetaFactory portfolioReadOnly={portfolioReadOnly} /> : null}
+      {workspace.id === "meta" ? <MetaFactory portfolioReadOnly={portfolioReadOnly} portfolioDemoState={portfolioDemoState} /> : null}
     </div>
   );
 }

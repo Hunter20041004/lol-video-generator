@@ -133,3 +133,18 @@ test("tracked source docs and tests do not reference deleted demo audio", () => 
 
   assert.deepEqual(offenders, []);
 });
+
+test("portfolio demo state contains a candidate and a playable render result", () => {
+  const { createPortfolioDemoState } = require("../../utils/portfolioDemo");
+  const state = createPortfolioDemoState();
+  assert.equal(state.candidates.length > 0, true);
+  assert.equal(state.candidates[0].synthetic, true);
+  assert.equal(state.renderResult.videos[0].url, "/demo/meta-tier-ranking.mp4");
+});
+
+test("workbench enables deterministic evidence only with portfolio query", () => {
+  const page = fs.readFileSync(path.join(ROOT, "app/page.jsx"), "utf8");
+  assert.match(page, /searchParams\.get\("portfolio"\) === "1"/);
+  assert.match(page, /createPortfolioDemoState/);
+  assert.match(page, /Synthetic portfolio fixture/);
+});
