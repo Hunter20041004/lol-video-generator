@@ -2,6 +2,10 @@
 
 一套把《英雄聯盟》版本資料與電競賽事資訊轉成雙語短影音的內容工廠。它將資料掃描、候選評分、腳本規劃、Remotion 算圖、發布佇列與成效追蹤整合在同一個 Next.js 工作台。
 
+## Executive Summary
+
+Hextech Video Studio turns League of Legends patch and esports data into bilingual short-form videos, with AI-assisted analysis, Remotion rendering, and controlled Instagram / Threads publishing in one portfolio-ready workflow.
+
 ![Hextech Video Studio 工作台](docs/screenshots/workbench.png)
 
 ## 作品集重點
@@ -58,7 +62,7 @@ RUN_EXTERNAL_CONTRACTS=1 npm test -- tests/contract/metaFactory/lolalyticsContra
 ## 安全與發布邊界
 
 - 所有 API key、OAuth secret、refresh token 與 access token 只從 `.env.local`／環境變數讀取，且不進版。
-- `.env.example` 只列出空白設定名稱；預設 YouTube 與 TikTok 隱私狀態為私人／僅自己。
+- `.env.example` 已移除過時的 YouTube／TikTok 發布變數；保留的空白設定涵蓋作品集存取與基礎 URL、Gemini 分析、Meta 發布及成效追蹤。
 - 正式發布前會檢查影片檔案、公開媒體 URL、資料完整度與支援的平台。
 - Remotion 透過參數陣列與 `shell: false` 啟動，composition 只由 `dataType` 固定對照表選取，不接受呼叫端傳入命令片段。
 - Production 的所有 `POST /api/*` 都需要 `X-Operator-Token`，並以 `PORTFOLIO_OPERATOR_TOKEN` 做固定時間比較；未設定時採 fail closed。
@@ -76,7 +80,7 @@ PORTFOLIO_OPERATOR_TOKEN=<密碼管理器產生的長隨機值>
 
 ## 技術棧
 
-Next.js 16、React 19、Remotion 4、Node.js test runner、Google Generative AI、Meta Graph API、YouTube API。
+Next.js 16、React 19、Remotion 4、Node.js test runner、Google Generative AI，以及用於 Instagram / Threads 發布的 Meta Graph API。
 
 ## Disclaimer
 

@@ -13,7 +13,7 @@ Use `.env.local` for local credentials. Do not commit it.
 
 ### Shared Public Media URL
 
-Instagram, Threads video posts, and TikTok URL-pull publishing need a public HTTPS URL for the rendered MP4.
+Instagram and Threads video posts need a public HTTPS URL for the rendered MP4.
 
 ```bash
 PUBLIC_MEDIA_BASE_URL=https://your-public-domain.example
@@ -21,47 +21,28 @@ PUBLIC_MEDIA_BASE_URL=https://your-public-domain.example
 
 Without this, those platforms will be queued as `NEEDS_PUBLIC_URL` and the system will still create caption packages.
 
-## YouTube Shorts
+### Meta OAuth
 
-You can use the existing Google OAuth flow:
-
-```bash
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-NEXT_PUBLIC_BASE_URL=http://localhost:3000
-```
-
-Then connect each account:
-
-- Chinese channel: `http://localhost:3000/api/auth/google?locale=zh`
-- English channel: `http://localhost:3000/api/auth/google?locale=en`
-
-The callback writes:
+Set the shared Meta app credentials and the base URL used for OAuth callbacks:
 
 ```bash
-YOUTUBE_ZH_REFRESH_TOKEN=
-YOUTUBE_EN_REFRESH_TOKEN=
+META_APP_ID=
+META_APP_SECRET=
+META_REDIRECT_BASE_URL=http://localhost:3000
 ```
 
-Optional:
+Platform-specific app credentials can override the shared Meta credentials when
+Instagram and Threads use separate Meta app configurations:
 
-```bash
-YOUTUBE_ZH_PRIVACY_STATUS=private
-YOUTUBE_EN_PRIVACY_STATUS=private
+INSTAGRAM_APP_ID=
+INSTAGRAM_APP_SECRET=
+THREADS_APP_ID=
+THREADS_APP_SECRET=
 ```
-
-Keep `private` while testing.
 
 ## Instagram Reels
 
 Requires an Instagram Professional account connected to Meta developer permissions.
-
-For Instagram Login, use the Instagram App ID/Secret from the Instagram use case API setup. If these are not set, the app falls back to `META_APP_ID` / `META_APP_SECRET`, but Meta may reject that with `Invalid platform app`.
-
-```bash
-INSTAGRAM_APP_ID=
-INSTAGRAM_APP_SECRET=
-```
 
 ```bash
 INSTAGRAM_ZH_USER_ID=
@@ -71,6 +52,11 @@ INSTAGRAM_EN_ACCESS_TOKEN=
 ```
 
 Also requires `PUBLIC_MEDIA_BASE_URL`.
+
+Connect each account through the OAuth routes:
+
+- Chinese account: `http://localhost:3000/api/auth/meta/instagram?locale=zh`
+- English account: `http://localhost:3000/api/auth/meta/instagram?locale=en`
 
 ## Threads
 
@@ -89,26 +75,18 @@ For text-only fallback:
 THREADS_ALLOW_TEXT_ONLY=true
 ```
 
-## TikTok / Douyin
+Connect each account through the OAuth routes:
 
-This adapter targets TikTok Content Posting API. Direct Post usually requires app review.
-
-```bash
-TIKTOK_ZH_ACCESS_TOKEN=
-TIKTOK_EN_ACCESS_TOKEN=
-TIKTOK_PRIVACY_LEVEL=SELF_ONLY
-```
-
-Also requires `PUBLIC_MEDIA_BASE_URL`.
-
-China Douyin is a separate open platform and needs a separate adapter once your Douyin developer app is approved.
+- Chinese account: `http://localhost:3000/api/auth/meta/threads?locale=zh`
+- English account: `http://localhost:3000/api/auth/meta/threads?locale=en`
 
 ## Queue CLI
 
 ```bash
 npm run publish:queue
 npm run publish:run
-npm run publish:run -- --platform youtube --locale zh
+npm run publish:run -- --platform instagram --locale zh
+npm run publish:run -- --platform threads --locale en
 ```
 
 ## Instagram + Threads Performance Tracking
