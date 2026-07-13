@@ -148,3 +148,20 @@ test("workbench enables deterministic evidence only with portfolio query", () =>
   assert.match(page, /createPortfolioDemoState/);
   assert.match(page, /Synthetic portfolio fixture/);
 });
+
+test("package exposes deterministic portfolio evidence commands", () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  assert.equal(pkg.scripts["portfolio:render"], "remotion render src/index.jsx MetaTierRankingVideo public/demo/meta-tier-ranking.mp4 --muted --frames=0-179");
+  assert.equal(pkg.scripts["portfolio:capture"], "node scripts/capturePortfolioEvidence.js");
+});
+
+test("portfolio evidence has the required binary contracts", () => {
+  const screenshot = fs.readFileSync(path.join(ROOT, "docs/screenshots/workbench.png"));
+  const videoPath = path.join(ROOT, "public/demo/meta-tier-ranking.mp4");
+
+  assert.deepEqual([...screenshot.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+  assert.equal(screenshot.readUInt32BE(16), 1440);
+  assert.equal(screenshot.readUInt32BE(20), 900);
+  assert.equal(fs.existsSync(videoPath), true);
+  assert.ok(fs.statSync(videoPath).size > 100 * 1024);
+});
