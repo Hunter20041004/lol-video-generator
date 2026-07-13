@@ -1,5 +1,7 @@
 # Hextech Video Studio
 
+[![CI](https://github.com/Hunter20041004/lol-video-generator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Hunter20041004/lol-video-generator/actions/workflows/ci.yml)
+
 一套把《英雄聯盟》版本資料與電競賽事資訊轉成雙語短影音的內容工廠。它將資料掃描、候選評分、腳本規劃、Remotion 算圖、發布佇列與成效追蹤整合在同一個 Next.js 工作台。
 
 ## Executive Summary
