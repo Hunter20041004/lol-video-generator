@@ -68,6 +68,7 @@
     "postcss": "8.5.10"
   },
   "devDependencies": {
-    "@playwright/test": "^1.61.1"
+    "@playwright/test": "^1.61.1",
+    "yaml": "^2.8.3"
   }
 }

@@ -6,7 +6,7 @@ const ROOT = path.resolve(__dirname, "../../..");
 
 test("LoLalytics current page remains reachable for manual contract checks", async (t) => {
   if (process.env.RUN_EXTERNAL_CONTRACTS !== "1") {
-    t.skip("Set RUN_EXTERNAL_CONTRACTS=1 to verify the live LoLalytics boundary.");
+    return t.skip("Set RUN_EXTERNAL_CONTRACTS=1 to verify the live LoLalytics boundary.");
   }
 
   const response = await fetch("https://lolalytics.com/lol/tierlist/");
@@ -17,7 +17,7 @@ test("LoLalytics current page remains reachable for manual contract checks", asy
 
 test("LoLalytics build detail pages expose parseable core items and runes", async (t) => {
   if (process.env.RUN_EXTERNAL_CONTRACTS !== "1") {
-    t.skip("Set RUN_EXTERNAL_CONTRACTS=1 to verify the live LoLalytics boundary.");
+    return t.skip("Set RUN_EXTERNAL_CONTRACTS=1 to verify the live LoLalytics boundary.");
   }
 
   const {

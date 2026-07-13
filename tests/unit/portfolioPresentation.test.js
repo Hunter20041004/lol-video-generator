@@ -7,8 +7,102 @@ const path = require("node:path");
 const React = require("react");
 const { renderToStaticMarkup } = require("react-dom/server");
 const { build } = require("esbuild");
+const { parse } = require("yaml");
 
 const ROOT = path.resolve(__dirname, "../..");
+const REQUIRED_CI_COMMANDS = [
+  "npm ci",
+  "npm run tdd:doctor",
+  "npm run test:coverage",
+  "npx next build",
+  "npm audit --audit-level=high",
+];
+
+function hasEnabledLiveContracts(value) {
+  if (Array.isArray(value)) return value.some(hasEnabledLiveContracts);
+  if (!value || typeof value !== "object") return false;
+  return Object.entries(value).some(([key, child]) => (
+    (key === "RUN_EXTERNAL_CONTRACTS" && String(child) === "1") ||
+    hasEnabledLiveContracts(child)
+  ));
+}
+
+function assertCiWorkflow(workflow) {
+  let document;
+  assert.doesNotThrow(() => {
+    document = parse(workflow);
+  }, "workflow must be valid YAML");
+
+  assert.deepEqual(document.permissions, { contents: "read" }, "workflow must use only contents: read");
+  assert.equal(typeof document.concurrency?.group, "string", "workflow must define a concurrency group");
+  assert.notEqual(document.concurrency.group.trim(), "", "workflow must define a nonempty concurrency group");
+  assert.equal(document.concurrency["cancel-in-progress"], true, "workflow must set cancel-in-progress: true");
+
+  const verify = document.jobs?.verify;
+  assert.equal(verify?.["runs-on"], "ubuntu-latest", "verify must run on ubuntu-latest");
+  assert.equal(verify?.["timeout-minutes"], 25, "verify must use a 25-minute timeout");
+  const steps = Array.isArray(verify?.steps) ? verify.steps : [];
+  const setupNode = steps.find((step) => String(step?.uses || "").startsWith("actions/setup-node@"));
+  assert.equal(String(setupNode?.with?.["node-version"]), "22", "verify must use Node 22");
+  assert.deepEqual(
+    steps.filter((step) => typeof step?.run === "string").map((step) => step.run),
+    REQUIRED_CI_COMMANDS,
+    "workflow must use the exact CI parity commands",
+  );
+
+  assert.equal(hasEnabledLiveContracts(document), false, "workflow must not enable live external contracts");
+  assert.doesNotMatch(workflow, /\bsecrets\s*(?:\.|\[)/i, "workflow must not contain secret references");
+  assert.doesNotMatch(
+    workflow,
+    /portfolio:render|\bremotion\b|\brender\b|\.mp4\b/i,
+    "workflow must not contain render or MP4 instructions",
+  );
+}
+
+function runLolalyticsContract(runExternalContracts) {
+  const detailHtml = `
+    <img src="/item64/3100.webp" alt="Lich Bane" />
+    <strong>52.1</strong><span>1,200</span>
+    <img src="/runes/8112.webp" alt="Electrocute" />
+    <strong>53.2</strong><span>900</span>
+  `;
+  const script = `
+    const { after } = require("node:test");
+    let fetchCalls = 0;
+    global.fetch = async (url) => {
+      fetchCalls += 1;
+      return {
+        ok: true,
+        text: async () => String(url).includes("/tierlist/")
+          ? "LoLalytics tier"
+          : ${JSON.stringify(detailHtml)},
+      };
+    };
+    after(() => console.log("FETCH_CALLS=" + fetchCalls));
+    require(${JSON.stringify(path.join(ROOT, "tests/contract/metaFactory/lolalyticsContract.test.js"))});
+  `;
+  const env = { ...process.env };
+  if (runExternalContracts === undefined) delete env.RUN_EXTERNAL_CONTRACTS;
+  else env.RUN_EXTERNAL_CONTRACTS = runExternalContracts;
+
+  return execFileSync(process.execPath, ["-e", script], {
+    cwd: ROOT,
+    encoding: "utf8",
+    env,
+  });
+}
+
+test("LoLalytics contracts make zero fetch calls when live contracts are disabled", () => {
+  const output = runLolalyticsContract(undefined);
+
+  assert.match(output, /FETCH_CALLS=0/);
+});
+
+test("LoLalytics contracts use the stubbed boundary when live contracts are enabled", () => {
+  const output = runLolalyticsContract("1");
+
+  assert.match(output, /FETCH_CALLS=2/);
+});
 
 test("CI uses least privilege and non-live local parity", () => {
   const workflow = fs.readFileSync(
@@ -16,20 +110,44 @@ test("CI uses least privilege and non-live local parity", () => {
     "utf8",
   );
 
-  assert.match(workflow, /permissions:\s*\n\s+contents: read/);
-  assert.match(workflow, /timeout-minutes: 25/);
-  assert.match(workflow, /concurrency:/);
-  assert.match(workflow, /node-version: 22/);
-  for (const command of [
-    "npm ci",
-    "npm run tdd:doctor",
-    "npm run test:coverage",
-    "npx next build",
-    "npm audit --audit-level=high",
-  ]) {
-    assert.equal(workflow.includes(`run: ${command}`), true, command);
+  assert.doesNotThrow(() => assertCiWorkflow(workflow));
+});
+
+test("CI contract rejects malformed workflow YAML", () => {
+  const workflow = fs.readFileSync(
+    path.join(ROOT, ".github/workflows/ci.yml"),
+    "utf8",
+  );
+
+  assert.throws(
+    () => assertCiWorkflow(`${workflow}\ninvalid: [\n`),
+    /valid YAML/,
+  );
+});
+
+test("CI contract rejects unsafe or non-parity workflow variants", () => {
+  const workflow = fs.readFileSync(
+    path.join(ROOT, ".github/workflows/ci.yml"),
+    "utf8",
+  );
+  const variants = [
+    ["Ubuntu runner", workflow.replace("ubuntu-latest", "windows-latest"), /ubuntu-latest/],
+    ["cancellation", workflow.replace("cancel-in-progress: true", "cancel-in-progress: false"), /cancel-in-progress/],
+    ["concurrency group", workflow.replace(/group: .*\n/, 'group: ""\n'), /concurrency group/],
+    ["parity order", workflow.replace("npm ci\n      - run: npm run tdd:doctor", "npm run tdd:doctor\n      - run: npm ci"), /exact CI parity commands/],
+    ["unquoted live flag", `${workflow}\nenv:\n  RUN_EXTERNAL_CONTRACTS: 1\n`, /live external contracts/],
+    ["quoted live flag", `${workflow}\nenv:\n  RUN_EXTERNAL_CONTRACTS: "1"\n`, /live external contracts/],
+    ["dot secret", `${workflow}\nenv:\n  TOKEN: \${{ secrets.TOKEN }}\n`, /secret references/],
+    ["bracket secret", `${workflow}\nenv:\n  TOKEN: \${{ secrets['TOKEN'] }}\n`, /secret references/],
+    ["Remotion", `${workflow}\nrenderer: remotion\n`, /render or MP4/],
+    ["render", `${workflow}\ncommand: render\n`, /render or MP4/],
+    ["portfolio render", `${workflow}\ncommand: portfolio:render\n`, /render or MP4/],
+    ["MP4", `${workflow}\nartifact: output.MP4\n`, /render or MP4/],
+  ];
+
+  for (const [label, variant, expected] of variants) {
+    assert.throws(() => assertCiWorkflow(variant), expected, label);
   }
-  assert.doesNotMatch(workflow, /RUN_EXTERNAL_CONTRACTS:\s*1|secrets\.|portfolio:render|\.mp4/);
 });
 
 async function loadRemotionModule(entryFile) {
