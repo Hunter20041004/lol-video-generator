@@ -60,7 +60,19 @@ RUN_EXTERNAL_CONTRACTS=1 npm test -- tests/contract/metaFactory/lolalyticsContra
 - 所有 API key、OAuth secret、refresh token 與 access token 只從 `.env.local`／環境變數讀取，且不進版。
 - `.env.example` 只列出空白設定名稱；預設 YouTube 與 TikTok 隱私狀態為私人／僅自己。
 - 正式發布前會檢查影片檔案、公開媒體 URL、資料完整度與支援的平台。
+- Remotion 透過參數陣列與 `shell: false` 啟動，composition 只由 `dataType` 固定對照表選取，不接受呼叫端傳入命令片段。
+- Production 的所有 `POST /api/*` 都需要 `X-Operator-Token`，並以 `PORTFOLIO_OPERATOR_TOKEN` 做固定時間比較；未設定時採 fail closed。
+- 公開作品集應設定 `NEXT_PUBLIC_PORTFOLIO_READ_ONLY=true`，介面會清楚標示展示模式並停用 render、scan、publish 等寫入／計算操作；GET 型的佇列與成果瀏覽仍可使用。
 - 本機 render、發布包、快取、log 與 insight store 均由 `.gitignore` 排除。
+
+Production 變數只放在部署平台，不要把值寫入 Git：
+
+```bash
+NEXT_PUBLIC_PORTFOLIO_READ_ONLY=true
+PORTFOLIO_OPERATOR_TOKEN=<密碼管理器產生的長隨機值>
+```
+
+管理者若要直接呼叫 production API，需從安全的 server-side 工具加入 `X-Operator-Token`；瀏覽器端程式不保存也不回傳這組 Token。本機 `npm run dev` 不受此限制，原有創作流程維持不變。
 
 ## 技術棧
 

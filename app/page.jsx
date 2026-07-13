@@ -48,6 +48,35 @@ const statusTone = {
   需補後端: "need",
 };
 
+function PortfolioSecurityNotice() {
+  return (
+    <aside className="portfolioSecurityNotice" id="portfolio-security-notice" aria-label="作品集安全模式">
+      <span className="portfolioSecurityFlag">READ ONLY</span>
+      <div>
+        <strong>作品集唯讀模式</strong>
+        <p>Live render and publish are owner-only。你仍可瀏覽完整工作流、資料契約與既有成果。</p>
+      </div>
+      <div className="portfolioSecurityLinks">
+        <a href="https://github.com/Hunter20041004/lol-video-generator#readme" target="_blank" rel="noreferrer">Demo 與架構</a>
+        <a href="https://github.com/Hunter20041004/lol-video-generator/blob/main/docs/screenshots/workbench.png" target="_blank" rel="noreferrer">工作台截圖</a>
+      </div>
+    </aside>
+  );
+}
+
+function MutationButton({ portfolioReadOnly, disabled = false, children, ...props }) {
+  return (
+    <button
+      {...props}
+      disabled={portfolioReadOnly || disabled}
+      aria-describedby={portfolioReadOnly ? "portfolio-security-notice" : undefined}
+      title={portfolioReadOnly ? "作品集環境不開放此操作" : props.title}
+    >
+      {children}
+    </button>
+  );
+}
+
 function getLocalDateInputValue(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -83,15 +112,18 @@ function WorkspaceNav({ active, setActive }) {
   );
 }
 
-function TopBar({ workspace, busy }) {
+function TopBar({ workspace, busy, portfolioReadOnly }) {
   return (
-    <header className="topbar">
-      <div>
-        <h1>{workspace.label}</h1>
-        <p>{busy ? "執行中" : "待命"} · 工廠動作統一進佇列，正式發布由控制台接手</p>
-      </div>
-      <StatusBadge value={workspace.status} />
-    </header>
+    <>
+      <header className="topbar">
+        <div>
+          <h1>{workspace.label}</h1>
+          <p>{busy ? "執行中" : portfolioReadOnly ? "展示模式" : "待命"} · 工廠動作統一進佇列，正式發布由控制台接手</p>
+        </div>
+        <StatusBadge value={workspace.status} />
+      </header>
+      {portfolioReadOnly ? <PortfolioSecurityNotice /> : null}
+    </>
   );
 }
 
@@ -308,7 +340,7 @@ function getMetaCandidateSubtitle(candidate = {}) {
   return `${formatMetaOffmetaType(candidate.offmetaType)} · ${formatMetaCoreGameplay(candidate)} · 樣本 ${candidate.sampleSize || 0}`;
 }
 
-function VersionFactory() {
+function VersionFactory({ portfolioReadOnly }) {
   const [mode, setMode] = useState("champion");
   const [library, setLibrary] = useState(null);
   const [selectedItemIds, setSelectedItemIds] = useState([]);
@@ -437,7 +469,7 @@ function VersionFactory() {
 
   return (
     <main className="workspace">
-      <TopBar workspace={workspaces[0]} busy={busy} />
+      <TopBar workspace={workspaces[0]} busy={busy} portfolioReadOnly={portfolioReadOnly} />
       <ModeSwitch modes={workspaces[0].modes} active={mode} setActive={switchVersionMode} />
       <div className="grid">
         <section className="panel actionPanel">
@@ -453,12 +485,12 @@ function VersionFactory() {
             </label>
           </div>
           <div className="buttonRow">
-            <button type="button" onClick={scanPatch} disabled={busy}>掃描版本內容</button>
+            <MutationButton type="button" onClick={scanPatch} disabled={busy} portfolioReadOnly={portfolioReadOnly}>掃描版本內容</MutationButton>
             <button type="button" onClick={loadLibrary} disabled={busy}>重新載入內容庫</button>
             <button type="button" onClick={selectVisibleVersionItems} disabled={busy || versionItems.length === 0}>選取全部</button>
             <button type="button" onClick={clearSelectedVersionItems} disabled={busy || selectedItemIds.length === 0}>清除選取</button>
-            <button type="button" onClick={renderSelectedVersionItem} disabled={busy || !selectedItem}>生產影片</button>
-            <button type="button" onClick={publishSelectedVersionItem} disabled={busy || selectedItemIds.length === 0}>一鍵發布選取影片</button>
+            <MutationButton type="button" onClick={renderSelectedVersionItem} disabled={busy || !selectedItem} portfolioReadOnly={portfolioReadOnly}>生產影片</MutationButton>
+            <MutationButton type="button" onClick={publishSelectedVersionItem} disabled={busy || selectedItemIds.length === 0} portfolioReadOnly={portfolioReadOnly}>一鍵發布選取影片</MutationButton>
           </div>
           {selectedItem ? (
             <div className="selectedBlockState clear">
@@ -501,7 +533,7 @@ function VersionFactory() {
   );
 }
 
-function MetaFactory() {
+function MetaFactory({ portfolioReadOnly }) {
   const metaWorkspace = workspaces.find((item) => item.id === "meta");
   const [metaMode, setMetaMode] = useState("offmeta");
   const [metaPatch, setMetaPatch] = useState("16.12");
@@ -626,7 +658,7 @@ function MetaFactory() {
 
   return (
     <main className="workspace">
-      <TopBar workspace={metaWorkspace} busy={busy} />
+      <TopBar workspace={metaWorkspace} busy={busy} portfolioReadOnly={portfolioReadOnly} />
       <ModeSwitch modes={metaWorkspace.modes} active={metaMode} setActive={switchMetaMode} />
       <div className="grid">
         <section className="panel actionPanel">
@@ -692,10 +724,10 @@ function MetaFactory() {
             </label>
           </div>
           <div className="buttonRow">
-            <button type="button" onClick={scanMetaFactory} disabled={busy}>1 掃描候選</button>
+            <MutationButton type="button" onClick={scanMetaFactory} disabled={busy} portfolioReadOnly={portfolioReadOnly}>1 掃描候選</MutationButton>
             <button type="button" onClick={loadMetaSnapshot} disabled={busy || !metaSnapshotId}>載入舊掃描</button>
-            <button type="button" onClick={() => renderMetaCandidate({ useTopCandidate: true })} disabled={busy || !metaSnapshotId || !hasRenderableMetaCandidate}>2 生成推薦影片</button>
-            <button type="button" onClick={() => renderMetaCandidate()} disabled={busy || !metaSnapshotId || !metaSelectedCandidateId || selectedMetaCandidate?.hardBlock?.blocked || selectedMetaCandidateBlocked}>2 生成選取影片</button>
+            <MutationButton type="button" onClick={() => renderMetaCandidate({ useTopCandidate: true })} portfolioReadOnly={portfolioReadOnly} disabled={busy || !metaSnapshotId || !hasRenderableMetaCandidate}>2 生成推薦影片</MutationButton>
+            <MutationButton type="button" onClick={() => renderMetaCandidate()} portfolioReadOnly={portfolioReadOnly} disabled={busy || !metaSnapshotId || !metaSelectedCandidateId || selectedMetaCandidate?.hardBlock?.blocked || selectedMetaCandidateBlocked}>2 生成選取影片</MutationButton>
           </div>
           <VideoPreview videos={metaPreviewVideos} empty="尚無影片" />
           {!hasRenderableMetaCandidate && metaCandidatePool.length > 0 ? (
@@ -782,7 +814,7 @@ function MetaFactory() {
   );
 }
 
-function EsportsFactory() {
+function EsportsFactory({ portfolioReadOnly }) {
   const [mode, setMode] = useState("daily");
   const [date, setDate] = useState(() => getLocalDateInputValue());
   const [scanId, setScanId] = useState("");
@@ -844,7 +876,7 @@ function EsportsFactory() {
 
   return (
     <main className="workspace">
-      <TopBar workspace={workspaces[1]} busy={busy} />
+      <TopBar workspace={workspaces[1]} busy={busy} portfolioReadOnly={portfolioReadOnly} />
       <ModeSwitch modes={workspaces[1].modes} active={mode} setActive={setMode} />
       <div className="grid">
         <section className="panel actionPanel">
@@ -868,9 +900,9 @@ function EsportsFactory() {
             </label>
           </div>
           <div className="buttonRow">
-            <button type="button" onClick={scanCandidates} disabled={busy}>掃描候選賽事</button>
-            <button type="button" onClick={checkGate} disabled={busy || !scanId || !seriesId}>檢查 Gate</button>
-            <button type="button" onClick={runPlayerRadar} disabled={busy || !scanId || !seriesId}>產生選手雷達</button>
+            <MutationButton type="button" onClick={scanCandidates} disabled={busy} portfolioReadOnly={portfolioReadOnly}>掃描候選賽事</MutationButton>
+            <MutationButton type="button" onClick={checkGate} disabled={busy || !scanId || !seriesId} portfolioReadOnly={portfolioReadOnly}>檢查 Gate</MutationButton>
+            <MutationButton type="button" onClick={runPlayerRadar} disabled={busy || !scanId || !seriesId} portfolioReadOnly={portfolioReadOnly}>產生選手雷達</MutationButton>
           </div>
         </section>
         <section className="panel">
@@ -888,7 +920,7 @@ function EsportsFactory() {
   );
 }
 
-function PublishConsole() {
+function PublishConsole({ portfolioReadOnly }) {
   const [jobs, setJobs] = useState(null);
   const [insights, setInsights] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -915,7 +947,7 @@ function PublishConsole() {
 
   return (
     <main className="workspace">
-      <TopBar workspace={workspaces[2]} busy={busy} />
+      <TopBar workspace={workspaces[2]} busy={busy} portfolioReadOnly={portfolioReadOnly} />
       <ModeSwitch modes={workspaces[2].modes} active="queue" setActive={() => {}} />
       <div className="grid">
         <section className="panel actionPanel">
@@ -939,14 +971,15 @@ function PublishConsole() {
 export default function HomePage() {
   const [active, setActive] = useState("version");
   const workspace = useMemo(() => workspaces.find((item) => item.id === active) || workspaces[0], [active]);
+  const portfolioReadOnly = process.env.NEXT_PUBLIC_PORTFOLIO_READ_ONLY === "true";
 
   return (
     <div className="hvsShell">
       <WorkspaceNav active={active} setActive={setActive} />
-      {workspace.id === "version" ? <VersionFactory /> : null}
-      {workspace.id === "esports" ? <EsportsFactory /> : null}
-      {workspace.id === "publish" ? <PublishConsole /> : null}
-      {workspace.id === "meta" ? <MetaFactory /> : null}
+      {workspace.id === "version" ? <VersionFactory portfolioReadOnly={portfolioReadOnly} /> : null}
+      {workspace.id === "esports" ? <EsportsFactory portfolioReadOnly={portfolioReadOnly} /> : null}
+      {workspace.id === "publish" ? <PublishConsole portfolioReadOnly={portfolioReadOnly} /> : null}
+      {workspace.id === "meta" ? <MetaFactory portfolioReadOnly={portfolioReadOnly} /> : null}
     </div>
   );
 }

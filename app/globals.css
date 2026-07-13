@@ -765,6 +765,53 @@ h1, h2, h3, h4 {
   border-bottom: 1px solid var(--line);
   padding-bottom: 18px;
 }
+.hvsShell .portfolioSecurityNotice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 16px;
+  border: 1px solid rgba(200, 170, 110, 0.45);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(200, 170, 110, 0.12), rgba(53, 208, 200, 0.04));
+  padding: 12px 14px;
+}
+.hvsShell .portfolioSecurityFlag {
+  justify-self: start;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  padding: 5px 8px;
+  white-space: nowrap;
+}
+.hvsShell .portfolioSecurityNotice strong {
+  color: var(--text);
+  font-size: 13px;
+}
+.hvsShell .portfolioSecurityNotice p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+.hvsShell .portfolioSecurityLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.hvsShell .portfolioSecurityLinks a {
+  border-bottom: 1px solid rgba(53, 208, 200, 0.55);
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
 .hvsShell h1,
 .hvsShell h2,
 .hvsShell p {
@@ -1215,6 +1262,12 @@ h1, h2, h3, h4 {
   }
   .hvsShell .topbar {
     grid-template-columns: 1fr;
+  }
+  .hvsShell .portfolioSecurityNotice {
+    grid-template-columns: 1fr;
+  }
+  .hvsShell .portfolioSecurityLinks {
+    justify-content: flex-start;
   }
   .hvsShell h1 {
     font-size: 24px;
