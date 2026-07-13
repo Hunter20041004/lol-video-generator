@@ -38,7 +38,6 @@
     "@google/generative-ai": "^0.24.1",
     "@remotion/bundler": "4.0.489",
     "@remotion/cli": "4.0.489",
-    "@remotion/compositor-darwin-arm64": "4.0.489",
     "@remotion/licensing": "4.0.489",
     "@remotion/media-parser": "4.0.489",
     "@remotion/media-utils": "4.0.489",

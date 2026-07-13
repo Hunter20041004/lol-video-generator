@@ -112,3 +112,17 @@ test("orphan scheduler that depends on retired pipeline modules is deleted", () 
   assert.deepEqual(runtimeConsumers, []);
   assert.equal(schedulerExists, false, "delete scheduler.js instead of restoring retired modules");
 });
+
+test("package does not directly depend on a platform-specific Remotion compositor", () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  const directDependencies = Object.keys({
+    ...pkg.dependencies,
+    ...pkg.devDependencies,
+    ...pkg.optionalDependencies,
+  });
+
+  assert.deepEqual(
+    directDependencies.filter((name) => name.startsWith("@remotion/compositor-")),
+    [],
+  );
+});
