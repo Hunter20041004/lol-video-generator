@@ -1,4 +1,4 @@
-const { exec } = require("child_process");
+const { execFile } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 const { normalizePipelinePayload } = require("../../src/schemas/pipelineSchemas");
@@ -114,8 +114,8 @@ const getPayloadForLanguage = (requestData = {}, locale = "zh") => {
   return { ...stripRenderControlFields(cloneJson(source)), locale, outputLanguage: locale };
 };
 
-const execRender = (command) => new Promise((resolve) => {
-  exec(command, { cwd: process.cwd(), maxBuffer: 1024 * 1024 * 50 }, (error) => resolve(error));
+const execRender = (executable, args, options) => new Promise((resolve) => {
+  execFile(executable, args, options, (error) => resolve(error));
 });
 
 async function ensurePatchLocalization(props) {
@@ -378,13 +378,30 @@ async function renderOne(rawProps, {
   const propsFilePath = path.join(rendersDir, `props_${timestamp}${suffix ? `_${suffix}` : ""}.json`);
   const finalProps = { data: props };
   const entryPoint = path.join(process.cwd(), "src", "index.jsx");
-  const compositionId = props.compositionId || DATA_TYPE_TO_COMPOSITION[props.dataType] || "LeaguePatchVideo";
+  const compositionId = DATA_TYPE_TO_COMPOSITION[props.dataType];
+  if (!compositionId) {
+    throw new Error(`No render composition registered for data type: ${props.dataType}`);
+  }
 
   fs.writeFileSync(propsFilePath, JSON.stringify(finalProps), "utf8");
-  const command = `npx remotion render "${entryPoint}" ${compositionId} "${outputPath}" --props="${propsFilePath}" --timeout=${getRenderTimeoutMs()} --video-bitrate=${getRenderVideoBitrate()}`;
+  const args = [
+    "remotion",
+    "render",
+    entryPoint,
+    compositionId,
+    outputPath,
+    `--props=${propsFilePath}`,
+    `--timeout=${getRenderTimeoutMs()}`,
+    `--video-bitrate=${getRenderVideoBitrate()}`,
+  ];
+  const executionOptions = {
+    cwd: process.cwd(),
+    maxBuffer: 1024 * 1024 * 50,
+    shell: false,
+  };
 
   console.log(`🚀 [系統] 開始執行 Remotion 算圖: ${compositionId} (${locale})...`);
-  const error = await execRenderImpl(command);
+  const error = await execRenderImpl("npx", args, executionOptions);
   try { fs.unlinkSync(propsFilePath); } catch {}
 
   if (error) {

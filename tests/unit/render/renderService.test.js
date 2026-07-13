@@ -52,8 +52,8 @@ test("renderVideosFromRequest renders bilingual payloads without HTTP self-fetch
     }, {
       timestamp: 12345,
       sharedBgmFile: "audio/bgm1.mp3",
-      execRenderImpl: async (command) => {
-        commands.push(command);
+      execRenderImpl: async (executable, args, options) => {
+        commands.push({ executable, args, options });
         return null;
       },
     });
@@ -64,10 +64,39 @@ test("renderVideosFromRequest renders bilingual payloads without HTTP self-fetch
       "/renders/render_12345_en.mp4",
     ]);
     assert.equal(commands.length, 2);
-    assert.match(commands[0], /LeaguePatchVideo/);
-    assert.match(commands[0], /--timeout=120000/);
-    assert.match(commands[0], /--video-bitrate=8M/);
+    assert.equal(commands[0].executable, "npx");
+    assert.ok(commands[0].args.includes("LeaguePatchVideo"));
+    assert.ok(commands[0].args.includes("--timeout=120000"));
+    assert.ok(commands[0].args.includes("--video-bitrate=8M"));
+    assert.equal(commands[0].options.shell, false);
     assert.equal(fs.readdirSync(path.join(dir, "public", "renders")).filter((file) => file.startsWith("props_")).length, 0);
+  });
+});
+
+test("renderVideosFromRequest ignores injected composition ids and launches without a shell", async () => {
+  await withTempProject(async () => {
+    const calls = [];
+
+    await renderVideosFromRequest({
+      dataType: "SYSTEM_UPDATE",
+      compositionId: "LeaguePatchVideo; touch /tmp/pwned",
+      targetName: "Teleport",
+      headline: "Teleport adjust",
+      changeDesc: "Cooldown adjusted.",
+      storyboard: [{ text: "Teleport timing changed", tag: "HOOK" }],
+    }, {
+      timestamp: 12346,
+      execRenderImpl: async (executable, args, options) => {
+        calls.push({ executable, args, options });
+        return null;
+      },
+    });
+
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].executable, "npx");
+    assert.ok(calls[0].args.includes("LeaguePatchVideo"));
+    assert.equal(calls[0].args.join(" ").includes("touch /tmp/pwned"), false);
+    assert.equal(calls[0].options.shell, false);
   });
 });
 
@@ -87,15 +116,15 @@ test("renderVideosFromRequest routes esports daily payloads to dedicated composi
       storyboard: [{ text: "T1 vs GEN\nwhy it mattered", tag: "HOOK" }],
     }, {
       timestamp: 777,
-      execRenderImpl: async (command) => {
-        commands.push(command);
+      execRenderImpl: async (executable, args, options) => {
+        commands.push({ executable, args, options });
         return null;
       },
     });
 
     assert.equal(result.success, true);
     assert.equal(commands.length, 1);
-    assert.match(commands[0], /EsportsMatchRecapVideo/);
+    assert.ok(commands[0].args.includes("EsportsMatchRecapVideo"));
   });
 });
 
