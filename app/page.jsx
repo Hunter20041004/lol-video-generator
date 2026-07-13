@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { createPortfolioDemoState } from "../utils/portfolioDemo";
+import { createPortfolioDemoStateFromSearch } from "../utils/portfolioDemo";
 
 const workspaces = [
   {
@@ -985,9 +985,9 @@ export default function HomePage() {
   const portfolioReadOnly = process.env.NEXT_PUBLIC_PORTFOLIO_READ_ONLY === "true";
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get("portfolio") === "1") {
-      setPortfolioDemoState(createPortfolioDemoState());
+    const demoState = createPortfolioDemoStateFromSearch(window.location.search);
+    if (demoState) {
+      setPortfolioDemoState(demoState);
       setActive("meta");
     }
   }, []);

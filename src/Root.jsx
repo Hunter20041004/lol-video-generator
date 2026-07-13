@@ -1,5 +1,6 @@
 import { Composition } from "remotion";
 import { PatchVideo, calculatePacing } from "./Composition";
+import { createPortfolioRenderProps } from "../utils/portfolioDemo";
 
 const mockPatchData = {
   championName: "Tahm Kench",
@@ -112,25 +113,7 @@ const mockMetaOffmetaData = {
   ],
 };
 
-const mockMetaTierRankingData = {
-  dataType: "META_TIER_RANKING",
-  bgmFile: null,
-  locale: "zh",
-  title: "Mid 梯度榜 Top 3",
-  role: "Mid",
-  rankingSize: 3,
-  entries: [
-    { rank: 1, champion: "Ahri", role: "Mid", tierBand: "S", tierScore: 92, reasons: ["穩定先手", "樣本充足"] },
-    { rank: 2, champion: "Orianna", role: "Mid", tierBand: "A", tierScore: 88, reasons: ["團戰強", "版本適配"] },
-    { rank: 3, champion: "Syndra", role: "Mid", tierBand: "A", tierScore: 84, reasons: ["爆發高", "線權穩"] },
-  ],
-  downgradeReason: "排除低樣本與資料源不一致的選角。",
-  storyboard: [
-    { tag: "HOOK", text: "Mid 版本答案\n先看這幾隻", durationInFrames: 90 },
-    { tag: "RANKING", text: "綜合強度分\n不是只看勝率", durationInFrames: 210 },
-    { tag: "CONCLUSION_CTA", text: "下一路想看哪裡\n留言告訴我", durationInFrames: 90 },
-  ],
-};
+const mockMetaTierRankingData = createPortfolioRenderProps().data;
 
 const buildPatchMetadataStoryboard = (data = {}) => {
   const existing = Array.isArray(data.storyboard) && data.storyboard.length > 0

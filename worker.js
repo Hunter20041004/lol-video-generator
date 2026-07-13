@@ -15,7 +15,7 @@
  *
  * Requirements:
  *   - GEMINI_API_KEY in .env (for AI reasoning)
- *   - Optional: GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET + GOOGLE_REFRESH_TOKEN (for YouTube upload)
+ *   - Optional: Meta credentials and PUBLIC_MEDIA_BASE_URL (for Instagram / Threads publishing)
  *
  * This script is fully independent of the Next.js server — it directly
  * imports the shared utils (leaguepediaApi, autoDispatcher) and runs
@@ -174,8 +174,8 @@ async function pollAndGenerate() {
       if (result.success) {
         successCount++;
         console.log(`   ✅ Video ready: ${result.videoUrl}`);
-        if (result.youtubeResult) {
-          console.log(`   📺 YouTube: ${result.youtubeResult.url}`);
+        if (result.publish?.jobs?.length) {
+          console.log(`   📤 Instagram / Threads: ${result.publish.jobs.length} Meta jobs queued`);
         }
       } else {
         console.error(`   ❌ Pipeline failed: ${result.error}`);
@@ -215,7 +215,7 @@ function boot() {
   console.log(`║  Auto-Publish:${FLAG.publish ? 'YES' : 'NO '}                                      ║`);
   console.log(`║  Locale:      ${FLAG.locale.padEnd(3)}                                      ║`);
   console.log(`║  Gemini Key:  ${process.env.GEMINI_API_KEY ? '✅ loaded' : '❌ MISSING'}                                ║`);
-  console.log(`║  YouTube:     ${process.env.GOOGLE_REFRESH_TOKEN ? '✅ configured' : '⚠️  not configured'}                            ║`);
+  console.log(`║  Meta Queue:  ${FLAG.publish ? 'Instagram / Threads' : 'disabled'}                       ║`);
   console.log('╚══════════════════════════════════════════════════════════╝');
 
   if (!process.env.GEMINI_API_KEY) {

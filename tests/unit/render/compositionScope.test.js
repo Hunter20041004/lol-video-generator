@@ -45,7 +45,11 @@ test("Meta router and root defaults register only new META dataTypes", () => {
   assert.equal(rootSource.includes("MetaOffmetaVideo"), true);
   assert.equal(rootSource.includes("MetaTierRankingVideo"), true);
   assert.equal(rootSource.includes("META_OFFMETA_PICK"), true);
-  assert.equal(rootSource.includes("META_TIER_RANKING"), true);
+  assert.match(rootSource, /createPortfolioRenderProps\(\)\.data/);
+  assert.equal(
+    require(path.join(ROOT, "utils/portfolioDemo.js")).createPortfolioRenderProps().data.dataType,
+    "META_TIER_RANKING",
+  );
 
   const compositionSource = fs.readFileSync(path.join(ROOT, "src/Composition.jsx"), "utf8");
   assert.equal(compositionSource.includes("Template_MetaOffmeta"), true);

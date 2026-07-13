@@ -176,7 +176,11 @@ async function loadRemotionModule(entryFile) {
             export const AbsoluteFill = ({ children, ...props }) => React.createElement("div", props, children);
             export const Audio = (props) => React.createElement("audio", props);
             export const Composition = ({ id, component: Component, defaultProps }) =>
-              React.createElement("x-composition", { "data-id": id }, React.createElement(Component, defaultProps));
+              React.createElement(
+                "x-composition",
+                { "data-id": id, "data-default-props": JSON.stringify(defaultProps) },
+                React.createElement(Component, defaultProps),
+              );
             export const Img = (props) => React.createElement("img", props);
             export const OffthreadVideo = (props) => React.createElement("video", props);
             export const Sequence = ({ children, ...props }) => React.createElement("div", props, children);
@@ -259,7 +263,7 @@ test("every retained Root composition is muted when user audio is omitted", asyn
   ];
 
   for (const id of compositionIds) {
-    const rendered = markup.match(new RegExp(`<x-composition data-id="${id}">([\\s\\S]*?)</x-composition>`));
+    const rendered = markup.match(new RegExp(`<x-composition data-id="${id}"[^>]*>([\\s\\S]*?)</x-composition>`));
     assert.ok(rendered, `${id} should render from Root defaults`);
     assert.equal(rendered[1].includes("<audio"), false, `${id} should be muted`);
   }
@@ -286,16 +290,89 @@ test("portfolio demo state contains a candidate and a playable render result", (
   assert.equal(state.renderResult.videos[0].url, "/demo/meta-tier-ranking.mp4");
 });
 
+test("portfolio UI candidate and Meta tier render default use the same synthetic evidence", async () => {
+  const { createPortfolioDemoState } = require("../../utils/portfolioDemo");
+  const { RemotionRoot } = await loadRemotionModule("src/Root.jsx");
+  const candidate = createPortfolioDemoState().candidates[0];
+  const markup = renderToStaticMarkup(React.createElement(RemotionRoot));
+  const rendered = markup.match(/<x-composition data-id="MetaTierRankingVideo" data-default-props="([^"]+)"/);
+
+  assert.ok(rendered, "MetaTierRankingVideo should expose its default render props");
+  for (const entry of candidate.entries) {
+    assert.match(rendered[1], new RegExp(`${entry.champion}.*tierScore.*${entry.tierScore}`));
+  }
+});
+
+test("separate portfolio demo states have independent nested fixture data", () => {
+  const { createPortfolioDemoState } = require("../../utils/portfolioDemo");
+  const first = createPortfolioDemoState();
+  const second = createPortfolioDemoState();
+
+  first.candidates[0].entries[0].champion = "Mutated Pick";
+  first.renderResult.videos[0].url = "/mutated.mp4";
+
+  assert.equal(second.candidates[0].entries[0].champion, "Synthetic Pick A");
+  assert.equal(second.renderResult.videos[0].url, "/demo/meta-tier-ranking.mp4");
+});
+
+test("separate portfolio render props have independent nested fixture data", () => {
+  const { createPortfolioRenderProps } = require("../../utils/portfolioDemo");
+  const first = createPortfolioRenderProps();
+  const second = createPortfolioRenderProps();
+
+  first.data.entries[0].champion = "Mutated Render Pick";
+
+  assert.equal(second.data.entries[0].champion, "Synthetic Pick A");
+});
+
+test("portfolio demo state is enabled only by the exact portfolio query", () => {
+  const { createPortfolioDemoStateFromSearch } = require("../../utils/portfolioDemo");
+
+  assert.equal(typeof createPortfolioDemoStateFromSearch, "function");
+  assert.equal(createPortfolioDemoStateFromSearch(""), null);
+  assert.equal(createPortfolioDemoStateFromSearch("?portfolio=0"), null);
+  assert.equal(createPortfolioDemoStateFromSearch("?portfolio=1").candidates[0].synthetic, true);
+});
+
 test("workbench enables deterministic evidence only with portfolio query", () => {
   const page = fs.readFileSync(path.join(ROOT, "app/page.jsx"), "utf8");
-  assert.match(page, /searchParams\.get\("portfolio"\) === "1"/);
-  assert.match(page, /createPortfolioDemoState/);
+  assert.match(page, /createPortfolioDemoStateFromSearch\(window\.location\.search\)/);
   assert.match(page, /Synthetic portfolio fixture/);
 });
 
-test("package exposes deterministic portfolio evidence commands", () => {
+test("portfolio render command passes canonical synthetic props through the Remotion CLI", () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
-  assert.equal(pkg.scripts["portfolio:render"], "remotion render src/index.jsx MetaTierRankingVideo public/demo/meta-tier-ranking.mp4 --muted --frames=0-179");
+  const renderScriptPath = path.join(ROOT, "scripts/renderPortfolioEvidence.js");
+
+  assert.equal(pkg.scripts["portfolio:render"], "node scripts/renderPortfolioEvidence.js");
+  assert.equal(fs.existsSync(renderScriptPath), true);
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-portfolio-render-"));
+  const propsPath = path.join(tempDir, "props.json");
+  try {
+    const { buildPortfolioRenderArgs, resolveRemotionBinary, writePortfolioProps } = require(renderScriptPath);
+    writePortfolioProps(propsPath);
+    const written = JSON.parse(fs.readFileSync(propsPath, "utf8"));
+    const candidate = require("../../utils/portfolioDemo").createPortfolioDemoState().candidates[0];
+
+    assert.deepEqual(written.data.entries, candidate.entries);
+    assert.equal(
+      resolveRemotionBinary(),
+      path.join(ROOT, "node_modules", ".bin", process.platform === "win32" ? "remotion.cmd" : "remotion"),
+    );
+    assert.deepEqual(buildPortfolioRenderArgs(propsPath), [
+      "render",
+      "src/index.jsx",
+      "MetaTierRankingVideo",
+      "public/demo/meta-tier-ranking.mp4",
+      "--muted",
+      "--frames=0-179",
+      "--pixel-format=yuv420p",
+      `--props=${propsPath}`,
+    ]);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
   assert.equal(pkg.scripts["portfolio:capture"], "node scripts/capturePortfolioEvidence.js");
 });
 
@@ -308,4 +385,51 @@ test("portfolio evidence has the required binary contracts", () => {
   assert.equal(screenshot.readUInt32BE(20), 900);
   assert.equal(fs.existsSync(videoPath), true);
   assert.ok(fs.statSync(videoPath).size > 100 * 1024);
+});
+
+test("README makes committed synthetic evidence discoverable and exactly reproducible", () => {
+  const readme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
+  const firstSection = readme.slice(0, readme.indexOf("## 作品集重點"));
+
+  assert.match(firstSection, /\[觀看靜音 synthetic MP4\]\(public\/demo\/meta-tier-ranking\.mp4\)/);
+  assert.match(firstSection, /\[查看工作台 PNG\]\(docs\/screenshots\/workbench\.png\)/);
+  assert.match(firstSection, /`http:\/\/localhost:3000\/\?portfolio=1`/);
+  assert.match(readme, /npx playwright install chromium/);
+  assert.match(readme, /npm run portfolio:render/);
+  assert.match(readme, /npm run dev/);
+  assert.match(readme, /npm run portfolio:capture/);
+  assert.match(readme, /generated synthetic evidence[^\n]+not live Riot, player, or ranked data/i);
+});
+
+test("worker executable exposes only Gemini analysis and Meta publishing status", () => {
+  const worker = fs.readFileSync(path.join(ROOT, "worker.js"), "utf8");
+
+  assert.doesNotMatch(worker, /GOOGLE_(?:CLIENT|REFRESH)|YouTube|youtubeResult/);
+  assert.match(worker, /GEMINI_API_KEY/);
+  assert.match(worker, /Instagram \/ Threads/);
+  assert.match(worker, /result\.publish/);
+});
+
+test("package omits googleapis when no runtime module imports it", () => {
+  const runtimeFiles = execFileSync("git", ["ls-files", "-z"], { cwd: ROOT })
+    .toString("utf8")
+    .split("\0")
+    .filter((file) => /^(?:app|src|utils|scripts)\//.test(file) || /^[^/]+\.(?:js|jsx)$/.test(file));
+  const consumers = runtimeFiles.filter((file) => /(?:require\(|from |import\()["']googleapis["']/.test(
+    fs.readFileSync(path.join(ROOT, file), "utf8"),
+  ));
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  const lock = JSON.parse(fs.readFileSync(path.join(ROOT, "package-lock.json"), "utf8"));
+
+  assert.deepEqual(consumers, []);
+  assert.equal(Object.hasOwn(pkg.dependencies, "googleapis"), false);
+  assert.equal(Object.hasOwn(lock.packages[""].dependencies, "googleapis"), false);
+  assert.equal(lock.packages["node_modules/googleapis"], undefined);
+});
+
+test("README limits ISC to Hunter-authored work and preserves third-party terms", () => {
+  const readme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
+
+  assert.match(readme, /ISC covers only software and documentation authored by Hunter Tseng（曾尉庭）/);
+  assert.match(readme, /Riot trademarks and data, and all other third-party assets and materials, remain under their respective terms/);
 });

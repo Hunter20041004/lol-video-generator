@@ -26,7 +26,7 @@
     "insights:sync": "node scripts/insightsSync.js",
     "media:cleanup": "node scripts/cleanupMedia.js",
     "insights:scheduler": "node scripts/insightsScheduler.js",
-    "portfolio:render": "remotion render src/index.jsx MetaTierRankingVideo public/demo/meta-tier-ranking.mp4 --muted --frames=0-179",
+    "portfolio:render": "node scripts/renderPortfolioEvidence.js",
     "portfolio:capture": "node scripts/capturePortfolioEvidence.js"
   },
   "keywords": [
@@ -56,7 +56,6 @@
     "axios": "^1.15.1",
     "cheerio": "^1.2.0",
     "dotenv": "^17.4.2",
-    "googleapis": "^171.4.0",
     "next": "^16.2.4",
     "node-cron": "^4.2.1",
     "react": "^19.2.5",

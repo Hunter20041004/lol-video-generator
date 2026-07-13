@@ -8,6 +8,10 @@ Hextech Video Studio turns League of Legends patch and esports data into bilingu
 
 ![Hextech Video Studio 工作台](docs/screenshots/workbench.png)
 
+Committed portfolio evidence: [觀看靜音 synthetic MP4](public/demo/meta-tier-ranking.mp4) · [查看工作台 PNG](docs/screenshots/workbench.png)
+
+本機作品集路由是 `http://localhost:3000/?portfolio=1`。The committed video is generated synthetic evidence, not live Riot, player, or ranked data; it is muted and uses unmistakably synthetic names, scores, and sample values.
+
 ## 作品集重點
 
 - **資料到影片的完整管線**：版本掃描 → 內容候選 → 中英文腳本 → Remotion 影片 → 發布佇列。
@@ -45,6 +49,33 @@ npm run dev
 2. 掃描或載入內容庫，選擇一筆候選內容。
 3. 產生雙語影片並從預覽區檢查結果。
 4. 到發布控制台查看排程與成效同步狀態。
+
+### 重製作品集證據
+
+使用 Node.js 22，先安裝完全鎖定的相依套件與 Playwright Chromium：
+
+```bash
+npm ci
+npx playwright install chromium
+```
+
+以 canonical synthetic fixture 重製 180-frame、1080×1920、30fps 的靜音 MP4：
+
+```bash
+npm run portfolio:render
+```
+
+接著在第一個終端啟動本機工作台：
+
+```bash
+npm run dev
+```
+
+伺服器可由 `http://127.0.0.1:3000` 存取後，在第二個終端擷取 1440×900 PNG：
+
+```bash
+npm run portfolio:capture
+```
 
 ## 驗證
 
@@ -92,4 +123,4 @@ Local renders accept music supplied by the user only when the user has permissio
 
 ## License
 
-ISC
+ISC covers only software and documentation authored by Hunter Tseng（曾尉庭）. Riot trademarks and data, and all other third-party assets and materials, remain under their respective terms.
