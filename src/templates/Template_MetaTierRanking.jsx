@@ -184,7 +184,7 @@ export const Template_MetaTierRanking = ({ data = {} }) => {
     <AbsoluteFill style={{ backgroundColor: "#07111f", color: "#fff", fontFamily: "'Outfit', 'Noto Sans TC', sans-serif", overflow: "hidden" }}>
       <HextechBackground tactical />
       <PipelineChrome theme={theme} left={copy.chromeLeft} right={copy.chromeRight} />
-      <BgmLayer bgmFile={data.bgmFile === undefined ? "audio/bgm2.mp3" : data.bgmFile} />
+      <BgmLayer bgmFile={data.bgmFile} />
       <SafeStage inset="94px 62px 150px">
         <div style={{ height: "100%", display: "grid", gridTemplateRows: "auto 1fr auto", gap: 20 }}>
           <KineticTitle

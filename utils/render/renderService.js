@@ -323,7 +323,7 @@ async function ensureMetaTierLocalization(props) {
   return props;
 }
 
-async function prepareProps(rawProps, sharedBgmFile) {
+async function prepareProps(rawProps) {
   let props = cloneJson(rawProps);
   assertSupportedDataType(props.dataType || "PATCH");
 
@@ -349,9 +349,8 @@ async function prepareProps(rawProps, sharedBgmFile) {
     });
   }
 
-  if (!props.bgmFile) {
-    props.bgmFile = sharedBgmFile;
-    console.log(`🎵 [BGM] using shared selection: ${props.bgmFile}`);
+  if (props.bgmFile === null) {
+    console.log("🎵 [BGM] muted; no user audio supplied");
   } else {
     console.log(`🎵 [BGM] using caller-provided: ${props.bgmFile}`);
   }
@@ -363,14 +362,13 @@ async function renderOne(rawProps, {
   timestamp,
   locale,
   suffix,
-  sharedBgmFile,
   execRenderImpl = execRender,
   assetFetchImpl,
 } = {}) {
   const rendersDir = path.join(process.cwd(), "public", "renders");
   fs.mkdirSync(rendersDir, { recursive: true });
 
-  const props = await localizeRemoteImageAssets(await prepareProps(rawProps, sharedBgmFile), {
+  const props = await localizeRemoteImageAssets(await prepareProps(rawProps), {
     fetchImpl: assetFetchImpl,
   });
   const outputFileName = suffix ? `render_${timestamp}_${suffix}.mp4` : `render_${timestamp}.mp4`;
@@ -423,17 +421,13 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
     ? requestData.renderLanguages.filter(Boolean).map((lang) => String(lang).toLowerCase().startsWith("en") ? "en" : "zh")
     : (requestData.bilingual || requestData.generateBilingual ? ["zh", "en"] : [requestData.locale || "zh"]);
   const languages = [...new Set(requestedLanguages)].slice(0, 2);
-  const sharedBgmFile = requestData.bgmFile || options.sharedBgmFile || `audio/bgm${Math.floor(Math.random() * 3) + 1}.mp3`;
-
   const videos = [];
   for (const lang of languages) {
     const payload = getPayloadForLanguage(requestData, lang);
-    payload.bgmFile = payload.bgmFile || sharedBgmFile;
     videos.push(await renderOne(payload, {
       timestamp,
       locale: lang,
       suffix: languages.length > 1 ? lang : "",
-      sharedBgmFile,
       execRenderImpl: options.execRenderImpl,
       assetFetchImpl: options.assetFetchImpl,
     }));

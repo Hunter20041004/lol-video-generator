@@ -660,7 +660,7 @@ export const Template_MetaOffmeta = ({ data = {} }) => {
     <AbsoluteFill style={{ backgroundColor: LOL_BLUE_DEEP, color: "#fff", fontFamily: "'Outfit', 'Noto Sans TC', sans-serif", overflow: "hidden" }}>
       <CinematicBackdrop championArt={championArt} activeTag={activeTag} theme={theme} />
       <PipelineChrome theme={{ ...theme, accent: LOL_GOLD, secondary: MAGIC_CYAN }} left={copy.chromeLeft} right={copy.chromeRight} />
-      <BgmLayer bgmFile={data.bgmFile || "audio/bgm1.mp3"} />
+      <BgmLayer bgmFile={data.bgmFile} />
       <SafeStage inset={META_OFFMETA_STAGE_INSET}>
         {active.scene?.tag === "VERSION_OVERVIEW" ? (
           <VersionScanScene versionOverview={versionOverview} copy={copy} theme={theme} active={active} locale={data.locale} />

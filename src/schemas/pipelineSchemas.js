@@ -83,7 +83,7 @@ const BasePipelineSchema = z
     locale: z.coerce.string().default("zh"),
     storyboard: z.array(StoryboardSceneSchema).default([]),
     subtitleScriptText: z.coerce.string().optional(),
-    bgmFile: z.coerce.string().optional(),
+    bgmFile: z.union([z.null(), z.coerce.string()]).default(null),
     actionableVerdict: ActionableVerdictSchema.optional(),
   })
   .passthrough();

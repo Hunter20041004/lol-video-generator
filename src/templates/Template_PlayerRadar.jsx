@@ -161,7 +161,7 @@ export const Template_PlayerRadar = ({ data }) => {
     <AbsoluteFill style={{ backgroundColor: "#07111f", color: "#fff", fontFamily: "'Outfit', 'Noto Sans TC', sans-serif", overflow: "hidden" }}>
       <HextechBackground tactical />
       <PipelineChrome theme={theme} left="PLAYER RADAR" right="MATCH DATA / PERFORMANCE" />
-      <BgmLayer bgmFile={data.bgmFile || "audio/bgm1.mp3"} />
+      <BgmLayer bgmFile={data.bgmFile} />
       <SafeStage>{renderScene()}</SafeStage>
       <SubtitleCaption scene={active.scene} activeStart={active.start} accent={theme.accent} />
     </AbsoluteFill>

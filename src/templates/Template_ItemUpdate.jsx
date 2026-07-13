@@ -2392,7 +2392,7 @@ export const Template_ItemUpdateSequence = ({ data = {} }) => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#07111f" }}>
-      <Audio src={staticFile(data.bgmFile || "audio/bgm1.mp3")} volume={DEFAULT_BGM_VOLUME} loop={true} />
+      {data.bgmFile ? <Audio src={staticFile(data.bgmFile)} volume={DEFAULT_BGM_VOLUME} loop={true} /> : null}
       {targets.length === 0 ? <Template_ItemUpdate itemData={EMPTY_TARGET} data={data} /> : null}
       {targets.map((target, index) => {
         const storyboard = buildStoryboard(target);

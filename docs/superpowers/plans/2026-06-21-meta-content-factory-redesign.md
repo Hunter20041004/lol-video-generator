@@ -1700,7 +1700,7 @@ export const Template_MetaOffmeta = ({ data = {} }) => {
     <AbsoluteFill style={{ backgroundColor: "#07111f", color: "#fff", fontFamily: "'Outfit', 'Noto Sans TC', sans-serif", overflow: "hidden" }}>
       <HextechBackground tactical />
       <PipelineChrome theme={theme} left="META OFFMETA" right="LOLALYTICS / OP.GG" />
-      <BgmLayer bgmFile={data.bgmFile || "audio/bgm1.mp3"} />
+      <BgmLayer bgmFile={data.bgmFile} />
       <SafeStage>
         <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", gap: 34 }}>
           <PipelineBadge theme={theme} localFrame={active.localFrame}>BLACK TECH CHECK</PipelineBadge>
@@ -1768,7 +1768,7 @@ export const Template_MetaTierRanking = ({ data = {} }) => {
     <AbsoluteFill style={{ backgroundColor: "#07111f", color: "#fff", fontFamily: "'Outfit', 'Noto Sans TC', sans-serif", overflow: "hidden" }}>
       <HextechBackground tactical />
       <PipelineChrome theme={theme} left="META TIER LIST" right="COMPOSITE SCORE" />
-      <BgmLayer bgmFile={data.bgmFile || "audio/bgm2.mp3"} />
+      <BgmLayer bgmFile={data.bgmFile} />
       <SafeStage inset="92px 62px 190px">
         <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", gap: 30 }}>
           <KineticTitle

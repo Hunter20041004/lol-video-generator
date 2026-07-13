@@ -115,3 +115,14 @@ test("schema normalization accepts new meta payloads while API guards reject ret
   assert.equal(tier.data.dataType, "META_TIER_RANKING");
   assert.equal(tier.data.entries[0].tierScore, 88);
 });
+
+test("pipeline schema preserves muted and user-supplied audio", () => {
+  const { normalizePipelinePayload } = require(path.join(ROOT, "src/schemas/pipelineSchemas.js"));
+
+  assert.equal(normalizePipelinePayload({ dataType: "PATCH" }).data.bgmFile, null);
+  assert.equal(normalizePipelinePayload({ dataType: "PATCH", bgmFile: null }).data.bgmFile, null);
+  assert.equal(
+    normalizePipelinePayload({ dataType: "PATCH", bgmFile: "audio/licensed-by-user.mp3" }).data.bgmFile,
+    "audio/licensed-by-user.mp3",
+  );
+});

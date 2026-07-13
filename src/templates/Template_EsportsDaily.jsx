@@ -352,7 +352,7 @@ const EsportsDailyTemplate = ({ data, mode }) => {
     <AbsoluteFill style={{ backgroundColor: "#050A0E", color: "#fff", fontFamily: "'Outfit', 'Noto Sans TC', sans-serif", overflow: "hidden" }}>
       <HextechBackground tactical />
       <PipelineChrome theme={theme} left={isRadar ? "HEAD-TO-HEAD RADAR" : "MATCH RECAP"} right="ESPORTS DAILY" />
-      <BgmLayer bgmFile={data.bgmFile || "audio/bgm1.mp3"} />
+      <BgmLayer bgmFile={data.bgmFile} />
       <SafeStage>{renderScene()}</SafeStage>
       <SubtitleCaption
         scene={active.scene}

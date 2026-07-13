@@ -1,5 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -9,14 +10,15 @@ const { build } = require("esbuild");
 
 const ROOT = path.resolve(__dirname, "../..");
 
-async function loadMetaTierRankingTemplate() {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-meta-tier-template-"));
-  const outfile = path.join(tempDir, "Template_MetaTierRanking.cjs");
+async function loadRemotionModule(entryFile) {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-remotion-contract-"));
+  const outfile = path.join(tempDir, "entry.cjs");
   await build({
-    entryPoints: [path.join(ROOT, "src/templates/Template_MetaTierRanking.jsx")],
+    entryPoints: [path.join(ROOT, entryFile)],
     outfile,
     bundle: true,
     format: "cjs",
+    jsx: "automatic",
     platform: "node",
     plugins: [{
       name: "render-contract-remotion",
@@ -29,8 +31,11 @@ async function loadMetaTierRankingTemplate() {
             import React from "react";
             export const AbsoluteFill = ({ children, ...props }) => React.createElement("div", props, children);
             export const Audio = (props) => React.createElement("audio", props);
+            export const Composition = ({ id, component: Component, defaultProps }) =>
+              React.createElement("x-composition", { "data-id": id }, React.createElement(Component, defaultProps));
             export const Img = (props) => React.createElement("img", props);
             export const OffthreadVideo = (props) => React.createElement("video", props);
+            export const Sequence = ({ children, ...props }) => React.createElement("div", props, children);
             export const interpolate = (_value, _input, output) => output[0];
             export const spring = () => 1;
             export const staticFile = (src) => "/" + src;
@@ -43,7 +48,7 @@ async function loadMetaTierRankingTemplate() {
   });
 
   try {
-    return require(outfile).Template_MetaTierRanking;
+    return require(outfile);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
@@ -83,7 +88,7 @@ test("package identity and tracked media have explicit rights", () => {
 });
 
 test("explicitly muted tier ranking renders no audio and preserves supplied audio", async () => {
-  const Template_MetaTierRanking = await loadMetaTierRankingTemplate();
+  const { Template_MetaTierRanking } = await loadRemotionModule("src/templates/Template_MetaTierRanking.jsx");
   const mutedMarkup = renderToStaticMarkup(
     React.createElement(Template_MetaTierRanking, { data: { bgmFile: null } }),
   );
@@ -93,4 +98,38 @@ test("explicitly muted tier ranking renders no audio and preserves supplied audi
 
   assert.equal(mutedMarkup.includes("<audio"), false);
   assert.match(suppliedMarkup, /<audio[^>]+src="\/audio\/licensed-by-user\.mp3"/);
+});
+
+test("every retained Root composition is muted when user audio is omitted", async () => {
+  const { RemotionRoot } = await loadRemotionModule("src/Root.jsx");
+  const markup = renderToStaticMarkup(React.createElement(RemotionRoot));
+  const compositionIds = [
+    "LeaguePatchVideo",
+    "ItemUpdateVideo",
+    "RuneUpdateVideo",
+    "PlayerRadarVideo",
+    "EsportsHeadToHeadRadarVideo",
+    "EsportsMatchRecapVideo",
+    "MetaOffmetaVideo",
+    "MetaTierRankingVideo",
+  ];
+
+  for (const id of compositionIds) {
+    const rendered = markup.match(new RegExp(`<x-composition data-id="${id}">([\\s\\S]*?)</x-composition>`));
+    assert.ok(rendered, `${id} should render from Root defaults`);
+    assert.equal(rendered[1].includes("<audio"), false, `${id} should be muted`);
+  }
+});
+
+test("tracked source docs and tests do not reference deleted demo audio", () => {
+  const trackedFiles = execFileSync("git", ["ls-files", "-z"], { cwd: ROOT })
+    .toString("utf8")
+    .split("\0")
+    .filter((file) => ["src/", "utils/", "tests/", "docs/"].some((prefix) => file.startsWith(prefix)));
+  const deletedAudioReference = /audio\/bgm[123]\.mp3/;
+  const offenders = trackedFiles.filter((file) => deletedAudioReference.test(
+    fs.readFileSync(path.join(ROOT, file), "utf8"),
+  ));
+
+  assert.deepEqual(offenders, []);
 });

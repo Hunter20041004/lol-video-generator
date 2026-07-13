@@ -51,7 +51,6 @@ test("renderVideosFromRequest renders bilingual payloads without HTTP self-fetch
       },
     }, {
       timestamp: 12345,
-      sharedBgmFile: "audio/bgm1.mp3",
       execRenderImpl: async (executable, args, options) => {
         commands.push({ executable, args, options });
         return null;
@@ -70,6 +69,32 @@ test("renderVideosFromRequest renders bilingual payloads without HTTP self-fetch
     assert.ok(commands[0].args.includes("--video-bitrate=8M"));
     assert.equal(commands[0].options.shell, false);
     assert.equal(fs.readdirSync(path.join(dir, "public", "renders")).filter((file) => file.startsWith("props_")).length, 0);
+  });
+});
+
+test("renderVideosFromRequest mutes missing and null audio while preserving a user path", async () => {
+  await withTempProject(async () => {
+    const renderedBgmFiles = [];
+    const render = (bgmFile) => renderVideosFromRequest({
+      dataType: "SYSTEM_UPDATE",
+      targetName: "Teleport",
+      storyboard: [{ text: "Teleport timing changed", tag: "HOOK" }],
+      ...(bgmFile === undefined ? {} : { bgmFile }),
+    }, {
+      timestamp: 12350 + renderedBgmFiles.length,
+      execRenderImpl: async (_executable, args) => {
+        const propsArg = args.find((arg) => arg.startsWith("--props="));
+        const props = JSON.parse(fs.readFileSync(propsArg.slice("--props=".length), "utf8"));
+        renderedBgmFiles.push(props.data.bgmFile);
+        return null;
+      },
+    });
+
+    await render(undefined);
+    await render(null);
+    await render("audio/licensed-by-user.mp3");
+
+    assert.deepEqual(renderedBgmFiles, [null, null, "audio/licensed-by-user.mp3"]);
   });
 });
 
@@ -252,7 +277,7 @@ test("prepareProps localizes meta offmeta champion names across visible zh text"
       recommendedStoryAngle: "Fizz 中路看的是出裝路線，不是中路位置本身。",
       playerTakeaways: [{ label: "先釐清", body: "這不是 Fizz 中路位置黑科技，而是非主流出裝題材。" }],
       storyboard: [{ tag: "HOOK", text: "Fizz 中路\n出裝路線檢查" }],
-    }, "audio/bgm1.mp3");
+    });
 
     assert.equal(props.localizedChampionName, "飛斯");
     assert.match(props.title, /飛斯 中路/);
@@ -306,7 +331,7 @@ test("prepareProps localizes meta offmeta core item and rune names across visibl
       coreRunes: [{ name: "Summon Aery", sampleSize: 6800 }],
       playerTakeaways: [{ label: "打法節奏", body: "Fizz 用 Bloodsong 搭配 Summon Aery 改變節奏。" }],
       storyboard: [{ tag: "CORE_TECH", text: "Fizz 中路\nBloodsong + Summon Aery" }],
-    }, "audio/bgm1.mp3");
+    });
 
     assert.equal(props.coreItems[0].name, "血鳴");
     assert.match(props.coreItems[0].iconUrl, /\/img\/item\/3869\.png$/);
@@ -360,7 +385,7 @@ test("prepareProps localizes meta offmeta visible context labels for zh videos",
       recommendedStoryAngle: "Fizz Mid 只看 KR Emerald+ 的 Off-role tech。",
       playerTakeaways: [{ label: "打法節奏", body: "KR Emerald+ 的 Fizz Mid 可以先一般對局測。" }],
       storyboard: [{ tag: "VERSION_OVERVIEW", text: "16.12 KR\nEmerald+ Mid\nOff-role tech" }],
-    }, "audio/bgm1.mp3");
+    });
 
     assert.deepEqual(props.versionOverview, {
       patch: "16.12",
@@ -441,7 +466,7 @@ test("prepareProps localizes tier ranking entry champion names and icon URLs", a
         { rank: 2, champion: "Orianna", role: "Mid", tierScore: 88, statLine: "勝率 51.7% · 登場率 9.8% · 樣本 120,311" },
       ],
       storyboard: [{ tag: "HOOK", text: "中路 版本答案\n先看這幾隻" }],
-    }, "audio/bgm2.mp3");
+    });
 
     assert.equal(props.entries[0].localizedChampionName, "阿璃");
     assert.equal(props.entries[1].localizedChampionName, "奧莉安娜");
