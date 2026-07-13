@@ -401,20 +401,14 @@ test("README makes committed synthetic evidence discoverable and exactly reprodu
   assert.match(readme, /generated synthetic evidence[^\n]+not live Riot, player, or ranked data/i);
 });
 
-test("worker executable exposes only Gemini analysis and Meta publishing status", () => {
-  const worker = fs.readFileSync(path.join(ROOT, "worker.js"), "utf8");
-
-  assert.doesNotMatch(worker, /GOOGLE_(?:CLIENT|REFRESH)|YouTube|youtubeResult/);
-  assert.match(worker, /GEMINI_API_KEY/);
-  assert.match(worker, /Instagram \/ Threads/);
-  assert.match(worker, /result\.publish/);
-});
-
 test("package omits googleapis when no runtime module imports it", () => {
   const runtimeFiles = execFileSync("git", ["ls-files", "-z"], { cwd: ROOT })
     .toString("utf8")
     .split("\0")
-    .filter((file) => /^(?:app|src|utils|scripts)\//.test(file) || /^[^/]+\.(?:js|jsx)$/.test(file));
+    .filter((file) => (
+      (/^(?:app|src|utils|scripts)\//.test(file) || /^[^/]+\.(?:js|jsx)$/.test(file)) &&
+      fs.existsSync(path.join(ROOT, file))
+    ));
   const consumers = runtimeFiles.filter((file) => /(?:require\(|from |import\()["']googleapis["']/.test(
     fs.readFileSync(path.join(ROOT, file), "utf8"),
   ));

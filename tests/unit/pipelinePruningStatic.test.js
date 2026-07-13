@@ -1,5 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { execFileSync, spawnSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -66,4 +67,48 @@ test("removed platform adapters and retired parser modules are deleted", () => {
   ].forEach((relativePath) => {
     assert.equal(fs.existsSync(path.join(ROOT, relativePath)), false, `${relativePath} should be removed`);
   });
+});
+
+test("package does not expose worker commands whose entrypoint cannot resolve", () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  const workerScripts = ["worker", "worker:now", "worker:dry"]
+    .filter((name) => Object.hasOwn(pkg.scripts, name));
+
+  const failures = workerScripts.map((name) => {
+    const result = spawnSync(process.execPath, [path.join(ROOT, "worker.js"), "--help"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    assert.notEqual(result.status, 0, `${name} unexpectedly resolved`);
+    assert.match(result.stderr, /Cannot find module ['"]\.\/utils\/autoDispatcher['"]/);
+    return name;
+  });
+
+  assert.deepEqual(failures, [], `remove broken package scripts: ${failures.join(", ")}`);
+  assert.equal(fs.existsSync(path.join(ROOT, "worker.js")), false, "delete the broken worker entrypoint");
+});
+
+test("orphan scheduler that depends on retired pipeline modules is deleted", () => {
+  const schedulerPath = path.join(ROOT, "scheduler.js");
+  const schedulerExists = fs.existsSync(schedulerPath);
+  const scheduler = schedulerExists ? fs.readFileSync(schedulerPath, "utf8") : "";
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  const runtimeFiles = execFileSync("git", ["ls-files", "-z", "*.js", "*.jsx"], { cwd: ROOT })
+    .toString("utf8")
+    .split("\0")
+    .filter((file) => file && file !== "scheduler.js" && !file.startsWith("tests/"))
+    .filter((file) => fs.existsSync(path.join(ROOT, file)));
+  const runtimeConsumers = runtimeFiles.filter((file) => (
+    /(?:require\(|from |import\()["'][^"']*scheduler(?:\.js)?["']/.test(
+      fs.readFileSync(path.join(ROOT, file), "utf8"),
+    )
+  ));
+
+  if (schedulerExists) {
+    assert.match(scheduler, /src\/parsers\/MetaScanner/);
+    assert.match(scheduler, /utils\/autoDispatcher/);
+  }
+  assert.equal(Object.values(pkg.scripts).some((command) => /(?:^|\s)scheduler\.js(?:\s|$)/.test(command)), false);
+  assert.deepEqual(runtimeConsumers, []);
+  assert.equal(schedulerExists, false, "delete scheduler.js instead of restoring retired modules");
 });
