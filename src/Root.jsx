@@ -114,6 +114,7 @@ const mockMetaOffmetaData = {
 
 const mockMetaTierRankingData = {
   dataType: "META_TIER_RANKING",
+  bgmFile: null,
   locale: "zh",
   title: "Mid 梯度榜 Top 3",
   role: "Mid",
