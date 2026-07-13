@@ -38,7 +38,9 @@ function assertCiWorkflow(workflow) {
   assert.notEqual(document.concurrency.group.trim(), "", "workflow must define a nonempty concurrency group");
   assert.equal(document.concurrency["cancel-in-progress"], true, "workflow must set cancel-in-progress: true");
 
+  assert.deepEqual(Object.keys(document.jobs || {}), ["verify"], "workflow must contain exactly the verify job");
   const verify = document.jobs?.verify;
+  assert.equal(verify?.permissions, undefined, "verify permissions must inherit repository least privilege");
   assert.equal(verify?.["runs-on"], "ubuntu-latest", "verify must run on ubuntu-latest");
   assert.equal(verify?.["timeout-minutes"], 25, "verify must use a 25-minute timeout");
   const steps = Array.isArray(verify?.steps) ? verify.steps : [];
@@ -131,6 +133,8 @@ test("CI contract rejects unsafe or non-parity workflow variants", () => {
     "utf8",
   );
   const variants = [
+    ["verify job permissions", workflow.replace("    runs-on: ubuntu-latest", "    permissions: write-all\n    runs-on: ubuntu-latest"), /verify permissions/],
+    ["additional privileged job", `${workflow}\n  publish:\n    permissions: write-all\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo unsafe\n`, /exactly the verify job/],
     ["Ubuntu runner", workflow.replace("ubuntu-latest", "windows-latest"), /ubuntu-latest/],
     ["cancellation", workflow.replace("cancel-in-progress: true", "cancel-in-progress: false"), /cancel-in-progress/],
     ["concurrency group", workflow.replace(/group: .*\n/, 'group: ""\n'), /concurrency group/],
