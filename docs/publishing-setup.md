@@ -34,6 +34,7 @@ META_REDIRECT_BASE_URL=http://localhost:3000
 Platform-specific app credentials can override the shared Meta credentials when
 Instagram and Threads use separate Meta app configurations:
 
+```bash
 INSTAGRAM_APP_ID=
 INSTAGRAM_APP_SECRET=
 THREADS_APP_ID=
