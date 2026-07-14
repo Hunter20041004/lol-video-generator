@@ -6,12 +6,20 @@ const path = require("node:path");
 const ROOT = path.resolve(__dirname, "../../..");
 
 test("Lolalytics build paths are decoded once at the HTML boundary", () => {
+  const { extractLolalyticsBuildDetailsFromHtml } = require(path.join(
+    ROOT,
+    "utils/metaFactory/sourceAdapters/lolalyticsAdapter.js"
+  ));
   const source = fs.readFileSync(
     path.join(ROOT, "utils/metaFactory/sourceAdapters/lolalyticsAdapter.js"),
     "utf8"
   );
+  const parsed = extractLolalyticsBuildDetailsFromHtml(
+    '<img src="/item64/1.png" alt="Amp &amp;lt; Tag"> 52.1% 1200'
+  );
 
   assert.doesNotMatch(source, /rawPath\.replace\(\/&amp;\/g/);
+  assert.equal(parsed.builds[0].name, "Amp &lt; Tag");
 });
 
 test("normalizeLolalyticsRows converts champion role stats into internal meta rows", () => {

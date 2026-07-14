@@ -216,6 +216,30 @@ function localizeAsciiParentheses(value = '') {
   return localized;
 }
 
+function normalizeSignedNumberSpacing(value = '') {
+  const output = [];
+  const pendingWhitespace = [];
+  const text = String(value || '');
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+    if (character.trim() === '') {
+      pendingWhitespace.push(character);
+      continue;
+    }
+    const next = text[index + 1] || '';
+    const isSignedNumber = ['＋', '+', '-', '−'].includes(character) && next >= '0' && next <= '9';
+    if (isSignedNumber) {
+      if (output.length > 0) output.push(' ');
+    } else {
+      output.push(...pendingWhitespace);
+    }
+    pendingWhitespace.length = 0;
+    output.push(character);
+  }
+  output.push(...pendingWhitespace);
+  return output.join('');
+}
+
 function stripTrailingPatchConjunction(value = '') {
   const trimmed = String(value || '').trimEnd();
   const lower = trimmed.toLowerCase();
@@ -340,8 +364,7 @@ function localizePatchPhrase(value = '', locale = 'zh') {
   for (const [pattern, replacement] of PATCH_TERM_REPLACEMENTS) {
     next = next.replace(pattern, replacement);
   }
-  return localizeAsciiParentheses(next)
-    .replace(/\s*([＋+\-−]\d)/g, ' $1')
+  return normalizeSignedNumberSpacing(localizeAsciiParentheses(next))
     .replace(/\s+/g, ' ')
     .replace(/\s*（\s*/g, '（')
     .replace(/\s*）\s*/g, '）')

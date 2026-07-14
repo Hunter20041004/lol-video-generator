@@ -10,6 +10,7 @@ test("analyze API parses untrusted patch text without polynomial regular express
   const source = fs.readFileSync(path.join(ROOT, "app/api/analyze/route.js"), "utf8");
   const unsafePatterns = [
     "/\\(([^)]*)\\)/g",
+    "/\\s*([＋+\\-−]\\d)/g",
     "/\\s+(?:and|與)\\s+$/i",
     "/^(.+?)\\s*(?:⇒|→|->|>>>|=>|\\bto\\b)\\s*(.+)$/i",
     "/^(.*?)(-?\\d+(?:\\.\\d+)?%?(?:\\s*\\([^)]*\\))?)$/",

@@ -143,9 +143,9 @@ function decodeHtmlText(value = "") {
     .replace(/&#39;/g, "'")
     .replace(/&apos;/g, "'")
     .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
 }
 
 function textFromHtml(html = "") {
