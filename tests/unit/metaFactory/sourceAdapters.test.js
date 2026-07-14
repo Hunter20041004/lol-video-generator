@@ -1,8 +1,18 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "../../..");
+
+test("Lolalytics build paths are decoded once at the HTML boundary", () => {
+  const source = fs.readFileSync(
+    path.join(ROOT, "utils/metaFactory/sourceAdapters/lolalyticsAdapter.js"),
+    "utf8"
+  );
+
+  assert.doesNotMatch(source, /rawPath\.replace\(\/&amp;\/g/);
+});
 
 test("normalizeLolalyticsRows converts champion role stats into internal meta rows", () => {
   const { normalizeLolalyticsRows } = require(path.join(ROOT, "utils/metaFactory/sourceAdapters/lolalyticsAdapter.js"));

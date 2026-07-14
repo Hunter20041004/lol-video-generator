@@ -32,7 +32,7 @@ const CARGO_ENDPOINT = 'https://lol.fandom.com/api.php';
 //   3. Subsequent requests inject `Cookie: <merged>` header
 //
 // .env must provide:
-//   FANDOM_BOT_USERNAME=CheeryMole992@HextechBot
+//   FANDOM_BOT_USERNAME=<bot-account>@<bot-password-name>
 //   FANDOM_BOT_PASSWORD=<bot password from Special:BotPasswords>
 //
 // `sessionCookies` is module-scoped — same Node process reuses one session.
@@ -145,8 +145,7 @@ async function authenticate() {
       const reason = loginJson?.clientlogin?.message || JSON.stringify(loginJson).slice(0, 300);
       throw new Error(`clientlogin status=${status} — ${reason}`);
     }
-    const username_returned = loginJson?.clientlogin?.username || username;
-    console.log(`✅ [Leaguepedia Auth] Logged in as ${username_returned} · ${sessionCookies.split(';').length} cookies`);
+    console.log(`✅ [Leaguepedia Auth] Login succeeded · ${sessionCookies.split(';').length} cookies`);
   })();
 
   try {

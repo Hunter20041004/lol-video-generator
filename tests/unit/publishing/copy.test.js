@@ -1,11 +1,28 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const {
   buildSocialCopy,
   extractCopyBullets,
   inferTitle,
 } = require("../../../utils/publishing/copy");
+
+test("publishing copy localizes untrusted text without polynomial regular expressions", () => {
+  const source = fs.readFileSync(path.resolve(__dirname, "../../../utils/publishing/copy.js"), "utf8");
+  const unsafePatterns = [
+    "/readies.*ult.*5\\s*seconds|ult.*readies.*5\\s*seconds/",
+    "/triggers.*ult.*cast|ult.*cast.*triggers/",
+    "/damage\\s+triggers.*next.*attack.*ability/",
+    "/damage\\s+triggers.*hit|on-hit/",
+    "/damage\\s+reduction.*cast\\s+source/",
+    "/\\s*\\/\\s*[A-Za-z][A-Za-z0-9 '%:+().-]*$/g",
+    "/(?:patch\\s*)?v?(\\d+(?:\\.\\d+){1,2})/i",
+  ];
+
+  for (const pattern of unsafePatterns) assert.equal(source.includes(pattern), false, pattern);
+});
 
 test("buildSocialCopy creates a zh Instagram caption with hook, bullets, CTA, and localized tags", () => {
   const copy = buildSocialCopy({

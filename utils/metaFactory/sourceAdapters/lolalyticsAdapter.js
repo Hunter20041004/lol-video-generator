@@ -120,7 +120,7 @@ function buildLolalyticsBuildUrl(row = {}, options = {}) {
   const rankPreset = String(row.tier || row.rankPreset || options.rankPreset || options.tier || "emerald_plus");
   const rawPath = String(row.detailPath || "");
   const path = rawPath.startsWith("/lol/")
-    ? rawPath.replace(/&amp;/g, "&").split("?")[0]
+    ? rawPath.split("?")[0]
     : `/lol/${championSlugForLolalytics(row.champion || row.name)}/build/`;
   const url = new URL(path, "https://lolalytics.com");
   url.searchParams.set("lane", LANE_QUERY[role] || "middle");

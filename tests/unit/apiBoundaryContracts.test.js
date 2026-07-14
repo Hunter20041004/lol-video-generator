@@ -6,6 +6,20 @@ const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "../..");
 
+test("analyze API parses untrusted patch text without polynomial regular expressions", () => {
+  const source = fs.readFileSync(path.join(ROOT, "app/api/analyze/route.js"), "utf8");
+  const unsafePatterns = [
+    "/\\(([^)]*)\\)/g",
+    "/\\s+(?:and|與)\\s+$/i",
+    "/^(.+?)\\s*(?:⇒|→|->|>>>|=>|\\bto\\b)\\s*(.+)$/i",
+    "/^(.*?)(-?\\d+(?:\\.\\d+)?%?(?:\\s*\\([^)]*\\))?)$/",
+    "/【([^】]+)】[：:]\\s*([\\s\\S]*?)(?=\\n{2,}【|$)/g",
+    "/([A-Za-z\\u4e00-\\u9fff%/()（）\\s+\\-]{1,40}?)[:：]?\\s*(-?\\d+(?:\\.\\d+)?%?)\\s*(?:⇒|→|->|>>>|=>| to )\\s*(-?\\d+(?:\\.\\d+)?%?)/gi",
+  ];
+
+  for (const pattern of unsafePatterns) assert.equal(source.includes(pattern), false, pattern);
+});
+
 test("analyze API guard rejects removed dataTypes before invoking analysis dependencies", () => {
   const { validateAnalyzeRequest } = require(path.join(ROOT, "utils/apiGuards.js"));
 

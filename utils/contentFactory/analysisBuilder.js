@@ -4,8 +4,29 @@ const {
   buildSystemPayload,
 } = require("./payloadBuilder");
 
+function buildInternalAnalyzeUrl(origin) {
+  let url;
+  try {
+    url = new URL(origin);
+  } catch {
+    throw new Error("Analyze calls require a loopback origin.");
+  }
+  const hostname = url.hostname.toLowerCase();
+  const isLoopback = hostname === "localhost"
+    || hostname === "::1"
+    || hostname === "[::1]"
+    || /^127(?:\.\d{1,3}){3}$/.test(hostname);
+  if (!["http:", "https:"].includes(url.protocol) || !isLoopback) {
+    throw new Error("Analyze calls require a loopback origin.");
+  }
+  url.pathname = "/api/analyze";
+  url.search = "";
+  url.hash = "";
+  return url.toString();
+}
+
 async function defaultAnalyzeFn(origin, payload, locale) {
-  const response = await fetch(`${origin}/api/analyze`, {
+  const response = await fetch(buildInternalAnalyzeUrl(origin), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...payload, locale }),

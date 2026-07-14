@@ -116,6 +116,44 @@ test("defaultAnalyzeFn posts to analyze API and returns parsed data", async () =
   }
 });
 
+test("defaultAnalyzeFn rejects non-loopback origins before fetch", async () => {
+  const originalFetch = global.fetch;
+  let called = false;
+  global.fetch = async () => {
+    called = true;
+    throw new Error("must not fetch");
+  };
+
+  try {
+    await assert.rejects(
+      () => defaultAnalyzeFn("https://attacker.example", {}, "zh"),
+      /loopback origin/
+    );
+    assert.equal(called, false);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("defaultAnalyzeFn rejects malformed loopback-looking IPv4 origins", async () => {
+  const originalFetch = global.fetch;
+  let called = false;
+  global.fetch = async () => {
+    called = true;
+    throw new Error("must not fetch");
+  };
+
+  try {
+    await assert.rejects(
+      () => defaultAnalyzeFn("http://127.999.1.1:3000", {}, "zh"),
+      /loopback origin/
+    );
+    assert.equal(called, false);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
 test("defaultAnalyzeFn surfaces API error messages", async () => {
   const originalFetch = global.fetch;
   global.fetch = async () => ({

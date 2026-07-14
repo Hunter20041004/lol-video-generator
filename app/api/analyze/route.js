@@ -206,6 +206,95 @@ function isEnglishLocale(locale = 'zh') {
   return String(locale || 'zh').toLowerCase().startsWith('en');
 }
 
+function localizeAsciiParentheses(value = '') {
+  let localized = '';
+  for (const character of String(value || '')) {
+    if (character === '(') localized += '（';
+    else if (character === ')') localized += '）';
+    else localized += character;
+  }
+  return localized;
+}
+
+function stripTrailingPatchConjunction(value = '') {
+  const trimmed = String(value || '').trimEnd();
+  const lower = trimmed.toLowerCase();
+  if (lower.endsWith(' and')) return trimmed.slice(0, -4).trimEnd();
+  if (trimmed.endsWith(' 與')) return trimmed.slice(0, -2).trimEnd();
+  return trimmed;
+}
+
+function findPatchArrow(value = '') {
+  const text = String(value || '');
+  const arrows = ['>>>', '->', '=>', '⇒', '→'];
+  let best = null;
+
+  for (const arrow of arrows) {
+    const index = text.indexOf(arrow);
+    if (index >= 0 && (!best || index < best.index)) best = { index, length: arrow.length };
+  }
+
+  const lower = text.toLowerCase();
+  let toIndex = lower.indexOf('to');
+  while (toIndex >= 0) {
+    const before = lower[toIndex - 1] || '';
+    const after = lower[toIndex + 2] || '';
+    const isWordCharacter = (character) => /[a-z0-9_]/.test(character);
+    if (!isWordCharacter(before) && !isWordCharacter(after)) {
+      if (!best || toIndex < best.index) best = { index: toIndex, length: 2 };
+      break;
+    }
+    toIndex = lower.indexOf('to', toIndex + 2);
+  }
+
+  return best;
+}
+
+function isNumericPatchValue(value = '') {
+  const text = String(value || '').trim();
+  let index = text.startsWith('-') ? 1 : 0;
+  const integerStart = index;
+  while (index < text.length && text[index] >= '0' && text[index] <= '9') index += 1;
+  if (index === integerStart) return false;
+  if (text[index] === '.') {
+    index += 1;
+    const decimalStart = index;
+    while (index < text.length && text[index] >= '0' && text[index] <= '9') index += 1;
+    if (index === decimalStart) return false;
+  }
+  if (text[index] === '%') index += 1;
+  while (text[index] === ' ') index += 1;
+  if (index === text.length) return true;
+  if (text[index] !== '(' || text[text.length - 1] !== ')') return false;
+  return index + 1 < text.length - 1 && !text.slice(index + 1, -1).includes(')');
+}
+
+function splitTrailingMetricValue(value = '') {
+  const text = String(value || '').trim();
+  for (let index = 1; index < text.length; index += 1) {
+    if (text[index] !== '-' && (text[index] < '0' || text[index] > '9')) continue;
+    const metricName = text.slice(0, index).trim();
+    const metricValue = text.slice(index).trim();
+    if (metricName && isNumericPatchValue(metricValue)) return [metricName, metricValue];
+  }
+  return null;
+}
+
+function findNextPatchSection(value, startIndex) {
+  let marker = value.indexOf('【', startIndex);
+  while (marker >= 0) {
+    let cursor = marker - 1;
+    let newlineCount = 0;
+    while (cursor >= 0 && value[cursor] === '\n') {
+      newlineCount += 1;
+      cursor -= 1;
+    }
+    if (newlineCount >= 2) return marker;
+    marker = value.indexOf('【', marker + 1);
+  }
+  return -1;
+}
+
 function normalizeMetricKey(name = '') {
   return String(name || '')
     .replace(/[【】[\]]/g, ' ')
@@ -251,8 +340,7 @@ function localizePatchPhrase(value = '', locale = 'zh') {
   for (const [pattern, replacement] of PATCH_TERM_REPLACEMENTS) {
     next = next.replace(pattern, replacement);
   }
-  return next
-    .replace(/\(([^)]*)\)/g, '（$1）')
+  return localizeAsciiParentheses(next)
     .replace(/\s*([＋+\-−]\d)/g, ' $1')
     .replace(/\s+/g, ' ')
     .replace(/\s*（\s*/g, '（')
@@ -276,19 +364,19 @@ function splitPatchLines(text = '') {
 }
 
 function trimDiffValue(value = '', locale = 'zh') {
-  return localizePatchPhrase(String(value || '')
-    .replace(/\s+(?:and|與)\s+$/i, '')
+  return localizePatchPhrase(stripTrailingPatchConjunction(value)
     .replace(/[。；;]\s*$/g, '')
     .trim(), locale);
 }
 
 function parsePatchDiffLine(line = '', locale = 'zh') {
   const cleaned = cleanPatchLine(line);
-  const arrowMatch = cleaned.match(/^(.+?)\s*(?:⇒|→|->|>>>|=>|\bto\b)\s*(.+)$/i);
-  if (!arrowMatch) return null;
+  const arrow = findPatchArrow(cleaned);
+  if (!arrow) return null;
 
-  const left = arrowMatch[1].trim();
-  const right = arrowMatch[2].trim();
+  const left = cleaned.slice(0, arrow.index).trim();
+  const right = cleaned.slice(arrow.index + arrow.length).trim();
+  if (!left || !right) return null;
   const colonIndex = Math.max(left.lastIndexOf(':'), left.lastIndexOf('：'));
   let metricName = isEnglishLocale(locale) ? 'Core Stat' : '核心數值';
   let beforeValue = left;
@@ -297,10 +385,10 @@ function parsePatchDiffLine(line = '', locale = 'zh') {
     metricName = left.slice(0, colonIndex).trim();
     beforeValue = left.slice(colonIndex + 1).trim();
   } else {
-    const valueMatch = left.match(/^(.*?)(-?\d+(?:\.\d+)?%?(?:\s*\([^)]*\))?)$/);
-    if (valueMatch) {
-      metricName = valueMatch[1].trim() || metricName;
-      beforeValue = valueMatch[2].trim();
+    const valueParts = splitTrailingMetricValue(left);
+    if (valueParts) {
+      metricName = valueParts[0] || metricName;
+      beforeValue = valueParts[1];
     }
   }
 
@@ -350,11 +438,20 @@ function splitPatchChangeSections(input = {}) {
   if (!changeDesc) return [];
 
   const sections = [];
-  const sectionPattern = /【([^】]+)】[：:]\s*([\s\S]*?)(?=\n{2,}【|$)/g;
-  let match;
-  while ((match = sectionPattern.exec(changeDesc)) && sections.length < 4) {
-    const ability = match[1].trim();
-    const desc = match[2].trim();
+  let marker = changeDesc.indexOf('【');
+  while (marker >= 0 && sections.length < 4) {
+    const close = changeDesc.indexOf('】', marker + 1);
+    if (close < 0) break;
+    let separator = close + 1;
+    while (changeDesc[separator] === ' ' || changeDesc[separator] === '\t') separator += 1;
+    if (changeDesc[separator] !== ':' && changeDesc[separator] !== '：') {
+      marker = changeDesc.indexOf('【', close + 1);
+      continue;
+    }
+    const descStart = separator + 1;
+    const nextMarker = findNextPatchSection(changeDesc, descStart);
+    const ability = changeDesc.slice(marker + 1, close).trim();
+    const desc = changeDesc.slice(descStart, nextMarker < 0 ? changeDesc.length : nextMarker).trim();
     if (ability && desc) {
       sections.push({
         ability,
@@ -362,6 +459,7 @@ function splitPatchChangeSections(input = {}) {
         changeDesc: desc,
       });
     }
+    marker = nextMarker;
   }
 
   if (sections.length === 0 && changeDesc) {
@@ -382,26 +480,7 @@ function extractMetricsFromText(changeDesc = '', locale = 'zh') {
     .filter(Boolean)
     .slice(0, 8);
   if (detailedMetrics.length > 0) return detailedMetrics;
-
-  const metrics = [];
-  const pattern = /([A-Za-z\u4e00-\u9fff%/()（）\s+\-]{1,40}?)[:：]?\s*(-?\d+(?:\.\d+)?%?)\s*(?:⇒|→|->|>>>|=>| to )\s*(-?\d+(?:\.\d+)?%?)/gi;
-  let match;
-
-  while ((match = pattern.exec(text)) && metrics.length < 8) {
-    const metricName = localizePatchMetricName(match[1].replace(/[【】\[\]\n]/g, ' ').trim() || (isEnglishLocale(locale) ? 'Core Stat' : '核心數值'), locale);
-    const beforeValue = trimDiffValue(match[2], locale);
-    const afterValue = trimDiffValue(match[3], locale);
-    const trend = inferMetricTrend(metricName, beforeValue, afterValue);
-    metrics.push({
-      metricName,
-      beforeValue,
-      afterValue,
-      trend,
-      summary: buildMetricImpactSummary(metricName, trend, locale),
-    });
-  }
-
-  return metrics;
+  return [];
 }
 
 function aggregateChangeType(metrics, changeDesc = '') {

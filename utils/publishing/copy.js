@@ -70,6 +70,53 @@ function normalizePhraseKey(value = "") {
     .trim();
 }
 
+function containsInOrder(value, tokens) {
+  let cursor = 0;
+  for (const token of tokens) {
+    const index = value.indexOf(token, cursor);
+    if (index < 0) return false;
+    cursor = index + token.length;
+  }
+  return true;
+}
+
+function isEnglishFallbackSuffix(value = "") {
+  const text = String(value || "").trim();
+  if (!text || !/[A-Za-z]/.test(text[0])) return false;
+  const punctuation = " '%:+().-";
+  for (const character of text) {
+    const isLetter = (character >= "A" && character <= "Z") || (character >= "a" && character <= "z");
+    const isNumber = character >= "0" && character <= "9";
+    if (!isLetter && !isNumber && !punctuation.includes(character)) return false;
+  }
+  return true;
+}
+
+function stripLocalizedEnglishSuffix(value = "") {
+  const slash = value.lastIndexOf("/");
+  if (slash < 0 || !isEnglishFallbackSuffix(value.slice(slash + 1))) return value;
+  return value.slice(0, slash).trim();
+}
+
+function extractPatchVersion(value = "") {
+  const text = String(value || "");
+  for (let start = 0; start < text.length; start += 1) {
+    if (text[start] < "0" || text[start] > "9") continue;
+    let cursor = start;
+    while (cursor < text.length && text[cursor] >= "0" && text[cursor] <= "9") cursor += 1;
+    let dotCount = 0;
+    while (dotCount < 2 && text[cursor] === ".") {
+      const digitsStart = cursor + 1;
+      cursor = digitsStart;
+      while (cursor < text.length && text[cursor] >= "0" && text[cursor] <= "9") cursor += 1;
+      if (cursor === digitsStart) break;
+      dotCount += 1;
+    }
+    if (dotCount >= 1) return text.slice(start, cursor);
+  }
+  return "";
+}
+
 function localizeKnownZhPhrase(value = "", fallback = "") {
   const raw = compactText(value);
   if (!raw) return fallback;
@@ -77,11 +124,11 @@ function localizeKnownZhPhrase(value = "", fallback = "") {
   const key = normalizePhraseKey(raw);
   if (ZH_STAT_TERMS[key]) return ZH_STAT_TERMS[key];
   if (/frostfire\s+tempest/.test(normalized)) return "霜火風暴";
-  if (/readies.*ult.*5\s*seconds|ult.*readies.*5\s*seconds/.test(normalized)) return "大絕後預備5秒";
-  if (/triggers.*ult.*cast|ult.*cast.*triggers/.test(normalized)) return "大絕施放觸發";
-  if (/damage\s+triggers.*next.*attack.*ability/.test(normalized)) return "下次攻擊或技能觸發";
-  if (/damage\s+triggers.*hit|on-hit/.test(normalized)) return "命中時觸發";
-  if (/damage\s+reduction.*cast\s+source/.test(normalized)) return "減免整段傷害來源";
+  if (containsInOrder(normalized, ["readies", "ult", "5", "seconds"]) || containsInOrder(normalized, ["ult", "readies", "5", "seconds"])) return "大絕後預備5秒";
+  if (containsInOrder(normalized, ["triggers", "ult", "cast"]) || containsInOrder(normalized, ["ult", "cast", "triggers"])) return "大絕施放觸發";
+  if (containsInOrder(normalized, ["damage", "triggers", "next", "attack", "ability"])) return "下次攻擊或技能觸發";
+  if (containsInOrder(normalized, ["damage", "triggers", "hit"]) || normalized.includes("on-hit")) return "命中時觸發";
+  if (containsInOrder(normalized, ["damage", "reduction", "cast", "source"])) return "減免整段傷害來源";
   if (/damage\s+reduction/.test(normalized)) return "減免下一次傷害";
   if (hasLatinWord(raw) && !hasCjk(raw)) return fallback;
   return raw;
@@ -90,7 +137,7 @@ function localizeKnownZhPhrase(value = "", fallback = "") {
 function stripEnglishFallback(text = "", locale = "zh") {
   const value = compactText(text);
   if (normalizeLocale(locale) !== "zh") return hasCjk(value) ? "" : value;
-  if (hasCjk(value)) return value.replace(/\s*\/\s*[A-Za-z][A-Za-z0-9 '%:+().-]*$/g, "").trim();
+  if (hasCjk(value)) return stripLocalizedEnglishSuffix(value);
   return localizeKnownZhPhrase(value, "");
 }
 
@@ -102,8 +149,8 @@ const getLocalizedPayload = (analysis = {}, locale = "zh") => {
 function normalizePatchVersion(data = {}) {
   const raw = compactText(data.patchVersion || data.version || data.patch || "");
   if (!raw || raw.toLowerCase() === "latest") return "";
-  const match = raw.match(/(?:patch\s*)?v?(\d+(?:\.\d+){1,2})/i);
-  return match ? match[1] : raw.replace(/^patch\s*/i, "");
+  const version = extractPatchVersion(raw);
+  return version || raw.replace(/^patch\s*/i, "");
 }
 
 function titleHasPatchVersion(title = "", patchVersion = "") {
