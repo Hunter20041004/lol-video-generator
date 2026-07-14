@@ -240,6 +240,14 @@ function normalizeSignedNumberSpacing(value = '') {
   return output.join('');
 }
 
+function tightenFullWidthParentheses(value = '') {
+  return String(value || '')
+    .replaceAll(' （', '（')
+    .replaceAll('（ ', '（')
+    .replaceAll(' ）', '）')
+    .replaceAll('） ', '）');
+}
+
 function stripTrailingPatchConjunction(value = '') {
   const trimmed = String(value || '').trimEnd();
   const lower = trimmed.toLowerCase();
@@ -364,11 +372,9 @@ function localizePatchPhrase(value = '', locale = 'zh') {
   for (const [pattern, replacement] of PATCH_TERM_REPLACEMENTS) {
     next = next.replace(pattern, replacement);
   }
-  return normalizeSignedNumberSpacing(localizeAsciiParentheses(next))
-    .replace(/\s+/g, ' ')
-    .replace(/\s*（\s*/g, '（')
-    .replace(/\s*）\s*/g, '）')
-    .trim();
+  return tightenFullWidthParentheses(
+    normalizeSignedNumberSpacing(localizeAsciiParentheses(next)).replace(/\s+/g, ' ')
+  ).trim();
 }
 
 function cleanPatchLine(line = '') {

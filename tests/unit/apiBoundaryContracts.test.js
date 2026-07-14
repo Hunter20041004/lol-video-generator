@@ -11,6 +11,8 @@ test("analyze API parses untrusted patch text without polynomial regular express
   const unsafePatterns = [
     "/\\(([^)]*)\\)/g",
     "/\\s*([＋+\\-−]\\d)/g",
+    "/\\s*（\\s*/g",
+    "/\\s*）\\s*/g",
     "/\\s+(?:and|與)\\s+$/i",
     "/^(.+?)\\s*(?:⇒|→|->|>>>|=>|\\bto\\b)\\s*(.+)$/i",
     "/^(.*?)(-?\\d+(?:\\.\\d+)?%?(?:\\s*\\([^)]*\\))?)$/",
