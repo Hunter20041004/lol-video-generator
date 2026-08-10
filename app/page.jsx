@@ -17,10 +17,10 @@ const workspaces = [
   {
     id: "esports",
     label: "電競賽事工廠",
-    status: "需補後端",
+    status: "已支援",
     modes: [
-      { id: "daily", label: "每日系列賽", status: "部分已支援" },
-      { id: "player", label: "選手雷達", status: "需補後端" },
+      { id: "daily", label: "每日系列賽", status: "已支援" },
+      { id: "player", label: "選手雷達", status: "已支援" },
     ],
   },
   {
@@ -83,6 +83,22 @@ function getLocalDateInputValue(date = new Date()) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function getPreviousLocalDateInputValue(date = new Date()) {
+  const previous = new Date(date);
+  previous.setDate(previous.getDate() - 1);
+  return getLocalDateInputValue(previous);
+}
+
+function openDatePicker(event) {
+  const input = event.currentTarget;
+  if (typeof input.showPicker !== "function") return;
+  try {
+    input.showPicker();
+  } catch {
+    // Browsers can reject showPicker outside trusted pointer events.
+  }
 }
 
 function StatusBadge({ value }) {
@@ -158,6 +174,21 @@ function getPreviewVideos(payload = {}) {
     }));
 }
 
+function getEsportsPreviewVideos(payload = {}) {
+  const directVideos = getPreviewVideos(payload);
+  if (directVideos.length > 0) return directVideos;
+
+  return (Array.isArray(payload?.run?.outputs) ? payload.run.outputs : [])
+    .flatMap((output) =>
+      (Array.isArray(output?.videos) ? output.videos : []).map((video, index) => ({
+        ...video,
+        label: video.label || [output.series?.winningTeam, video.type, video.locale].filter(Boolean).join(" · ") || "賽事影片",
+        key: video.videoUrl || video.fileName || `${output.seriesId || "series"}-${index}`,
+      }))
+    )
+    .filter((video) => video?.videoUrl);
+}
+
 function getVersionItemTitle(item = {}) {
   return item.title || item.payload?.targetName || item.payload?.championName || item.targetName || item.id;
 }
@@ -204,14 +235,41 @@ function VideoPreview({ videos = [], empty = "" }) {
   );
 }
 
+function getResultError(payload = {}) {
+  if (payload?.success === false) {
+    return {
+      title: payload.userMessage || payload.error || "操作失敗",
+      suggestion: payload.recoverySuggestion || "",
+      code: payload.code || "",
+      raw: payload.error || "",
+    };
+  }
+  return null;
+}
+
 function ResultPanel({ title, payload, empty = "尚未執行", showPreview = true }) {
   const previewVideos = showPreview ? getPreviewVideos(payload) : [];
+  const resultError = getResultError(payload);
 
   return (
     <section className="panel resultPanel">
       <h2>{title}</h2>
       <VideoPreview videos={previewVideos} />
-      {payload ? <pre>{JSON.stringify(payload, null, 2)}</pre> : <div className="empty">{empty}</div>}
+      {resultError ? (
+        <div className="resultError" role="alert">
+          <strong>{resultError.title}</strong>
+          {resultError.suggestion ? <span>{resultError.suggestion}</span> : null}
+          {resultError.code ? <code>{resultError.code}</code> : null}
+          <details>
+            <summary>原始錯誤</summary>
+            <pre>{JSON.stringify(payload, null, 2)}</pre>
+          </details>
+        </div>
+      ) : payload ? (
+        <pre>{JSON.stringify(payload, null, 2)}</pre>
+      ) : (
+        <div className="empty">{empty}</div>
+      )}
     </section>
   );
 }
@@ -826,12 +884,13 @@ function MetaFactory({ portfolioReadOnly, portfolioDemoState }) {
 
 function EsportsFactory({ portfolioReadOnly }) {
   const [mode, setMode] = useState("daily");
-  const [date, setDate] = useState(() => getLocalDateInputValue());
+  const [date, setDate] = useState(() => getPreviousLocalDateInputValue());
   const [scanId, setScanId] = useState("");
   const [seriesId, setSeriesId] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
+  const esportsPreviewVideos = getEsportsPreviewVideos(result);
 
   const scanCandidates = async () => {
     setBusy(true);
@@ -884,17 +943,67 @@ function EsportsFactory({ portfolioReadOnly }) {
     }
   };
 
+  async function runDailyOneClick() {
+    setBusy(true);
+    setResult(null);
+    try {
+      const response = await fetch("/api/esports/daily-one-click", {
+        method: "POST",
+        body: JSON.stringify({
+          date,
+          activeMode: mode === "daily" ? "auto" : mode,
+          maxSeries: 2,
+        }),
+      });
+      setResult(await response.json());
+    } catch (error) {
+      setResult({ success: false, error: error.message });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <main className="workspace">
       <TopBar workspace={workspaces[1]} busy={busy} portfolioReadOnly={portfolioReadOnly} />
       <ModeSwitch modes={workspaces[1].modes} active={mode} setActive={setMode} />
       <div className="grid">
-        <section className="panel actionPanel">
+        <section className="panel actionPanel esportsActionPanel">
+          <div className="oneClickPanel">
+            <div>
+              <span className="oneClickEyebrow">Daily publish</span>
+              <h2>每日一鍵產片並發布</h2>
+              <p>使用下方日期抓最多 2 場可發布系列賽，只產中文 recap，Gate 通過後直接送 IG / Threads。</p>
+            </div>
+            <button type="button" className="oneClickButton" onClick={runDailyOneClick} disabled={busy}>
+              {busy ? "執行中" : "產片並發布"}
+            </button>
+            {Array.isArray(result?.publishLinks) && result.publishLinks.length > 0 ? (
+              <div className="publishLinkList" aria-label="發布連結">
+                {result.publishLinks.map((link) =>
+                  link.url ? (
+                    <a key={`${link.platform}-${link.url}`} href={link.url} target="_blank" rel="noreferrer">
+                      {link.platform} · {link.status || "published"}
+                    </a>
+                  ) : (
+                    <span key={`${link.platform}-${link.status}`}>{link.platform} · {link.status || "pending"}</span>
+                  )
+                )}
+              </div>
+            ) : null}
+          </div>
+          <VideoPreview videos={esportsPreviewVideos} empty="尚無賽事影片" />
           <h2>共用賽事資料</h2>
           <div className="fieldGrid">
             <label>
               日期
-              <input value={date} type="date" onChange={(event) => setDate(event.target.value)} />
+              <input
+                value={date}
+                type="date"
+                aria-label="賽事日期"
+                onClick={openDatePicker}
+                onChange={(event) => setDate(event.target.value)}
+              />
             </label>
             <label>
               scanId
@@ -913,15 +1022,6 @@ function EsportsFactory({ portfolioReadOnly }) {
             <MutationButton type="button" onClick={scanCandidates} disabled={busy} portfolioReadOnly={portfolioReadOnly}>掃描候選賽事</MutationButton>
             <MutationButton type="button" onClick={checkGate} disabled={busy || !scanId || !seriesId} portfolioReadOnly={portfolioReadOnly}>檢查 Gate</MutationButton>
             <MutationButton type="button" onClick={runPlayerRadar} disabled={busy || !scanId || !seriesId} portfolioReadOnly={portfolioReadOnly}>產生選手雷達</MutationButton>
-          </div>
-        </section>
-        <section className="panel">
-          <h2>資料契約</h2>
-          <div className="contractList">
-            <div><span>Candidates scan</span><StatusBadge value="需補後端" /></div>
-            <div><span>Daily Gate first</span><StatusBadge value="部分已支援" /></div>
-            <div><span>Player Radar runner</span><StatusBadge value="需補後端" /></div>
-            <div><span>Queue handoff</span><StatusBadge value="已支援" /></div>
           </div>
         </section>
         <ResultPanel title="候選 / Gate / Render 結果" payload={result} empty="Leaguepedia 無資料時會顯示空狀態或錯誤，不使用 sample mode。" />

@@ -21,6 +21,10 @@ async function createEsportsPublishJobs(seriesRun = {}, deps = {}) {
   }
 
   const createPublishJobs = deps.createPublishJobs || defaultCreatePublishJobs;
+  const platforms = Array.isArray(seriesRun.platforms) && seriesRun.platforms.length > 0
+    ? seriesRun.platforms
+    : ESPORTS_PLATFORMS;
+  const action = seriesRun.publishAction || "queue";
   const videos = (seriesRun.videos || [])
     .filter((video) => video.videoUrl && ["zh", "en"].includes(video.locale))
     .map(normalizeVideo);
@@ -31,8 +35,8 @@ async function createEsportsPublishJobs(seriesRun = {}, deps = {}) {
 
   const result = await createPublishJobs({
     videos,
-    platforms: ESPORTS_PLATFORMS,
-    action: "queue",
+    platforms,
+    action,
     scheduledAt: seriesRun.scheduledAt,
     analysis: {
       dataType: "ESPORTS_MATCH_RECAP",
@@ -45,7 +49,7 @@ async function createEsportsPublishJobs(seriesRun = {}, deps = {}) {
 
   return {
     ...result,
-    platforms: ESPORTS_PLATFORMS,
+    platforms,
     jobs: result.jobs || [],
   };
 }

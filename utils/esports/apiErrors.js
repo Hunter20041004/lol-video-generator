@@ -1,0 +1,71 @@
+function isLeaguepediaRateLimit(errorOrMessage = "") {
+  if (errorOrMessage?.code === "LEAGUEPEDIA_RATE_LIMITED") return true;
+  const message = typeof errorOrMessage === "string" ? errorOrMessage : errorOrMessage?.message || "";
+  return /Leaguepedia API returned error:.*rate limit|exceeded your rate limit|rate limited/i.test(message);
+}
+
+function isLeaguepediaAuthError(errorOrMessage = "") {
+  if (errorOrMessage?.code === "LEAGUEPEDIA_AUTH_FAILED") return true;
+  const message = typeof errorOrMessage === "string" ? errorOrMessage : errorOrMessage?.message || "";
+  return /Fandom bot authentication failed|Fandom bot credentials missing/i.test(message);
+}
+
+function formatRetryWindow(error) {
+  const retryAfterSeconds = Number(error?.retryAfterSeconds || 0);
+  if (!Number.isFinite(retryAfterSeconds) || retryAfterSeconds <= 0) return "約 15 分鐘";
+  return `約 ${Math.max(1, Math.ceil(retryAfterSeconds / 60))} 分鐘`;
+}
+
+function formatRecoverySuggestion(error) {
+  const retryWindow = formatRetryWindow(error);
+  const spacer = retryWindow.startsWith("約") ? "" : " ";
+  return `請先等${spacer}${retryWindow}再按一次。這段時間不要連續重刷，否則限流時間可能會延長。`;
+}
+
+function formatEsportsApiError(error, options = {}) {
+  const message = error?.message || options.fallbackMessage || "Esports pipeline failed.";
+
+  if (isLeaguepediaAuthError(error)) {
+    return {
+      success: false,
+      code: "LEAGUEPEDIA_AUTH_FAILED",
+      status: 401,
+      recoverable: false,
+      userMessage: "Leaguepedia Bot 登入失敗，暫時不能抓取完整賽事數據。",
+      recoverySuggestion: "請重新產生 Fandom Bot Password，更新 FANDOM_BOT_USERNAME / FANDOM_BOT_PASSWORD，然後重啟 dev server。",
+      error: message,
+    };
+  }
+
+  if (isLeaguepediaRateLimit(error)) {
+    const rawRetryAfterSeconds = Number(error?.retryAfterSeconds || 0);
+    const retryAfterSeconds = rawRetryAfterSeconds > 0 ? rawRetryAfterSeconds : 15 * 60;
+    return {
+      success: false,
+      code: "LEAGUEPEDIA_RATE_LIMITED",
+      status: 429,
+      recoverable: true,
+      userMessage: "Leaguepedia 資料源目前限流，暫時不能抓取完整賽事數據。",
+      recoverySuggestion: formatRecoverySuggestion(error),
+      retryAfterSeconds,
+      cooldownUntil: error?.cooldownUntil || undefined,
+      error: message,
+    };
+  }
+
+  return {
+    success: false,
+    code: options.code || "ESPORTS_PIPELINE_ERROR",
+    status: options.status || 500,
+    recoverable: false,
+    userMessage: options.fallbackMessage || "Esports pipeline failed.",
+    recoverySuggestion: options.recoverySuggestion || "",
+    error: message,
+  };
+}
+
+module.exports = {
+  formatEsportsApiError,
+  isLeaguepediaAuthError,
+  isLeaguepediaRateLimit,
+};

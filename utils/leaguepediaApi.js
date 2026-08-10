@@ -18,6 +18,14 @@
  */
 
 const CARGO_ENDPOINT = 'https://lol.fandom.com/api.php';
+const { isLeaguepediaRateLimit } = require('./esports/apiErrors');
+const {
+  clearSourceCooldown,
+  createSourceCooldownError,
+  readSourceCooldown,
+  recordSourceCooldown,
+} = require('./esports/sourceCooldown');
+const LEAGUEPEDIA_SOURCE = 'leaguepedia';
 
 // =========================================================================
 // SECTION 0 · MediaWiki Bot Authentication (clientlogin flow)
@@ -26,9 +34,9 @@ const CARGO_ENDPOINT = 'https://lol.fandom.com/api.php';
 // Authenticating as a registered Bot account loosens the rate limit and gives
 // the request stable session cookies.
 //
-// Flow per https://www.mediawiki.org/wiki/API:Login (clientlogin variant):
+// Flow per MediaWiki bot-password login:
 //   1. GET  meta=tokens&type=login   → receive { logintoken, ...set-cookie }
-//   2. POST action=clientlogin       → receive auth result + session cookies
+//   2. POST action=login             → receive auth result + session cookies
 //   3. Subsequent requests inject `Cookie: <merged>` header
 //
 // .env must provide:
@@ -82,12 +90,27 @@ function withCookieHeader(extra = {}) {
   return headers;
 }
 
+function hasAnyBotCredential() {
+  return Boolean(process.env.FANDOM_BOT_USERNAME || process.env.FANDOM_BOT_PASSWORD);
+}
+
+function createLeaguepediaAuthError(message, cause) {
+  const error = new Error(message);
+  error.code = 'LEAGUEPEDIA_AUTH_FAILED';
+  error.status = 401;
+  error.recoverable = false;
+  if (cause) error.cause = cause;
+  return error;
+}
+
 /**
  * Authenticates against the lol.fandom.com MediaWiki API as a bot.
  * Idempotent — second concurrent caller awaits the same in-flight promise.
  * Once successful, sessionCookies is populated and Cargo requests inject it.
  *
- * Throws if credentials missing or auth fails (caller decides to retry / fall back to anonymous).
+ * Throws if credentials missing or auth fails. Callers must not fall back to
+ * anonymous Cargo after a configured bot auth failure, because that hides the
+ * real credential problem behind Fandom rate limits.
  */
 async function authenticate() {
   if (sessionCookies) return; // already authenticated
@@ -96,7 +119,7 @@ async function authenticate() {
   const username = process.env.FANDOM_BOT_USERNAME;
   const password = process.env.FANDOM_BOT_PASSWORD;
   if (!username || !password) {
-    throw new Error('FANDOM_BOT_USERNAME / FANDOM_BOT_PASSWORD missing in .env');
+    throw createLeaguepediaAuthError('Fandom bot credentials missing: FANDOM_BOT_USERNAME / FANDOM_BOT_PASSWORD must both be set.');
   }
 
   authPromise = (async () => {
@@ -120,15 +143,15 @@ async function authenticate() {
       throw new Error(`Login token missing in response: ${JSON.stringify(tokenJson).slice(0, 200)}`);
     }
 
-    // Step 2: POST clientlogin with username + password + token + cookies
-    console.log('🔑 [Leaguepedia Auth] Posting clientlogin...');
+    // Step 2: POST legacy action=login with bot-password credentials.
+    // Fandom BotPasswords authenticate here; clientlogin rejects them.
+    console.log('🔑 [Leaguepedia Auth] Posting bot-password login...');
     const body = new URLSearchParams({
-      action: 'clientlogin',
+      action: 'login',
       format: 'json',
-      username,
-      password,
-      logintoken: loginToken,
-      loginreturnurl: 'https://lol.fandom.com/',
+      lgname: username,
+      lgpassword: password,
+      lgtoken: loginToken,
     });
     const loginRes = await fetch(CARGO_ENDPOINT, {
       method: 'POST',
@@ -136,20 +159,24 @@ async function authenticate() {
       body: body.toString(),
     });
     if (!loginRes.ok) {
-      throw new Error(`clientlogin failed: HTTP ${loginRes.status}`);
+      throw new Error(`Bot-password login failed: HTTP ${loginRes.status}`);
     }
     ingestSetCookie(loginRes.headers.get('set-cookie'));
     const loginJson = await loginRes.json();
-    const status = loginJson?.clientlogin?.status;
-    if (status !== 'PASS') {
-      const reason = loginJson?.clientlogin?.message || JSON.stringify(loginJson).slice(0, 300);
-      throw new Error(`clientlogin status=${status} — ${reason}`);
+    const result = loginJson?.login?.result;
+    if (result !== 'Success' && result !== 'PASS') {
+      const reason = loginJson?.login?.reason || loginJson?.login?.message || JSON.stringify(loginJson).slice(0, 300);
+      throw createLeaguepediaAuthError(`Fandom bot authentication failed: login result=${result} — ${reason}`);
     }
-    console.log(`✅ [Leaguepedia Auth] Login succeeded · ${sessionCookies.split(';').length} cookies`);
+    const username_returned = loginJson?.login?.lgusername || username;
+    console.log(`✅ [Leaguepedia Auth] Logged in as ${username_returned} · ${sessionCookies.split(';').length} cookies`);
   })();
 
   try {
     await authPromise;
+  } catch (error) {
+    clearSession();
+    throw error;
   } finally {
     authPromise = null;
   }
@@ -178,6 +205,11 @@ function clearSession() {
  * @returns {Array} — Array of result objects (flattened from Cargo's { title: { ... } } wrapper)
  */
 async function cargoQuery(params) {
+  const activeCooldown = readSourceCooldown(LEAGUEPEDIA_SOURCE);
+  if (activeCooldown.active) {
+    throw createSourceCooldownError(LEAGUEPEDIA_SOURCE, activeCooldown);
+  }
+
   const {
     tables,
     fields,
@@ -216,11 +248,10 @@ async function cargoQuery(params) {
     console.log(`📡 [Leaguepedia] Cargo query (page ${page + 1}): ${url.toString().slice(0, 200)}...`);
     console.log("Cargo Fetch URL:", url.toString());
 
-    // Lazy authenticate on first request — once we have sessionCookies, all subsequent
-    // requests reuse them. If creds are missing we still try anonymously (best effort).
-    if (!sessionCookies && (process.env.FANDOM_BOT_USERNAME && process.env.FANDOM_BOT_PASSWORD)) {
-      try { await authenticate(); }
-      catch (e) { console.warn(`⚠️ [Leaguepedia Auth] auth failed → falling back to anonymous: ${e.message}`); }
+    // Lazy authenticate on first request. If bot credentials are configured,
+    // auth failure is a hard configuration error; do not hide it by retrying anonymously.
+    if (!sessionCookies && hasAnyBotCredential()) {
+      await authenticate();
     }
 
     let res = await fetch(url.toString(), {
@@ -233,7 +264,7 @@ async function cargoQuery(params) {
     if ((res.status === 401 || res.status === 403) && process.env.FANDOM_BOT_USERNAME) {
       console.warn(`⚠️ [Leaguepedia] HTTP ${res.status} mid-session — re-authenticating and retrying once...`);
       clearSession();
-      try { await authenticate(); } catch (e) { /* fall through and re-throw original */ }
+      await authenticate();
       if (sessionCookies) {
         res = await fetch(url.toString(), {
           headers: withCookieHeader({ 'Accept-Encoding': 'gzip, deflate, br' }),
@@ -244,13 +275,26 @@ async function cargoQuery(params) {
 
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
+      if (res.status === 429 || isLeaguepediaRateLimit(errText)) {
+        const cooldown = recordSourceCooldown(LEAGUEPEDIA_SOURCE, { reason: 'rate_limit' });
+        throw createSourceCooldownError(
+          LEAGUEPEDIA_SOURCE,
+          cooldown,
+          `Leaguepedia API error: HTTP ${res.status} — ${errText.slice(0, 200)}`
+        );
+      }
       throw new Error(`Leaguepedia API error: HTTP ${res.status} — ${errText.slice(0, 200)}`);
     }
 
     const json = await res.json();
 
     if (json.error) {
-      throw new Error(`Leaguepedia API returned error: ${json.error.info || JSON.stringify(json.error)}`);
+      const message = `Leaguepedia API returned error: ${json.error.info || JSON.stringify(json.error)}`;
+      if (isLeaguepediaRateLimit(message)) {
+        const cooldown = recordSourceCooldown(LEAGUEPEDIA_SOURCE, { reason: 'rate_limit' });
+        throw createSourceCooldownError(LEAGUEPEDIA_SOURCE, cooldown, message);
+      }
+      throw new Error(message);
     }
 
     // Cargo wraps results as: { cargoquery: [ { title: { field1: "val", ... } }, ... ] }
@@ -263,6 +307,7 @@ async function cargoQuery(params) {
   }
 
   console.log(`📡 [Leaguepedia] Query returned ${allResults.length} total rows`);
+  clearSourceCooldown(LEAGUEPEDIA_SOURCE);
   return allResults;
 }
 
@@ -352,7 +397,7 @@ async function fetchMatchPlayers(gameId) {
       'ScoreboardPlayers.Assists',
       'ScoreboardPlayers.CS',
       'ScoreboardPlayers.Gold',
-      'ScoreboardPlayers.DamageToChamps',
+      'ScoreboardPlayers.DamageToChampions',
       'ScoreboardPlayers.VisionScore',
     ].join(','),
     where: `ScoreboardGames.GameId='${gameId}'`,
@@ -466,7 +511,7 @@ function normalizePlayerRow(row, match) {
   const assists = parseInt(row.Assists || '0', 10);
   const cs = parseInt(row.CS || '0', 10);
   const gold = parseInt(row.Gold || '0', 10);
-  const damageToChamps = parseInt(row.DamageToChamps || row['DamageToChamps'] || '0', 10);
+  const damageToChamps = parseInt(row.DamageToChampions || row['DamageToChampions'] || row.DamageToChamps || row['DamageToChamps'] || '0', 10);
   const visionScore = parseInt(row.VisionScore || '0', 10);
 
   // Calculate derived stats

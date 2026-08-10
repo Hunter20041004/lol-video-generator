@@ -204,6 +204,33 @@ test("buildSocialCopy localizes zh mechanism bullets instead of leaking English"
   assert.doesNotMatch(copy.caption, /Frostfire|Triggers|Readies|Ult cast/i);
 });
 
+test("buildSocialCopy creates esports recap captions instead of patch fallback copy", () => {
+  const copy = buildSocialCopy({
+    locale: "zh",
+    platform: "instagram",
+    analysis: {
+      dataType: "ESPORTS_MATCH_RECAP",
+      match: {
+        tournament: "MSI 2026",
+        teams: ["T1", "FURIA"],
+        winningTeam: "T1",
+        score: "3-0",
+      },
+      recapPoints: [
+        { type: "result", team: "T1", value: "3-0" },
+        { type: "matchup-edge", role: "Adc", player: "Gumayusi", team: "T1" },
+        { type: "team-gap", metric: "gold", team: "T1", delta: 8200 },
+      ],
+    },
+  });
+
+  assert.match(copy.title, /^T1 3-0 FURIA 賽後戰報/);
+  assert.match(copy.caption, /T1 3-0 FURIA/);
+  assert.match(copy.caption, /Gumayusi/);
+  assert.match(copy.caption, /#賽後分析/);
+  assert.doesNotMatch(copy.caption, /版本改動|版本更新/);
+});
+
 test("extractCopyBullets falls back to storyboard and verdict text when stat changes are absent", () => {
   const bullets = extractCopyBullets({
     actionableVerdict: { body: "對線期要重新測，不要直接套舊版本。" },
