@@ -8,14 +8,21 @@ const REQUIRED_VIDEO_KEYS = [
   "recap:zh",
   "recap:en",
 ];
+const DEFAULT_VIDEO_TYPES = ["radar", "recap"];
 
 function normalizeLanguages(languages = ["zh", "en"]) {
   const values = Array.isArray(languages) && languages.length > 0 ? languages : ["zh", "en"];
   return [...new Set(values.map((language) => String(language || "zh").toLowerCase().startsWith("en") ? "en" : "zh"))];
 }
 
-function requiredVideoKeysForLanguages(languages = ["zh", "en"]) {
-  return normalizeLanguages(languages).flatMap((locale) => [`radar:${locale}`, `recap:${locale}`]);
+function normalizeVideoTypes(videoTypes = DEFAULT_VIDEO_TYPES) {
+  const values = Array.isArray(videoTypes) && videoTypes.length > 0 ? videoTypes : DEFAULT_VIDEO_TYPES;
+  return [...new Set(values.map((type) => String(type || "").toLowerCase()).filter((type) => DEFAULT_VIDEO_TYPES.includes(type)))];
+}
+
+function requiredVideoKeysForLanguages(languages = ["zh", "en"], videoTypes = DEFAULT_VIDEO_TYPES) {
+  const types = normalizeVideoTypes(videoTypes);
+  return normalizeLanguages(languages).flatMap((locale) => types.map((type) => `${type}:${locale}`));
 }
 
 function localVideoPath(videoUrl = "") {
@@ -36,7 +43,7 @@ function evaluateSeriesGate(run = {}) {
   const matchupEdges = run.semantic?.matchupEdges || run.matchupEdges || [];
   const recapPoints = run.semantic?.recapPoints || run.recapPoints || [];
   const videos = run.videos || [];
-  const requiredVideoKeys = requiredVideoKeysForLanguages(run.languages);
+  const requiredVideoKeys = requiredVideoKeysForLanguages(run.languages, run.videoTypes);
 
   if (run.status && !["RENDERED", "READY", "TEST_RENDERED"].includes(run.status)) {
     reasons.push(`render status is not complete: ${run.status}`);
@@ -80,6 +87,7 @@ function evaluateSeriesGate(run = {}) {
 module.exports = {
   REQUIRED_ROLES,
   REQUIRED_VIDEO_KEYS,
+  normalizeVideoTypes,
   requiredVideoKeysForLanguages,
   evaluateSeriesGate,
   videoExists,

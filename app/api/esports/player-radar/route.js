@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 const { runPlayerRadarFromSnapshot } = require('../../../../utils/esports/playerRadarRunner');
+const { formatEsportsApiError } = require('../../../../utils/esports/apiErrors');
 
 export async function POST(request) {
   try {
@@ -7,9 +8,10 @@ export async function POST(request) {
     const result = await runPlayerRadarFromSnapshot(body);
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Player radar failed.',
-    }, { status: /not found|scan/i.test(error.message || '') ? 404 : 500 });
+    const payload = formatEsportsApiError(error, {
+      fallbackMessage: '選手雷達產生失敗。',
+      status: /not found|scan/i.test(error.message || '') ? 404 : undefined,
+    });
+    return NextResponse.json(payload, { status: payload.status });
   }
 }

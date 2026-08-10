@@ -36,3 +36,12 @@ test("caption highlighting treats KC as a full team token", async () => {
   assert.equal(segments.find((segment) => segment.text === "T1")?.highlighted, true);
   assert.equal(segments.filter((segment) => segment.text === "KC" && segment.highlighted).length, 2);
 });
+
+test("caption highlighting treats TSW as a full team token", async () => {
+  const { splitCaptionHighlightSegments } = await import("../../../src/video-system/captionHighlight.js");
+
+  const segments = splitCaptionHighlightSegments("TSW 3-1 TES，TSW 把 TES 淘汰");
+
+  assert.equal(segments.filter((segment) => segment.text === "TSW" && segment.highlighted).length, 2);
+  assert.equal(segments.filter((segment) => segment.text === "TES" && segment.highlighted).length, 2);
+});
