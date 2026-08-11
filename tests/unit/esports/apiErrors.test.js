@@ -1,5 +1,15 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { performance } = require("node:perf_hooks");
+
+test("Leaguepedia rate-limit detection stays fast on repeated untrusted prefixes", () => {
+  const { isLeaguepediaRateLimit } = require("../../../utils/esports/apiErrors");
+  const adversarialMessage = "Leaguepedia API returned error:".repeat(3000);
+  const startedAt = performance.now();
+
+  assert.equal(isLeaguepediaRateLimit(adversarialMessage), false);
+  assert.ok(performance.now() - startedAt < 50, "rate-limit detection should finish within 50ms");
+});
 
 test("formatEsportsApiError turns Leaguepedia rate limits into actionable UI errors", () => {
   const { formatEsportsApiError } = require("../../../utils/esports/apiErrors");

@@ -1,7 +1,12 @@
 function isLeaguepediaRateLimit(errorOrMessage = "") {
   if (errorOrMessage?.code === "LEAGUEPEDIA_RATE_LIMITED") return true;
   const message = typeof errorOrMessage === "string" ? errorOrMessage : errorOrMessage?.message || "";
-  return /Leaguepedia API returned error:.*rate limit|exceeded your rate limit|rate limited/i.test(message);
+  const normalizedMessage = message.toLowerCase();
+  return (
+    (normalizedMessage.includes("leaguepedia api returned error:") && normalizedMessage.includes("rate limit"))
+    || normalizedMessage.includes("exceeded your rate limit")
+    || normalizedMessage.includes("rate limited")
+  );
 }
 
 function isLeaguepediaAuthError(errorOrMessage = "") {

@@ -221,6 +221,12 @@ test("Player radar template renders dual-read matchup and proof scenes", () => {
   assert.equal(source.includes("不是只有 KDA"), false);
 });
 
+test("Player radar number formatting has no self-replacing cleanup step", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+
+  assert.equal(source.includes('.replace(/\\.0$/, ".0")'), false);
+});
+
 test("Player radar template does not render synthetic match placeholders", () => {
   const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
 

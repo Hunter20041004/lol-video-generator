@@ -54,7 +54,7 @@ const formatNumber = (value, digits = 1) => {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return String(value ?? "");
   if (Number.isInteger(parsed) && digits === 0) return String(parsed);
-  return parsed.toFixed(digits).replace(/\.0$/, ".0");
+  return parsed.toFixed(digits);
 };
 
 const formatMetricValue = (metric = "", value) => {

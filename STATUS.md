@@ -18,6 +18,7 @@
 - 測試與發佈佇列已隔離，不再因 Node module cache 把另一個 worktree 的 cwd 固定成寫入目標。
 - 依賴安全圖在本機 `npm audit --audit-level=high` 為 0。
 - Daily one-click 的「昨天」已固定採洛杉磯發布日曆，UTC CI 與本機會選到相同賽事日期。
+- PR #5 首輪 CodeQL 找到的多項式正規表示式與無效自我替換已用測試保護並修正。
 - CI 等價驗證、production build、6 張 QA stills 與 Player Radar H.264 片段均通過。
 - 原本 dirty `main`、rescue ref、外部救援副本與 runtime queue 都仍保留。
 

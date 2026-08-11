@@ -16,6 +16,7 @@
 3. 保留 GitHub 線的唯讀展示、無 shell 渲染、呼叫者提供音樂及帳號識別資訊不進 log。
 4. 合併更新 Next／Sharp／PostCSS／nanoid／Undici／fast-uri，沒有降低 `npm audit --audit-level=high` 閘門。
 5. Daily one-click 的預設發布日曆固定為 `America/Los_Angeles`，避免 GitHub UTC runner 把「昨天」算成不同日期；呼叫端仍可明確覆寫時區。
+6. Leaguepedia 限流判斷改成線性片語搜尋，並移除 Player Radar 無效的數字自我替換，處理 PR #5 的兩個 CodeQL 警報。
 
 ## 依賴版本
 
@@ -30,7 +31,8 @@
 
 - `npm ci`：通過，`found 0 vulnerabilities`
 - `npm run tdd:doctor`：通過
-- `npm run test:coverage`：451 tests；449 pass、2 個外部 LoLalytics contract tests skipped、0 fail；line 96.84%、branch 80.26%、function 96.23%
+- `npm run test:coverage`：453 tests；451 pass、2 個外部 LoLalytics contract tests skipped、0 fail；line 96.84%、branch 80.31%、function 96.23%
+- 惡意重複 Leaguepedia 前綴的限流判斷：修正前約 169ms，修正後約 2.5ms
 - `TZ=UTC node --test tests/unit/esports/dailyOneClick.test.js`：2/2 通過，涵蓋 GitHub runner 與本機時區差異
 - `npx next build`：通過；26 個頁面／API route 建置完成
 - `npm audit --audit-level=high`：通過，0 vulnerabilities
