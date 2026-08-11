@@ -1,8 +1,25 @@
 import { NextResponse } from 'next/server';
-const { createPublishJobs } = require('../../../utils/publishing');
+const { createPublishJobs, preflightPublishJobs } = require('../../../utils/publishing');
 const { listTasks } = require('../../../utils/publishing/queueStore');
 const { ensurePublicMediaBaseUrl } = require('../../../utils/publishing/tunnel');
 const { validatePublishRequest } = require('../../../utils/apiGuards');
+
+function resolvePublishAnalysis(body = {}, policy = {}) {
+  const analysis = body.analysis && typeof body.analysis === 'object' ? body.analysis : body;
+  return analysis.dataType || !policy.dataType
+    ? analysis
+    : { ...analysis, dataType: policy.dataType };
+}
+
+function statusForPublishError(error) {
+  if (error.statusCode) return error.statusCode;
+  const message = error.message || '';
+  if (message.includes('authenticated') || error.code === 401) return 401;
+  if (/^Player Radar\b|^Unsupported (?:platform|dataType)|videoUrl or videos\[\] is required|Video file not found/i.test(message)) {
+    return 400;
+  }
+  return 500;
+}
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -22,6 +39,16 @@ export async function POST(request) {
     const policy = validatePublishRequest(body);
     const action = body.action || 'queue';
     const platforms = policy.platforms;
+    const analysis = resolvePublishAnalysis(body, policy);
+    preflightPublishJobs({
+      videoUrl: body.videoUrl,
+      videos: body.videos,
+      analysis,
+      socialCopy: body.socialCopy,
+      locale: body.locale || 'zh',
+      platform: body.platform || 'instagram',
+      platforms,
+    });
     const sampleVideoUrl = Array.isArray(body.videos) && body.videos.length > 0
       ? body.videos.find((video) => video?.videoUrl)?.videoUrl
       : body.videoUrl;
@@ -33,7 +60,7 @@ export async function POST(request) {
     const result = await createPublishJobs({
       videoUrl: body.videoUrl,
       videos: body.videos,
-      analysis: body.analysis || {},
+      analysis,
       socialCopy: body.socialCopy,
       locale: body.locale || 'zh',
       platform: body.platform || 'instagram',
@@ -49,7 +76,7 @@ export async function POST(request) {
     const isAuthError = err.message?.includes('authenticated') || err.code === 401;
     return NextResponse.json(
       { success: false, error: err.message, needsAuth: isAuthError },
-      { status: err.statusCode || (isAuthError ? 401 : 500) }
+      { status: statusForPublishError(err) }
     );
   }
 }

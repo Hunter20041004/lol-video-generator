@@ -87,6 +87,58 @@ test("pipeline schema and render mapping do not include removed dataTypes", () =
   assert.equal(normalizePipelinePayload({ dataType: "PRO_BUILD" }).data.dataType, "PATCH");
 });
 
+test("player radar schema preserves dual-read segments and uses dual-read fallback storyboard", () => {
+  const { normalizePipelinePayload } = require(path.join(ROOT, "src/schemas/pipelineSchemas.js"));
+
+  const normalized = normalizePipelinePayload({
+    dataType: "PLAYER_RADAR",
+    matchupSegment: {
+      role: "Mid",
+      focusPlayer: { name: "GEN Mid", team: "GEN", role: "Mid" },
+      edgePlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
+      opponentPlayer: { name: "GEN Mid", team: "GEN", role: "Mid" },
+      edgeWinnerTeam: "T1",
+      edgeScore: 56,
+      edgeType: "winner-breakpoint",
+      reasons: [{ metric: "DPM", winnerValue: 720, loserValue: 360, delta: 360 }],
+    },
+    proofSegment: {
+      player: { name: "T1 Jungle", team: "T1", role: "Jungle" },
+      proofType: "mvp",
+      isRecommendedMvp: true,
+      proofStats: [{ metric: "KP%", rawValue: "84%", score: 90 }],
+      proofReasons: [{ metric: "KP%", rawValue: "84%", score: 90 }],
+      verdict: "T1 Jungle 有這場最清楚的 MVP 理由。",
+    },
+  });
+
+  assert.equal(normalized.data.dataType, "PLAYER_RADAR");
+  assert.equal(normalized.data.matchupSegment.edgePlayer.name, "T1 Mid");
+  assert.equal(normalized.data.proofSegment.player.name, "T1 Jungle");
+  assert.deepEqual(normalized.data.storyboard.map((scene) => scene.tag), [
+    "HOOK",
+    "MATCHUP_EDGE",
+    "PLAYER_PROOF",
+    "CONCLUSION_CTA",
+  ]);
+});
+
+test("player radar English fallback storyboard stays visible in English", () => {
+  const { normalizePipelinePayload } = require(path.join(ROOT, "src/schemas/pipelineSchemas.js"));
+
+  const normalized = normalizePipelinePayload({
+    dataType: "PLAYER_RADAR",
+    locale: "en",
+  });
+
+  assert.deepEqual(normalized.data.storyboard.map((scene) => scene.text), [
+    "Biggest lane gap\nsame as MVP?",
+    "Start with the biggest gap\nwho beat who",
+    "Then test the key player\ndoes the case hold?",
+    "What's your read\ncomment below",
+  ]);
+});
+
 test("publish platform policy only allows Instagram and Threads", () => {
   const {
     DEFAULT_PLATFORMS,

@@ -1,3 +1,7 @@
+const DEFAULT_MODE_WINDOWS = [
+  { mode: "msi", start: "2026-06-28T00:00:00.000Z", end: "2026-07-12T23:59:59.999Z" },
+];
+
 const DEFAULT_ESPORTS_CONFIG = {
   activeMode: process.env.ESPORTS_ACTIVE_MODE || "auto",
   maxDailySeries: 2,
@@ -13,7 +17,7 @@ const DEFAULT_ESPORTS_CONFIG = {
     msi: ["MSI", "Mid-Season Invitational"],
     worlds: ["Worlds", "World Championship"],
   },
-  modeWindows: [],
+  modeWindows: DEFAULT_MODE_WINDOWS,
   hotTeams: {},
   hotPlayers: {},
 };

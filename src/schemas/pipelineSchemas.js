@@ -194,6 +194,7 @@ const ItemRuneSchema = BasePipelineSchema.extend({
 
 const PlayerRadarSchema = BasePipelineSchema.extend({
   dataType: z.literal("PLAYER_RADAR").default("PLAYER_RADAR"),
+  title: z.coerce.string().optional(),
   matchContext: z
     .object({
       league: z.coerce.string().default("LCK"),
@@ -204,6 +205,8 @@ const PlayerRadarSchema = BasePipelineSchema.extend({
     .partial()
     .passthrough()
     .default({}),
+  matchupSegment: z.any().optional(),
+  proofSegment: z.any().optional(),
   player: z
     .object({
       name: z.coerce.string().default("Player"),
@@ -270,10 +273,19 @@ const ensureTwoLineText = (text, fallback = "版本重點\n快速看懂") => {
 const fallbackStoryboardFor = (payload) => {
   const dataType = payload.dataType || "PATCH";
   if (dataType === "PLAYER_RADAR") {
+    if (String(payload.locale || "").toLowerCase().startsWith("en")) {
+      return [
+        { tag: "HOOK", text: "Biggest lane gap\nsame as MVP?", durationInFrames: 90 },
+        { tag: "MATCHUP_EDGE", text: "Start with the biggest gap\nwho beat who", durationInFrames: 126 },
+        { tag: "PLAYER_PROOF", text: "Then test the key player\ndoes the case hold?", durationInFrames: 126 },
+        { tag: "CONCLUSION_CTA", text: "What's your read\ncomment below", durationInFrames: 90 },
+      ];
+    }
     return [
-      { tag: "HOOK", text: "選手數據雷達\n賽後一眼看懂", durationInFrames: 86 },
-      { tag: "STAT_REVEAL", text: "強項與弱點\n直接攤開", durationInFrames: 120 },
-      { tag: "CONCLUSION_CTA", text: "這場是不是 MVP\n留言告訴我", durationInFrames: 92 },
+      { tag: "HOOK", text: "最大差距和 MVP\n是同一個人嗎", durationInFrames: 90 },
+      { tag: "MATCHUP_EDGE", text: "先看最大對位差\n誰壓過誰", durationInFrames: 126 },
+      { tag: "PLAYER_PROOF", text: "再看關鍵人物\n理由是否成立", durationInFrames: 126 },
+      { tag: "CONCLUSION_CTA", text: "這場你怎麼判讀\n留言告訴我", durationInFrames: 90 },
     ];
   }
   if (dataType === "ESPORTS_H2H_RADAR") {

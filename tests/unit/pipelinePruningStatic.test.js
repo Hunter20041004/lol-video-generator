@@ -126,3 +126,28 @@ test("package does not directly depend on a platform-specific Remotion composito
     [],
   );
 });
+
+test("generic analyze entrypoints do not expose retired player radar prompts or whitelists", () => {
+  const { PROMPTS_BY_DATA_TYPE, getPipelinePromptForDataType } = require(path.join(ROOT, "utils/pipelinePrompts.js"));
+  const promptSource = fs.readFileSync(path.join(ROOT, "utils/pipelinePrompts.js"), "utf8");
+  const analyzeRouteSource = fs.readFileSync(path.join(ROOT, "app/api/analyze/route.js"), "utf8");
+  const playerRadarPrompt = getPipelinePromptForDataType("PLAYER_RADAR");
+
+  assert.equal(Object.hasOwn(PROMPTS_BY_DATA_TYPE, "PLAYER_RADAR"), false);
+  assert.equal(promptSource.includes("const PLAYER_RADAR_PROMPT"), false);
+  assert.equal(playerRadarPrompt.includes('"dataType": "PLAYER_RADAR"'), false);
+  assert.equal(playerRadarPrompt.includes('"tag": "STAT_REVEAL"'), false);
+  assert.equal(analyzeRouteSource.includes("PLAYER_RADAR:  ['dataType'"), false);
+});
+
+test("Leaguepedia API does not export retired single-player radar payload builders", () => {
+  const leaguepedia = require(path.join(ROOT, "utils/leaguepediaApi.js"));
+  const source = fs.readFileSync(path.join(ROOT, "utils/leaguepediaApi.js"), "utf8");
+
+  assert.equal(Object.hasOwn(leaguepedia, "transformCargoToRadarSchema"), false);
+  assert.equal(Object.hasOwn(leaguepedia, "buildRadarStats"), false);
+  assert.equal(source.includes("transformCargoToRadarSchema"), false);
+  assert.equal(source.includes("'Obj Control':   '—'"), false);
+  assert.equal(source.includes("'CC Score':      '—'"), false);
+  assert.equal(source.includes("'DMG Mitigated': '—'"), false);
+});

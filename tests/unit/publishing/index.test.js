@@ -17,6 +17,15 @@ function clearPublishingModules() {
   });
 }
 
+function buildTestRadarStats(rawStats = {}) {
+  const { buildRadarStats } = require(path.join(ROOT, "utils/esports/seriesAggregator.js"));
+  return buildRadarStats(rawStats);
+}
+
+function statByLabel(stats = [], label = "") {
+  return stats.find((stat) => stat.label === label);
+}
+
 function withTempProject(fn) {
   const originalCwd = process.cwd();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-publishing-"));
@@ -32,6 +41,60 @@ function withTempProject(fn) {
       clearPublishingModules();
       fs.rmSync(dir, { recursive: true, force: true });
     });
+}
+
+function makePlayerRadarAnalysis() {
+  const proofRawStats = { role: "Jungle", kp: 0.84, dpm: 720 };
+  const proofRadarStats = buildTestRadarStats(proofRawStats);
+  const edgeRawStats = { role: "Mid", dpm: 720, kp: 0.86 };
+  const loserRawStats = { role: "Mid", dpm: 360, kp: 0.48 };
+  const edgeRadarStats = buildTestRadarStats(edgeRawStats);
+  const loserRadarStats = buildTestRadarStats(loserRawStats);
+  const edgeScore = ((statByLabel(edgeRadarStats, "DPM").normalizedScore + statByLabel(edgeRadarStats, "KP%").normalizedScore) / 2)
+    - ((statByLabel(loserRadarStats, "DPM").normalizedScore + statByLabel(loserRadarStats, "KP%").normalizedScore) / 2);
+  return {
+    dataType: "PLAYER_RADAR",
+    title: "T1 vs GEN 選手雷達",
+    matchContext: { league: "LCK", teamA: "T1", teamB: "GEN", winningTeam: "T1", seriesScore: "Game 3" },
+    player: {
+      name: "Oner",
+      team: "T1",
+      role: "Jungle",
+      rawStats: proofRawStats,
+      radarStats: proofRadarStats,
+    },
+    matchupSegment: {
+      role: "Mid",
+      edgeType: "winner-breakpoint",
+      edgeScore,
+      focusPlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: edgeRawStats, radarStats: edgeRadarStats },
+      edgePlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: edgeRawStats, radarStats: edgeRadarStats },
+      opponentPlayer: { name: "Chovy", team: "GEN", role: "Mid", rawStats: loserRawStats, radarStats: loserRadarStats },
+      edgeWinnerTeam: "T1",
+      reasons: [
+        { metric: "DPM", winnerValue: 720, loserValue: 360, delta: 360 },
+        { metric: "KP%", winnerValue: 0.86, loserValue: 0.48, delta: 0.38 },
+      ],
+    },
+    proofSegment: {
+      player: {
+        name: "Oner",
+        team: "T1",
+        role: "Jungle",
+        rawStats: proofRawStats,
+        radarStats: proofRadarStats,
+      },
+      proofReasons: [
+        { metric: "KP%", rawValue: statByLabel(proofRadarStats, "KP%").rawValue, score: statByLabel(proofRadarStats, "KP%").normalizedScore },
+        { metric: "DPM", rawValue: statByLabel(proofRadarStats, "DPM").rawValue, score: statByLabel(proofRadarStats, "DPM").normalizedScore },
+      ],
+      verdict: "Oner 有這場最清楚的 MVP 理由。",
+    },
+    storyboard: [
+      { text: "Faker\n打出最大對位差", tag: "MATCHUP_EDGE" },
+      { text: "Oner\n關鍵人物證明", tag: "PLAYER_PROOF" },
+    ],
+  };
 }
 
 test("createPublishJobs queues localized platform tasks with normalized scheduled time", async () => {
@@ -52,6 +115,59 @@ test("createPublishJobs queues localized platform tasks with normalized schedule
     assert.deepEqual(result.jobs.map((job) => job.platform).sort(), ["instagram", "threads"]);
     assert.equal(result.jobs[0].scheduledAt, "2026-05-22T02:00:00.000Z");
     assert.ok(result.jobs[0].package.manifestPath.endsWith("manifest.json"));
+  });
+});
+
+test("createPublishJobs queues player radar with esports social copy", async () => {
+  await withTempProject(async () => {
+    const { createPublishJobs } = require(path.join(ROOT, "utils/publishing/index.js"));
+
+    const result = await createPublishJobs({
+      videoUrl: "/renders/clip.mp4",
+      analysis: makePlayerRadarAnalysis(),
+      locale: "zh",
+      platforms: ["instagram"],
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.jobs.length, 1);
+    const [job] = result.jobs;
+    assert.equal(job.copy.title, "T1 vs GEN 選手雷達");
+    assert.match(job.copy.caption, /賽事重點：/);
+    assert.match(job.copy.caption, /你覺得這場關鍵人物是誰/);
+    assert.equal(job.copy.tags.includes("LoLEsports"), true);
+    assert.equal(job.copy.tags.includes("選手雷達"), true);
+    assert.equal(job.copy.tags.includes("版本更新"), false);
+    assert.doesNotMatch(job.copy.caption, /這波重點|版本更新|調整打法|lolpatch/i);
+
+    const manifest = JSON.parse(fs.readFileSync(job.package.manifestPath, "utf8"));
+    assert.match(manifest.copy.caption, /T1 vs GEN 選手雷達/);
+    assert.doesNotMatch(manifest.copy.caption, /版本更新|lolpatch/i);
+  });
+});
+
+test("createPublishJobs preflights all localized player radar videos before queue writes", async () => {
+  await withTempProject(async (dir) => {
+    fs.writeFileSync(path.join(dir, "public", "renders", "clip-zh.mp4"), "fake zh video");
+    fs.writeFileSync(path.join(dir, "public", "renders", "clip-en.mp4"), "fake en video");
+    const { createPublishJobs } = require(path.join(ROOT, "utils/publishing/index.js"));
+
+    await assert.rejects(
+      () => createPublishJobs({
+        videos: [
+          { locale: "zh", videoUrl: "/renders/clip-zh.mp4" },
+          { locale: "en", videoUrl: "/renders/clip-en.mp4" },
+        ],
+        analysis: makePlayerRadarAnalysis(),
+        platforms: ["instagram"],
+      }),
+      /Player Radar localized payload missing for locale: en/
+    );
+
+    const queuePath = path.join(dir, ".data", "publish-queue.json");
+    const packagesDir = path.join(dir, "public", "publish-packages");
+    assert.deepEqual(fs.existsSync(queuePath) ? JSON.parse(fs.readFileSync(queuePath, "utf8")) : [], []);
+    assert.deepEqual(fs.existsSync(packagesDir) ? fs.readdirSync(packagesDir) : [], []);
   });
 });
 

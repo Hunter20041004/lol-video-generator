@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const { normalizePipelinePayload } = require("../../src/schemas/pipelineSchemas");
 const { assertSupportedDataType } = require("../pipelineRegistry");
+const { assertPlayerRadarEvidence, hasPlayerRadarPayload } = require("../esports/playerRadarEvidence");
 const { getChampionEntry, getChampionTWName, getItemEntry, getRuneEntry } = require("../riotLocalization");
 const { splitDenseSkillScenes } = require("../patchStoryboard");
 const { localizeRemoteImageAssets } = require("./remoteAssetCache");
@@ -110,6 +111,13 @@ const stripRenderControlFields = (payload = {}) => {
 
 const getPayloadForLanguage = (requestData = {}, locale = "zh") => {
   const localized = requestData.localizedPayloads?.[locale] || requestData.localizedPayloads?.[locale.slice(0, 2)];
+  if (hasPlayerRadarPayload(requestData) && !localized) {
+    const rootLocale = String(requestData.locale || "zh").toLowerCase().startsWith("en") ? "en" : "zh";
+    const requestedLocale = String(locale || "zh").toLowerCase().startsWith("en") ? "en" : "zh";
+    if (String(requestData.dataType || "").toUpperCase() !== "PLAYER_RADAR" || rootLocale !== requestedLocale) {
+      throw new Error(`Player Radar localized payload missing for locale: ${requestedLocale}`);
+    }
+  }
   const source = localized ? { ...requestData, ...localized } : requestData;
   return { ...stripRenderControlFields(cloneJson(source)), locale, outputLanguage: locale };
 };
@@ -365,6 +373,7 @@ async function renderOne(rawProps, {
   execRenderImpl = execRender,
   assetFetchImpl,
 } = {}) {
+  assertPlayerRadarEvidence(rawProps);
   const rendersDir = path.join(process.cwd(), "public", "renders");
   fs.mkdirSync(rendersDir, { recursive: true });
 
@@ -421,9 +430,15 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
     ? requestData.renderLanguages.filter(Boolean).map((lang) => String(lang).toLowerCase().startsWith("en") ? "en" : "zh")
     : (requestData.bilingual || requestData.generateBilingual ? ["zh", "en"] : [requestData.locale || "zh"]);
   const languages = [...new Set(requestedLanguages)].slice(0, 2);
+  assertPlayerRadarEvidence(requestData);
+  const payloads = languages.map((lang) => ({
+    lang,
+    payload: getPayloadForLanguage(requestData, lang),
+  }));
+  payloads.forEach(({ payload }) => assertPlayerRadarEvidence(payload));
+
   const videos = [];
-  for (const lang of languages) {
-    const payload = getPayloadForLanguage(requestData, lang);
+  for (const { lang, payload } of payloads) {
     videos.push(await renderOne(payload, {
       timestamp,
       locale: lang,

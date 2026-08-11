@@ -14,7 +14,6 @@ const { validateAnalyzeRequest } = require('../../../utils/apiGuards');
 const ALLOWED_FIELDS_BY_TYPE = {
   PATCH:         ['dataType', 'targetType', 'entityType', 'category', 'championName', 'itemName', 'runeName', 'targetName', 'ability', 'changeDesc', 'itemChanges', 'runeChanges', 'communityComments', 'locale'],
   SYSTEM_UPDATE: ['dataType', 'targetType', 'targetName', 'localizedName', 'headline', 'sectionTitle', 'systemType', 'changeDesc', 'statChanges', 'subtopics', 'affectedRoles', 'communityComments', 'locale'],
-  PLAYER_RADAR:  ['dataType', 'playerName', 'player', 'playerRole', 'matchContext', 'compareWith', 'stats', 'locale'],
   ITEM_UPDATE:   ['dataType', 'targetType', 'itemName', 'targetName', 'ability', 'changeDesc', 'itemChanges', 'communityComments', 'locale'],
   RUNE_UPDATE:   ['dataType', 'targetType', 'runeName', 'targetName', 'ability', 'changeDesc', 'runeChanges', 'communityComments', 'locale'],
 };
@@ -894,7 +893,7 @@ export async function POST(request) {
     const isItemUpdate = targetKind === 'ITEM' || targetKind === 'ITEMS' || dataType === 'ITEM_UPDATE' || Boolean(body.itemName);
     const isRuneUpdate = targetKind === 'RUNE' || targetKind === 'RUNES' || dataType === 'RUNE_UPDATE' || Boolean(body.runeName);
 
-    const NON_CHAMPION_TYPES = new Set(['PLAYER_RADAR', 'ITEM_UPDATE', 'RUNE_UPDATE', 'SYSTEM_UPDATE']);
+    const NON_CHAMPION_TYPES = new Set(['ITEM_UPDATE', 'RUNE_UPDATE', 'SYSTEM_UPDATE']);
     asset = { videoUrl: '', heroImageUrl: '', splashUrl: '', skillIconUrl: '', skillIcons: {} };
     if (!NON_CHAMPION_TYPES.has(dataType) && !isItemUpdate && !isRuneUpdate && typeof championName === 'string' && championName.length > 0) {
       asset = await getVisualAsset(championName, skillLetter);

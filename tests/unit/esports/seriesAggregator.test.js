@@ -97,6 +97,25 @@ test("aggregateSeries marks incomplete role matchups when players are missing", 
   assert.deepEqual(series.completeness.missingRoles, ["Support"]);
 });
 
+test("aggregateSeries marks per-minute stats unavailable when any contributing game lacks duration", () => {
+  const { aggregateSeries } = require("../../../utils/esports/seriesAggregator");
+  const games = makeTwoGameSeries();
+  delete games[1].durationSeconds;
+  delete games[1].durationMinutes;
+  delete games[1].gamelengthMin;
+  delete games[1].gamelengthStr;
+
+  const series = aggregateSeries(games);
+  const mid = series.players.find((seriesPlayer) => seriesPlayer.name === "Blue Mid");
+
+  assert.equal(mid.rawStats.damageToChampions, 42000);
+  assert.equal(mid.rawStats.dpm, null);
+  assert.equal(mid.rawStats.gpm, null);
+  assert.equal(mid.rawStats.csm, null);
+  assert.equal(mid.rawStats.vpm, null);
+  assert.equal(mid.radarStats.some((stat) => ["DPM", "GPM", "CSM"].includes(stat.label)), false);
+});
+
 test("aggregateSeries accepts matchContext teams, nested stats, and zero-duration fallbacks", () => {
   const { aggregateSeries } = require("../../../utils/esports/seriesAggregator");
   const roles = ["Top", "Jungle", "Mid", "Adc", "Support"];
@@ -155,6 +174,52 @@ test("aggregateSeries preserves raw Leaguepedia damage and gold from normalized 
   assert.equal(top.rawStats.gold, 14000);
   assert.equal(top.rawStats.dpm, 412);
   assert.equal(top.rawStats.gpm, 467);
+});
+
+test("Leaguepedia rows keep real duration and missing stats unavailable for player radar", () => {
+  const { aggregateSeries } = require("../../../utils/esports/seriesAggregator");
+  const { buildPlayerRadarPayload } = require("../../../utils/esports/playerRadarRunner");
+  const { normalizeMatchRow, normalizePlayerRow } = require("../../../utils/leaguepediaApi");
+
+  const match = normalizeMatchRow({
+    Tournament: "LCK 2026 Summer",
+    Team1: "T1",
+    Team2: "GEN",
+    WinTeam: "T1",
+    GameId: "t1-gen-game-1",
+    Gamelength: "20:00",
+    "DateTime UTC": "2026-06-20T12:00:00Z",
+  });
+  const rows = [
+    ["T1 Top", "T1", "Top", "3", "1", "6", "260", "12000", "12000", "24"],
+    ["T1 Jungle", "T1", "Jungle", "4", "1", "7", "180", "11200", "14000", "42"],
+    ["Faker", "T1", "Mid", "7", "1", "9", "245", "13500", "20000", "28"],
+    ["T1 ADC", "T1", "Adc", "5", "1", "6", "275", "14200", "19000", "18"],
+    ["T1 Support", "T1", "Support", "0", "2", "15", "35", "7300", "5400", "68"],
+    ["GEN Top", "GEN", "Top", "1", "3", "2", "230", "9600", "9000", "22"],
+    ["GEN Jungle", "GEN", "Jungle", "1", "4", "3", "160", "8800", "7600", "34"],
+    ["Chovy", "GEN", "Mid", "2", "4", "4", "220", "10400", undefined, "24"],
+    ["GEN ADC", "GEN", "Adc", "3", "4", "3", "250", "11800", "13000", "20"],
+    ["GEN Support", "GEN", "Support", "0", "4", "5", "30", "6100", "4200", "54"],
+  ].map(([Link, Team, Role, Kills, Deaths, Assists, CS, Gold, DamageToChamps, VisionScore]) => {
+    const row = { Link, Team, Role, Champion: "Azir", Kills, Deaths, Assists, CS, Gold, VisionScore };
+    if (DamageToChamps !== undefined) row.DamageToChamps = DamageToChamps;
+    return normalizePlayerRow(row, match);
+  });
+
+  const series = aggregateSeries([{ ...match, teamA: "T1", teamB: "GEN", players: rows }]);
+  const faker = series.players.find((playerEntry) => playerEntry.name === "Faker");
+  const chovy = series.players.find((playerEntry) => playerEntry.name === "Chovy");
+  const payload = buildPlayerRadarPayload(series, { playerName: "Faker" }, "zh");
+
+  assert.equal(match.durationSeconds, 1200);
+  assert.equal(faker.rawStats.dpm, 1000);
+  assert.equal(faker.radarStats.find((stat) => stat.label === "DPM").rawValue, "1000");
+  assert.equal(chovy.rawStats.damageToChampions, null);
+  assert.equal(chovy.rawStats.dpm, null);
+  assert.equal(chovy.radarStats.some((stat) => stat.label === "DPM"), false);
+  assert.equal(payload.proofSegment.player.name, "Faker");
+  assert.equal(payload.proofSegment.player.radarStats.find((stat) => stat.label === "DPM").rawValue, "1000");
 });
 
 test("aggregateSeries handles durationMinutes, comma numbers, blank roles, and missing champions", () => {

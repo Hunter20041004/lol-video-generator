@@ -12,13 +12,44 @@ const polarToXY = (cx, cy, radius, axisIndex, axisCount) => {
 };
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
+const isNumericText = (value) => /^-?(?:\d+|\d*\.\d+)(?:e[+-]?\d+)?$/i.test(String(value).trim());
+
+const hasEvidenceDisplayValue = (value) => {
+  if (typeof value === "number") {
+    return Number.isFinite(value);
+  }
+  if (typeof value !== "string") {
+    return false;
+  }
+  const text = value.trim();
+  if (!text) {
+    return false;
+  }
+  return isNumericText(text.endsWith("%") ? text.slice(0, -1) : text);
+};
+
+const hasRenderableAxis = (stat) => {
+  if (!stat || typeof stat !== "object") {
+    return false;
+  }
+  const label = typeof stat.label === "string" ? stat.label.trim() : stat.label;
+  const rawValue = typeof stat.rawValue === "string" ? stat.rawValue.trim() : stat.rawValue;
+  const score = Number(stat.normalizedScore);
+  return label !== undefined
+    && label !== null
+    && label !== ""
+    && hasEvidenceDisplayValue(rawValue)
+    && Number.isFinite(score)
+    && score >= 0
+    && score <= 100;
+};
 
 // =========================================================================
 // 動畫：所有頂點從中心 (0,0) 一起 expand 到最終座標，前 30 frame 完成
 // 多邊形 fill / stroke 在 expand 過程同步漸入；軸標籤 fade in 跟隨
 // =========================================================================
 export const RadarChart = ({
-  radarStats,            // [{ label, rawValue, normalizedScore }] (恰 5 個)
+  radarStats,            // [{ label, rawValue, normalizedScore }]
   size = 720,
   fillColor = "#0AC8B9",      // 主色：cyan
   strokeColor = "#0AC8B9",
@@ -29,14 +60,13 @@ export const RadarChart = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // 安全化：保證恰 5 個 entry，缺的補 0、多的截掉
-  const stats = (Array.isArray(radarStats) ? radarStats.slice(0, 5) : []);
-  while (stats.length < 5) stats.push({ label: `?${stats.length + 1}`, rawValue: "—", normalizedScore: 0 });
+  // 安全化：只畫傳入且已驗證的軸，不合成任何 fallback 證據
+  const stats = (Array.isArray(radarStats) ? radarStats.filter(hasRenderableAxis).slice(0, 5) : []);
 
   const cx = size / 2;
   const cy = size / 2;
   const radius = size * 0.38;
-  const axisCount = 5;
+  const axisCount = stats.length;
 
   // 展開進度 0~1 — spring 擺脫線性、給雷達圖一點生命感
   const expandProgress = spring({
@@ -85,7 +115,7 @@ export const RadarChart = ({
 
   // 數據多邊形 — 每個頂點半徑 = (normalizedScore / 100) × expand
   const dataPoints = stats.map((s, i) => {
-    const score = clamp01((Number(s.normalizedScore) || 0) / 100);
+    const score = clamp01(Number(s.normalizedScore) / 100);
     const r = radius * score * expand;
     return polarToXY(cx, cy, r, i, axisCount);
   });
@@ -119,7 +149,7 @@ export const RadarChart = ({
           dominantBaseline="middle"
           style={{ letterSpacing: 3 }}
         >
-          {s.label || "?"}
+          {s.label}
         </text>
         {/* 原始數值（rawValue），小一級放在 label 下方 */}
         <text
@@ -132,7 +162,7 @@ export const RadarChart = ({
           dominantBaseline="middle"
           opacity={0.92}
         >
-          {String(s.rawValue ?? "—")}
+          {String(s.rawValue)}
         </text>
       </g>
     );
@@ -140,7 +170,7 @@ export const RadarChart = ({
 
   // 頂點圓點（最終位置才畫，跟著多邊形動畫）
   const dataDots = dataPoints.map((p, i) => {
-    const score = (Number(stats[i].normalizedScore) || 0);
+    const score = Number(stats[i].normalizedScore);
     return (
       <circle
         key={`dot-${i}`}
