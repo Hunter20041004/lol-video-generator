@@ -6,6 +6,7 @@ const path = require("node:path");
 const {
   buildSocialCopy,
   extractCopyBullets,
+  inferDescription,
   inferTitle,
 } = require("../../../utils/publishing/copy");
 
@@ -279,4 +280,67 @@ test("inferTitle honors explicit social copy before generated titles", () => {
     inferTitle({ socialCopy: { title: "Manual Title" }, dataType: "PATCH", championName: "Quinn", patchVersion: "26.10" }, "en"),
     "Manual Title | Patch 26.10"
   );
+});
+
+test("esports copy covers sparse match context and bilingual radar discussion paths", () => {
+  assert.equal(
+    inferTitle({ dataType: "ESPORTS_MATCH_RECAP", match: { teams: ["T1", "GEN"] } }, "en"),
+    "T1 vs GEN Match Recap",
+  );
+  assert.equal(
+    inferTitle({ dataType: "ESPORTS_MATCH_RECAP", match: { tournament: "MSI 2026" } }, "zh"),
+    "MSI 2026 賽後戰報",
+  );
+  assert.equal(
+    inferDescription({ dataType: "PLAYER_RADAR" }, "zh"),
+    "用對位差和關鍵人物證據拆解這場比賽。",
+  );
+  assert.equal(
+    inferDescription({ dataType: "PLAYER_RADAR" }, "en"),
+    "A matchup-edge and key-player read from this match.",
+  );
+
+  const recap = {
+    dataType: "ESPORTS_MATCH_RECAP",
+    match: { teams: ["T1", "GEN"], winningTeam: "T1", score: "3-2" },
+  };
+  assert.deepEqual(extractCopyBullets({
+    ...recap,
+    recapPoints: [
+      { type: "result" },
+      { type: "matchup-edge", role: "Support", edgePlayer: "Keria", team: "T1" },
+      { type: "team-gap", metric: "damage", team: "T1", delta: 2400 },
+    ],
+  }, "en"), [
+    "T1 3-2 GEN sets the series frame",
+    "T1 Keria created the key support edge",
+    "T1 team damage ahead by 2,400",
+  ]);
+  assert.deepEqual(extractCopyBullets({
+    ...recap,
+    recapPoints: [
+      { type: "team-gap", metric: "radar", team: "GEN", delta: "missing" },
+      { type: "turning-point", summary: "巴龍佈局翻轉戰局" },
+      { type: "turning-point" },
+    ],
+  }, "zh"), [
+    "GEN 對位分差",
+    "巴龍佈局翻轉戰局",
+    "T1 3-2 GEN 的關鍵轉折",
+  ]);
+
+  const radarPayload = {
+    dataType: "PLAYER_RADAR",
+    matchContext: { teamA: "T1", teamB: "GEN" },
+    verdict: "The matchup gap held across the series.",
+  };
+  const radar = {
+    dataType: "PLAYER_RADAR",
+    localizedPayloads: {
+      en: { ...radarPayload, locale: "en" },
+      zh: { ...radarPayload, locale: "zh", verdict: "對位差一路延續到系列賽結束。" },
+    },
+  };
+  assert.match(buildSocialCopy({ analysis: radar, locale: "en", platform: "threads" }).caption, /Matchup gap or MVP case\?/);
+  assert.match(buildSocialCopy({ analysis: radar, locale: "zh", platform: "threads" }).caption, /這場你站對位差，還是 MVP 理由？/);
 });
