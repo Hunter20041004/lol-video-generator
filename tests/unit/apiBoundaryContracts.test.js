@@ -1192,3 +1192,25 @@ test("pipeline schema preserves muted and user-supplied audio", () => {
     "audio/licensed-by-user.mp3",
   );
 });
+
+test("pipeline schema recovers parseable AI metric strings and drops malformed ones", () => {
+  const { normalizePipelinePayload } = require(path.join(ROOT, "src/schemas/pipelineSchemas.js"));
+
+  const normalized = normalizePipelinePayload({
+    dataType: "PATCH",
+    storyboard: [{
+      tag: "SKILL_SHOWCASE",
+      metrics: [
+        "Passive Mark Damage: 15 -> 20",
+        "buffed somehow",
+      ],
+    }],
+  });
+
+  assert.deepEqual(normalized.data.storyboard[0].metrics, [{
+    metricName: "Passive Mark Damage",
+    beforeValue: "15",
+    afterValue: "20",
+    trend: "ADJUST",
+  }]);
+});

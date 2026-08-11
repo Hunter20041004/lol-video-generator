@@ -119,9 +119,11 @@ Next.js 16、React 19、Remotion 4、Node.js test runner、Google Generative AI�
 
 這是非官方作品集專案，與 Riot Games 無隸屬或背書關係。《英雄聯盟》及相關商標屬其各自權利人；使用者應自行確認資料來源、遊戲素材與社群平台的授權條款。
 
-## User-supplied audio
+## Bundled licensed audio
 
-Local renders accept music supplied by the user only when the user has permission to use it. Public demo evidence is muted and does not redistribute background music.
+Local renders automatically select one verified track from `config/licensed-music-library.json`. Bilingual outputs share the same selection, and Remotion trims playback to the video duration. A caller-supplied `bgmFile` overrides automatic selection; an explicit `null` keeps a render muted. The committed portfolio demo remains muted.
+
+The bundled MP3 files were confirmed by the project owner as authorized for generated videos and redistribution in this repository. They remain third-party material and are not covered by the ISC license; see [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).
 
 ## License
 

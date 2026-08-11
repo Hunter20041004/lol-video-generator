@@ -3,6 +3,13 @@ const { getVisualAsset } = require('../../../fetchAsset');
 const { analyzeChange } = require('../../../reasoning');
 const { getChampionTWName, getItemTWName, getRuneTWName, getItemIconUrl, getRuneIconUrl } = require('../../../utils/riotLocalization');
 const { splitDenseSkillScenes } = require('../../../utils/patchStoryboard');
+const {
+  getPatchSectionLabel,
+  inferSkillKey,
+  inferVisualAssetSkillLetter,
+  requiresNamedSectionRepair,
+  splitPatchChangeSections,
+} = require('../../../utils/patchChangeSections');
 const { validateAnalyzeRequest } = require('../../../utils/apiGuards');
 
 // =========================================================================
@@ -311,21 +318,6 @@ function splitTrailingMetricValue(value = '') {
   return null;
 }
 
-function findNextPatchSection(value, startIndex) {
-  let marker = value.indexOf('【', startIndex);
-  while (marker >= 0) {
-    let cursor = marker - 1;
-    let newlineCount = 0;
-    while (cursor >= 0 && value[cursor] === '\n') {
-      newlineCount += 1;
-      cursor -= 1;
-    }
-    if (newlineCount >= 2) return marker;
-    marker = value.indexOf('【', marker + 1);
-  }
-  return -1;
-}
-
 function normalizeMetricKey(name = '') {
   return String(name || '')
     .replace(/[【】[\]]/g, ' ')
@@ -454,53 +446,6 @@ function buildMetricImpactSummary(metricName = '', trend = 'ADJUST', locale = 'z
   return `${text}${direction}，這就是實戰結論的主要依據。`;
 }
 
-function inferSkillKey(ability = '') {
-  const text = String(ability || '').toUpperCase();
-  if (text.includes('PASSIVE') || text.includes('被動')) return 'P';
-  const match = text.match(/\b([QWER])\b|(^|[^A-Z])([QWER])([^A-Z]|$)/);
-  return match?.[1] || match?.[3] || 'BASE';
-}
-
-function splitPatchChangeSections(input = {}) {
-  const changeDesc = String(input.changeDesc || input.statChange || '').trim();
-  if (!changeDesc) return [];
-
-  const sections = [];
-  let marker = changeDesc.indexOf('【');
-  while (marker >= 0 && sections.length < 4) {
-    const close = changeDesc.indexOf('】', marker + 1);
-    if (close < 0) break;
-    let separator = close + 1;
-    while (changeDesc[separator] === ' ' || changeDesc[separator] === '\t') separator += 1;
-    if (changeDesc[separator] !== ':' && changeDesc[separator] !== '：') {
-      marker = changeDesc.indexOf('【', close + 1);
-      continue;
-    }
-    const descStart = separator + 1;
-    const nextMarker = findNextPatchSection(changeDesc, descStart);
-    const ability = changeDesc.slice(marker + 1, close).trim();
-    const desc = changeDesc.slice(descStart, nextMarker < 0 ? changeDesc.length : nextMarker).trim();
-    if (ability && desc) {
-      sections.push({
-        ability,
-        skillKey: inferSkillKey(ability),
-        changeDesc: desc,
-      });
-    }
-    marker = nextMarker;
-  }
-
-  if (sections.length === 0 && changeDesc) {
-    sections.push({
-      ability: input.ability || input.skill || 'BASE',
-      skillKey: inferSkillKey(input.ability || input.skill || 'BASE'),
-      changeDesc,
-    });
-  }
-
-  return sections;
-}
-
 function extractMetricsFromText(changeDesc = '', locale = 'zh') {
   const text = String(changeDesc || '');
   const detailedMetrics = splitPatchLines(text)
@@ -583,7 +528,7 @@ function inferPatchTags(text = '', locale = 'zh') {
 
 function buildMechanicChangeFromSection(section, sceneTrend, locale = 'zh') {
   const en = isEnglishLocale(locale);
-  const label = skillLabel(section.skillKey, locale);
+  const label = getPatchSectionLabel(section, locale);
   const bullets = splitPatchBullets(section.changeDesc, locale);
   const summary = compactPatchSentence(
     bullets[0] || section.changeDesc,
@@ -617,12 +562,13 @@ function buildRawPatchScene(section, fallbackChangeType = 'ADJUST', locale = 'zh
   const en = isEnglishLocale(locale);
   const metrics = extractMetricsFromText(section.changeDesc, locale);
   const sceneTrend = metrics.length > 0 ? aggregateChangeType(metrics, section.changeDesc) : fallbackChangeType;
-  const label = skillLabel(section.skillKey, locale);
+  const label = getPatchSectionLabel(section, locale);
 
   if (metrics.length > 0) {
     return {
       tag: 'SKILL_SHOWCASE',
       skillKey: section.skillKey,
+      skillLabel: label,
       text: en ? `${label} changed\nHere is the evidence` : `${label} 改了哪裡\n這段一定要看懂`,
       impactText: sceneTrend === 'BUFF'
         ? (en ? `${label} is buffed, opening earlier tempo windows.` : `${label} 上修，實戰節奏有機會提前。`)
@@ -640,6 +586,7 @@ function buildRawPatchScene(section, fallbackChangeType = 'ADJUST', locale = 'zh
   return {
     tag: 'MECHANIC_EXPLAINER',
     skillKey: section.skillKey,
+    skillLabel: label,
     text: en ? `${label} changed\nRead the exact rule` : `${label} 改了哪裡\n先看實際內容`,
     trend: sceneTrend,
     rawChangeDesc: section.changeDesc,
@@ -714,7 +661,10 @@ function ensureAllPatchChangesVisible(payload = {}, input = {}) {
   const existingMetricCount = existingSkillScenes.reduce((sum, scene) => sum + (Array.isArray(scene.metrics) ? scene.metrics.length : 0), 0);
   const expectedVisualCount = rawMetrics.length > 0 ? Math.min(rawMetrics.length, 8) : Math.min(sections.length, 6);
   const currentVisualCount = existingMetricCount > 0 ? existingMetricCount : existingSkillScenes.length;
-  const needsRawRepair = currentVisualCount < expectedVisualCount || existingSkillScenes.length < Math.min(sections.length, 4);
+  const needsRawRepair =
+    requiresNamedSectionRepair(sections) ||
+    currentVisualCount < expectedVisualCount ||
+    existingSkillScenes.length < Math.min(sections.length, 4);
 
   const next = {
     ...payload,
@@ -872,21 +822,7 @@ export async function POST(request) {
     // 1. 抓取影片或立繪素材
     // 防呆：非英雄型 dataType 不會帶 ability，不能讓 toUpperCase 在 undefined 上炸開
     const safeAbility = typeof ability === 'string' ? ability : '';
-    let skillLetter = "Q";
-    const upperAbil = safeAbility.toUpperCase();
-    if (upperAbil.includes("PASSIVE") || upperAbil.includes("被動")) {
-      skillLetter = "P";
-    } else if (upperAbil.includes("Q")) {
-      skillLetter = "Q";
-    } else if (upperAbil.includes("W")) {
-      skillLetter = "W";
-    } else if (upperAbil.includes("E")) {
-      skillLetter = "E";
-    } else if (upperAbil.includes("R")) {
-      skillLetter = "R";
-    } else {
-      skillLetter = (safeAbility.split('-')[0].trim()[0] || "Q").toUpperCase();
-    }
+    const skillLetter = inferVisualAssetSkillLetter(safeAbility);
 
     const targetKind = String(body.targetType || body.entityType || body.category || '').toUpperCase();
     const rawTargetName = body.itemName || body.runeName || body.targetName || championName || '';

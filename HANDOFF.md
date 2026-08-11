@@ -1,6 +1,6 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-10 由 Codex 更新。整合 PR #5 已合併到 GitHub `main`；原本 dirty `main` 工作目錄沒有被 reset、clean、checkout 或覆蓋。
+> 2026-08-11 由 Codex 更新。整合 PR #5 已合併到 GitHub `main`；原本 dirty `main` 工作目錄沒有被 reset、clean、checkout 或覆蓋。
 
 ## 本輪狀態
 
@@ -10,15 +10,20 @@
 - 壞掉的 Player Radar worktree 已修復連結，實體仍在 `.worktrees/player-radar-dual-read/`，沒有 prune。
 - 2026-08-10 依產品決策將本機與外部 runtime 救援副本的歷史影片資料歸零；Git、原始內容資料與 tracked 示範素材未刪除。
 - 歸零後第一組 canary dry run 已用 26.13 Aphelios 產生中英文影片；未建立 queue、daily run 或遠端貼文。
+- Aphelios 內容錯標已用 TDD 修正；正式 canary 的四段畫面依序顯示 Calibrum、Severum、Infernum、Crescendum，中英皆沒有 `E 技能`／`Base Stats`。
+- 專案擁有者於 2026-08-11 確認三支 BGM 可用於成品並可隨 GitHub repository 再散布；正式曲庫、SHA-256 與第三方權利聲明已納入 tracked source。
 
 ## 這輪完成的能力
 
 1. 發佈佇列、每日執行紀錄與 `public/publish-packages/` 改為每次操作時解析目前 worktree，不再把測試 clip 或 dry-run 寫進另一個專案。
 2. 保留 Daily one-click、Leaguepedia cooldown／BotPassword 登入、標準化 API 錯誤與 Player Radar 雙讀證據鏈。
-3. 保留 GitHub 線的唯讀展示、無 shell 渲染、呼叫者提供音樂及帳號識別資訊不進 log。
+3. 保留 GitHub 線的唯讀展示、無 shell 渲染及帳號識別資訊不進 log；本機算圖會從已驗證正式曲庫自動選歌，呼叫者仍可覆蓋或以 `null` 靜音。
 4. 合併更新 Next／Sharp／PostCSS／nanoid／Undici／fast-uri，沒有降低 `npm audit --audit-level=high` 閘門。
 5. Daily one-click 的預設發布日曆固定為 `America/Los_Angeles`，避免 GitHub UTC runner 把「昨天」算成不同日期；呼叫端仍可明確覆寫時區。
 6. Leaguepedia 限流判斷改成線性片語搜尋，並移除 Player Radar 無效的數字自我替換，處理 PR #5 的兩個 CodeQL 警報。
+7. PATCH 解析器接受 `【段落】\n內容`，具名武器不再從單字內誤判 Q/W/E/R；同數量的 AI 場景也會被官方 patch 具名段落強制修復。
+8. AI 回傳字串型 `metrics` 時，只保留可安全拆成名稱／before／after 的項目；無法解析的字串會丟棄，再由官方 patch 原文補齊。
+9. 正式曲庫 `config/licensed-music-library.json` 只選 `enabled + verified + SHA-256 相符` 的曲目；中英雙語每次只選一次並共用同一首。
 
 ## 依賴版本
 
@@ -38,10 +43,14 @@
 - `TZ=UTC node --test tests/unit/esports/dailyOneClick.test.js`：2/2 通過，涵蓋 GitHub runner 與本機時區差異
 - `npx next build`：通過；26 個頁面／API route 建置完成
 - `npm audit --audit-level=high`：通過，0 vulnerabilities
+- 2026-08-11 完整 CI parity：`npm ci`、`npm run tdd:doctor`、`npm run test:coverage`、`npx next build`、`npm audit --audit-level=high` 全通過；463 tests、461 pass、2 個外部 contract skip、0 fail；line 96.85%、branch 80.32%、function 96.24%。
 - 歷史影片歸零後驗收：queue 0、daily runs 0、78/78 內容題目為 `READY`、舊影片／社群引用 0、既定刪除路徑殘留 0。
 - 歸零後重跑 queue isolation 與 content store：20/20 通過；新增 daily-run worktree 隔離回歸測試後，全套為 454 tests、452 pass、2 個外部 contract tests skipped、0 fail。
 - Aphelios canary：中英文皆為 H.264、1080×1920、30fps；中文 35.56 秒／19,544,129 bytes，英文 25.28 秒／14,369,308 bytes；內容 DB SHA-256 產片前後皆為 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`。
 - Canary runtime：`public/renders/render_1786426536139_zh.mp4`、`public/renders/render_1786426536139_en.mp4`；兩支音軌約 -91 dB，等同靜音；queue 與 daily runs 仍不存在。
+- 修正版 Aphelios canary：`public/renders/render_1786459693643_zh.mp4` 與 `public/renders/render_1786459693643_en.mp4`；兩支皆 H.264／AAC、1080×1920、30fps，時長 35.41／35.56 秒。
+- 修正版音訊驗收：兩支影片前 10 秒 PCM SHA-256 同為 `f28d8a1908e53533e4f92772e83ce46cc0617c1ed7c4773f7a2a92719ccf7d21`；平均音量約 -34 dB、峰值 -18.2 dB，確定是同一首非靜音 BGM。
+- 修正版資料副作用：內容 DB SHA-256 仍為 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`；publish queue 與 daily runs 仍不存在。
 - `npm run qa:render`：6/6 個 1080×1920 stills 均大於 25 KB
 - Player Radar H.264 曾通過 1080×1920、30fps 驗收；該暫存影片已隨歷史影片歸零刪除。
 - 最終桌面／手機截圖：`.screenshots/round2-desktop.png`、`.screenshots/round2-mobile.png`
@@ -64,7 +73,7 @@
 
 ## 剩餘限制
 
-- Next build 有 2 個動態檔案路徑追蹤 warning；不阻塞建置，但可能增加部署包體積。
+- Next build 有 2 個既有動態檔案路徑追蹤 warning；本輪曲庫最初增加 3 個 warning，改為 build-time 靜態載入後已消除，最終沒有新增 warning。
 - Google Fonts 的一支外部 Outfit woff2 回傳 404，瀏覽器使用既定 fallback；頁面本身可開且沒有 server error。
 - Player Radar 前約 1.5–2 秒主數據才進場，屬 Shorts 留存風險；另開視覺節奏工單，不和本輪救援混改。
-- Aphelios canary 技術渲染通過但內容 QA 不通過：中文版錯標「E 技能」，英文版把四武器改動折成 `Base Stats`。根因是 content store 用 `【武器】\n內容`，而 `splitPatchChangeSections` 只接受 `【武器】: 內容`，導致原始四段改動無法覆蓋 AI／fallback 的錯誤技能分類；修正前不得發布這組影片。
+- Gemma 仍可能 timeout 或回傳不合 schema 的欄位；格式錯誤現已安全正規化／丟棄，timeout 仍會走 deterministic fallback，不阻塞正確產片但會增加約 60–100 秒等待。

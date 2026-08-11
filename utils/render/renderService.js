@@ -6,6 +6,7 @@ const { assertSupportedDataType } = require("../pipelineRegistry");
 const { assertPlayerRadarEvidence, hasPlayerRadarPayload } = require("../esports/playerRadarEvidence");
 const { getChampionEntry, getChampionTWName, getItemEntry, getRuneEntry } = require("../riotLocalization");
 const { splitDenseSkillScenes } = require("../patchStoryboard");
+const { selectAndStageLicensedMusic } = require("./licensedMusicLibrary");
 const { localizeRemoteImageAssets } = require("./remoteAssetCache");
 
 const DATA_TYPE_TO_COMPOSITION = {
@@ -106,6 +107,7 @@ const stripRenderControlFields = (payload = {}) => {
   delete next.bilingual;
   delete next.generateBilingual;
   delete next.outputLanguages;
+  delete next.bgmMode;
   return next;
 };
 
@@ -436,6 +438,19 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
     payload: getPayloadForLanguage(requestData, lang),
   }));
   payloads.forEach(({ payload }) => assertPlayerRadarEvidence(payload));
+
+  const hasExplicitRootAudio = Object.prototype.hasOwnProperty.call(requestData, "bgmFile");
+  const needsAutomaticMusic = requestData.bgmMode === "auto" || !hasExplicitRootAudio;
+  const selectLicensedMusicImpl = options.selectLicensedMusicImpl || selectAndStageLicensedMusic;
+  const selectedMusic = needsAutomaticMusic
+    ? selectLicensedMusicImpl({ rootDir: process.cwd() })
+    : null;
+  if (selectedMusic?.bgmFile) {
+    payloads.forEach(({ payload }) => {
+      if (payload.bgmFile == null) payload.bgmFile = selectedMusic.bgmFile;
+    });
+    console.log(`🎵 [BGM] auto-selected verified local track: ${selectedMusic.trackId}`);
+  }
 
   const videos = [];
   for (const { lang, payload } of payloads) {

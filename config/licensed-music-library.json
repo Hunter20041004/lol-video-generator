@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "tracks": [
+    {
+      "id": "licensed-bgm-1",
+      "title": "Licensed BGM 1",
+      "sourcePath": "public/audio/bgm1.mp3",
+      "sha256": "fb9fe588eeb13b281542de89b69550f24b9c0bebb7b5d6e4fb4f150a6af93be4",
+      "durationSeconds": 171.93795,
+      "enabled": true,
+      "rightsStatus": "verified"
+    },
+    {
+      "id": "licensed-bgm-2",
+      "title": "Licensed BGM 2",
+      "sourcePath": "public/audio/bgm2.mp3",
+      "sha256": "c6e83e763f9b18517fca6f9974de7d9d7c48f94f0d2d4b53bbfce894c7d16812",
+      "durationSeconds": 235.206525,
+      "enabled": true,
+      "rightsStatus": "verified"
+    },
+    {
+      "id": "licensed-bgm-3",
+      "title": "Licensed BGM 3",
+      "sourcePath": "public/audio/bgm3.mp3",
+      "sha256": "561ad3f5b1311abedfb920ca39ecbff2644fe71b4901424148a94dc6614174c3",
+      "durationSeconds": 203.02365,
+      "enabled": true,
+      "rightsStatus": "verified"
+    }
+  ]
+}

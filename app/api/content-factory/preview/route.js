@@ -39,6 +39,7 @@ export async function POST(request) {
     if (shouldRender) {
       render = await renderVideosFromRequest({
         ...analysis,
+        bgmMode: 'auto',
         renderLanguages: ['zh', 'en'],
         localizedPayloads: analysis.localizedPayloads,
       });

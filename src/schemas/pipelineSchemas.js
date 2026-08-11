@@ -322,14 +322,57 @@ const fallbackStoryboardFor = (payload) => {
   ];
 };
 
+function parseMetricString(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+
+  let arrowIndex = -1;
+  let arrowLength = 0;
+  for (const arrow of [">>>", "->", "=>", "⇒", "→"]) {
+    const index = text.indexOf(arrow);
+    if (index >= 0 && (arrowIndex < 0 || index < arrowIndex)) {
+      arrowIndex = index;
+      arrowLength = arrow.length;
+    }
+  }
+  if (arrowIndex < 0) return null;
+
+  const left = text.slice(0, arrowIndex).trim();
+  const afterValue = text.slice(arrowIndex + arrowLength).trim();
+  const colonIndex = Math.max(left.lastIndexOf(":"), left.lastIndexOf("："));
+  if (colonIndex <= 0 || !afterValue) return null;
+
+  const metricName = left.slice(0, colonIndex).trim();
+  const beforeValue = left.slice(colonIndex + 1).trim();
+  if (!metricName || !beforeValue) return null;
+  return { metricName, beforeValue, afterValue };
+}
+
+function normalizeStoryboardMetricStrings(rawPayload = {}) {
+  if (!Array.isArray(rawPayload.storyboard)) return rawPayload;
+  return {
+    ...rawPayload,
+    storyboard: rawPayload.storyboard.map((scene) => {
+      if (!scene || typeof scene !== "object" || !Array.isArray(scene.metrics)) return scene;
+      return {
+        ...scene,
+        metrics: scene.metrics
+          .map((metric) => (typeof metric === "string" ? parseMetricString(metric) : metric))
+          .filter(Boolean),
+      };
+    }),
+  };
+}
+
 function normalizePipelinePayload(rawPayload = {}) {
-  const dataType = normalizeDataType(rawPayload.dataType);
+  const preparedPayload = normalizeStoryboardMetricStrings(rawPayload);
+  const dataType = normalizeDataType(preparedPayload.dataType);
   const schema = schemaByDataType[dataType] || BasePipelineSchema;
-  const parsed = schema.safeParse({ ...rawPayload, dataType });
+  const parsed = schema.safeParse({ ...preparedPayload, dataType });
 
   const data = parsed.success
     ? parsed.data
-    : BasePipelineSchema.passthrough().parse({ ...rawPayload, dataType });
+    : BasePipelineSchema.passthrough().parse({ ...preparedPayload, dataType });
 
   if (!Array.isArray(data.storyboard) || data.storyboard.length === 0) {
     data.storyboard = fallbackStoryboardFor(data);

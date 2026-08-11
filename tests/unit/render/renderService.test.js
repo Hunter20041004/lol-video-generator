@@ -72,6 +72,41 @@ test("renderVideosFromRequest renders bilingual payloads without HTTP self-fetch
   });
 });
 
+test("renderVideosFromRequest auto-selects one licensed track shared by bilingual renders", async () => {
+  await withTempProject(async () => {
+    const renderedBgmFiles = [];
+    let selectionCalls = 0;
+
+    await renderVideosFromRequest({
+      dataType: "SYSTEM_UPDATE",
+      targetName: "Teleport",
+      renderLanguages: ["zh", "en"],
+      localizedPayloads: {
+        zh: { dataType: "SYSTEM_UPDATE", targetName: "Teleport", storyboard: [{ tag: "HOOK", text: "傳送調整" }] },
+        en: { dataType: "SYSTEM_UPDATE", targetName: "Teleport", bgmFile: null, storyboard: [{ tag: "HOOK", text: "Teleport update" }] },
+      },
+    }, {
+      timestamp: 12349,
+      selectLicensedMusicImpl: () => {
+        selectionCalls += 1;
+        return { trackId: "riot-session-1", bgmFile: "render-assets/audio/licensed.mp3" };
+      },
+      execRenderImpl: async (_executable, args) => {
+        const propsArg = args.find((arg) => arg.startsWith("--props="));
+        const props = JSON.parse(fs.readFileSync(propsArg.slice("--props=".length), "utf8"));
+        renderedBgmFiles.push(props.data.bgmFile);
+        return null;
+      },
+    });
+
+    assert.equal(selectionCalls, 1);
+    assert.deepEqual(renderedBgmFiles, [
+      "render-assets/audio/licensed.mp3",
+      "render-assets/audio/licensed.mp3",
+    ]);
+  });
+});
+
 test("renderVideosFromRequest mutes missing and null audio while preserving a user path", async () => {
   await withTempProject(async () => {
     const renderedBgmFiles = [];

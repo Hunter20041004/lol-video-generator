@@ -247,6 +247,10 @@ const getSkillLabel = (skillKey, data = {}) => {
   return labels[skillKey] || (isEnglishVideo(data) ? `${skillKey} Ability` : `${skillKey} 技能`);
 };
 
+const getSceneSkillLabel = (scene = {}, data = {}) => (
+  scene.skillLabel || getSkillLabel(scene.skillKey || data.skillKey || "BASE", data)
+);
+
 const getChampionTWName = (data = {}) => {
   if (isSystemUpdate(data)) {
     return isEnglishVideo(data)
@@ -438,7 +442,7 @@ const buildMechanicPayload = (scene = {}, data = {}) => {
       ]);
 
   return {
-    title: compactText(mechanic.title || scene.mechanicTitle, `${getSkillLabel(skillKey, data)}${en ? " Focus" : "機制重點"}`, 26),
+    title: compactText(mechanic.title || scene.mechanicTitle, `${getSceneSkillLabel(scene, data)}${en ? " Focus" : "機制重點"}`, 26),
     changeSummary: compactText(rawChangeSummary || mechanic.afterBehavior || scene.afterBehavior || fallbackText, defaultAfter, 62),
     changeBullets: changeBullets.map((item) => compactText(item, "", 58)).filter(Boolean).slice(0, 4),
     beforeBehavior: compactText(mechanic.beforeBehavior || scene.beforeBehavior, defaultBefore, 48),
@@ -1011,7 +1015,7 @@ const SceneContextPanel = ({ data, scene, label, storyboard = [], activeIndex = 
         <div style={{ color: "#fff", fontSize: 45, fontWeight: 950, lineHeight: 1, marginTop: 8 }}>
           {currentIndex + 1}<span style={{ color: "rgba(240,230,210,0.58)", fontSize: 26 }}>/{Math.max(skillScenes.length, 1)}</span>
         </div>
-        <div style={{ color: label.color, fontSize: 21, fontWeight: 950, marginTop: 10 }}>{getSkillLabel(skillKey, data)}</div>
+        <div style={{ color: label.color, fontSize: 21, fontWeight: 950, marginTop: 10 }}>{getSceneSkillLabel(scene, data)}</div>
       </div>
       <div
         style={{
@@ -1168,7 +1172,7 @@ const SkillDossierScene = ({ data, scene, label, storyboard, activeIndex = 0, lo
               </span>
             ) : null}
           </div>
-          <div style={{ color: "#fff", fontSize: 68, fontWeight: 950, lineHeight: 1.02 }}>{getSkillLabel(skillKey, data)}</div>
+          <div style={{ color: "#fff", fontSize: 68, fontWeight: 950, lineHeight: 1.02 }}>{getSceneSkillLabel(scene, data)}</div>
           <div style={{ marginTop: 10 }}>
             <ClassificationPlate label={label} localFrame={localFrame - 8} compact />
           </div>

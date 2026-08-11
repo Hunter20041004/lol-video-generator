@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { execFileSync } = require("node:child_process");
+const crypto = require("node:crypto");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -229,9 +230,25 @@ test("package identity and tracked media have explicit rights", () => {
   assert.equal(pkg.author, "Hunter Tseng（曾尉庭）");
   assert.deepEqual(pkg.keywords, ["remotion", "nextjs", "content-automation", "league-of-legends"]);
   assert.match(license, /ISC License/);
-  assert.match(readme, /User-supplied audio/);
-  for (const name of ["bgm1.mp3", "bgm2.mp3", "bgm3.mp3"]) {
-    assert.equal(fs.existsSync(path.join(ROOT, "public/audio", name)), false);
+  assert.match(readme, /Bundled licensed audio/);
+
+  const rights = fs.readFileSync(path.join(ROOT, "THIRD_PARTY_ASSETS.md"), "utf8");
+  const library = JSON.parse(fs.readFileSync(path.join(ROOT, "config", "licensed-music-library.json"), "utf8"));
+  const expectedHashes = new Map([
+    ["bgm1.mp3", "fb9fe588eeb13b281542de89b69550f24b9c0bebb7b5d6e4fb4f150a6af93be4"],
+    ["bgm2.mp3", "c6e83e763f9b18517fca6f9974de7d9d7c48f94f0d2d4b53bbfce894c7d16812"],
+    ["bgm3.mp3", "561ad3f5b1311abedfb920ca39ecbff2644fe71b4901424148a94dc6614174c3"],
+  ]);
+  assert.equal(library.tracks.length, 3);
+  assert.match(rights, /authorization.*confirmed.*2026-08-11/i);
+
+  for (const track of library.tracks) {
+    const name = path.basename(track.sourcePath);
+    const audioPath = path.join(ROOT, track.sourcePath);
+    assert.equal(track.enabled, true);
+    assert.equal(track.rightsStatus, "verified");
+    assert.equal(track.sha256, expectedHashes.get(name));
+    assert.equal(crypto.createHash("sha256").update(fs.readFileSync(audioPath)).digest("hex"), track.sha256);
   }
 });
 
@@ -246,6 +263,29 @@ test("explicitly muted tier ranking renders no audio and preserves supplied audi
 
   assert.equal(mutedMarkup.includes("<audio"), false);
   assert.match(suppliedMarkup, /<audio[^>]+src="\/audio\/licensed-by-user\.mp3"/);
+});
+
+test("balance update renders a named weapon label instead of Base Stats", async () => {
+  const { Template_BalanceUpdate } = await loadRemotionModule("src/templates/Template_BalanceUpdate.jsx");
+  const markup = renderToStaticMarkup(React.createElement(Template_BalanceUpdate, {
+    data: {
+      dataType: "PATCH",
+      locale: "en",
+      championName: "Aphelios",
+      bgmFile: null,
+      storyboard: [{
+        tag: "SKILL_SHOWCASE",
+        skillKey: "BASE",
+        skillLabel: "Calibrum",
+        text: "Weapon damage changed",
+        metrics: [{ metricName: "Mark Damage", beforeValue: "15", afterValue: "20", trend: "BUFF" }],
+        durationInFrames: 152,
+      }],
+    },
+  }));
+
+  assert.match(markup, />Calibrum</);
+  assert.doesNotMatch(markup, />Base Stats</);
 });
 
 test("every retained Root composition is muted when user audio is omitted", async () => {
