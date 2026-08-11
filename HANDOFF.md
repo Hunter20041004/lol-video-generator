@@ -9,6 +9,7 @@
 - 原本 34 個未提交路徑已整合成 rescue commit；Player Radar 的 30 個原始 commits 已完整搬入。
 - 壞掉的 Player Radar worktree 已修復連結，實體仍在 `.worktrees/player-radar-dual-read/`，沒有 prune。
 - 2026-08-10 依產品決策將本機與外部 runtime 救援副本的歷史影片資料歸零；Git、原始內容資料與 tracked 示範素材未刪除。
+- 歸零後第一組 canary dry run 已用 26.13 Aphelios 產生中英文影片；未建立 queue、daily run 或遠端貼文。
 
 ## 這輪完成的能力
 
@@ -39,6 +40,8 @@
 - `npm audit --audit-level=high`：通過，0 vulnerabilities
 - 歷史影片歸零後驗收：queue 0、daily runs 0、78/78 內容題目為 `READY`、舊影片／社群引用 0、既定刪除路徑殘留 0。
 - 歸零後重跑 queue isolation 與 content store：20/20 通過；新增 daily-run worktree 隔離回歸測試後，全套為 454 tests、452 pass、2 個外部 contract tests skipped、0 fail。
+- Aphelios canary：中英文皆為 H.264、1080×1920、30fps；中文 35.56 秒／19,544,129 bytes，英文 25.28 秒／14,369,308 bytes；內容 DB SHA-256 產片前後皆為 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`。
+- Canary runtime：`public/renders/render_1786426536139_zh.mp4`、`public/renders/render_1786426536139_en.mp4`；兩支音軌約 -91 dB，等同靜音；queue 與 daily runs 仍不存在。
 - `npm run qa:render`：6/6 個 1080×1920 stills 均大於 25 KB
 - Player Radar H.264 曾通過 1080×1920、30fps 驗收；該暫存影片已隨歷史影片歸零刪除。
 - 最終桌面／手機截圖：`.screenshots/round2-desktop.png`、`.screenshots/round2-mobile.png`
@@ -64,3 +67,4 @@
 - Next build 有 2 個動態檔案路徑追蹤 warning；不阻塞建置，但可能增加部署包體積。
 - Google Fonts 的一支外部 Outfit woff2 回傳 404，瀏覽器使用既定 fallback；頁面本身可開且沒有 server error。
 - Player Radar 前約 1.5–2 秒主數據才進場，屬 Shorts 留存風險；另開視覺節奏工單，不和本輪救援混改。
+- Aphelios canary 技術渲染通過但內容 QA 不通過：中文版錯標「E 技能」，英文版把四武器改動折成 `Base Stats`。根因是 content store 用 `【武器】\n內容`，而 `splitPatchChangeSections` 只接受 `【武器】: 內容`，導致原始四段改動無法覆蓋 AI／fallback 的錯誤技能分類；修正前不得發布這組影片。
