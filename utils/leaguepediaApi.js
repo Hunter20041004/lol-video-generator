@@ -168,8 +168,7 @@ async function authenticate() {
       const reason = loginJson?.login?.reason || loginJson?.login?.message || JSON.stringify(loginJson).slice(0, 300);
       throw createLeaguepediaAuthError(`Fandom bot authentication failed: login result=${result} — ${reason}`);
     }
-    const username_returned = loginJson?.login?.lgusername || username;
-    console.log(`✅ [Leaguepedia Auth] Logged in as ${username_returned} · ${sessionCookies.split(';').length} cookies`);
+    console.log(`✅ [Leaguepedia Auth] Login succeeded · ${sessionCookies.split(';').length} cookies`);
   })();
 
   try {
