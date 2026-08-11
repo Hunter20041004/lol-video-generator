@@ -1,38 +1,40 @@
-# 專案現況 — LoL 影片生成器（lol-video-generator）
+# 專案現況 — LoL 影片生成器
 
-> 由 Claude 於 2026-07-23 整理。**新對話請先讀這份**。
+> 2026-08-10 更新。詳細救援與驗證證據見 `HANDOFF.md`。
 
-## 這是什麼
+## 產品
 
-**《英雄聯盟》改版資訊自動化影音生成** — 把賽事／改版資料自動做成影片內容。
-（相關企劃書：`prd/`）
+這是把《英雄聯盟》改版與賽事資料做成直式影片的 Next.js + Remotion 工具，包含：
 
-## 技術棧
+- 版本改動工廠
+- 電競賽事 Daily one-click
+- Player Radar 雙讀短影音
+- Meta 內容工廠
+- Instagram／Threads 發佈與成效控制台
 
-- **Next.js** + **Remotion**（用 React 寫影片，`durationInFrames` 那套）
-- `app/`、`src/`、`utils/`、`config/`、`scripts/`、`tests/`
-- `public/render-assets/`、`public/avatars/` — 影片素材
-- `reasoning.js`、`fetchAsset.js` — 資料處理
+## 本輪狀態
 
-## 這是你用 Codex 最多的專案
+- `codex/lol-recovery-security` 已整合最新 GitHub `main`、34 路徑未提交救援及 Player Radar 30 commits。
+- 測試與發佈佇列已隔離，不再因 Node module cache 把另一個 worktree 的 cwd 固定成寫入目標。
+- 依賴安全圖在本機 `npm audit --audit-level=high` 為 0。
+- CI 等價驗證、production build、6 張 QA stills 與 Player Radar H.264 片段均通過。
+- 原本 dirty `main`、rescue ref、外部救援副本與 runtime queue 都仍保留。
 
-Codex 對話紀錄顯示 **90 場對話**都在這個專案（佔全部的 4 成），
-主題包括：賽後影片管線、選手雷達影片、管線修剪與工作台重設、每日系列影片。
+## GitHub 待確認
 
-## 2026-07-23 的整理
+- 推送整合分支並建立 PR。
+- 等 CI 全綠再合併 `main`。
+- 合併後用兩種分頁方法重算 Dependabot；目前 GitHub snapshot 是 18 open alerts。
+- 讓 #2、#3、#4 在整合修補後標記為 superseded，不要直接合併三張紅 PR。
 
-1. 從 `~/lol-video-generator`（更早是 `~/Desktop/lol-video-generator`）搬到 `~/Developer/`
-2. **刪除已發布的舊影片**：`public/renders/`（499M、68 支）與 `tmp/`（136M）
-   —— 你說影片都發布過了不需要留
-3. 相關的 1.8GB Codex 對話紀錄（內含大量 base64 圖片傾印）已刪除
+## Runtime 待人工決策
 
-## ⚠️ 已知狀況
+- 26 個 QUEUED、10 個 FAILED、8 個 MANUAL_DELETE_REQUIRED 歷史任務仍在主 queue。
+- 多數非 PUBLISHED 任務已沒有本機影片；不可直接跑 queue。
+- Player Radar worktree 的 2 筆 QUEUED 是測試污染，不是真實待發內容。
 
-- `node_modules` 約 **1.5GB**（最肥的專案）；長期不開發的話可刪掉，
-  要用時 `npm install` 就回來
-- 最後 commit 是 2026-07-08（`chore: ignore local worktrees`），
-  以及 player radar dual-read 的設計與實作計畫
+## 已知非阻塞項目
 
-## 下一步
-
-若要接續，先看 `docs/` 裡的 **player radar dual-read** 設計與計畫。
+- Next 16.3 build 的 2 個動態 filesystem tracing warnings。
+- Google Fonts 外部 Outfit 檔 404，現有 fallback 正常。
+- Player Radar 開頭資料進場約慢 1.5–2 秒，可能影響 Shorts 留存。

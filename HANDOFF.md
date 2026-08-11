@@ -1,26 +1,55 @@
-# HANDOFF — LoL 影片生成器（lol-video-generator）
+# HANDOFF — LoL 影片生成器
 
-> 兩個貼上區塊：規劃找 🧠 Claude、實作找 🖐 Codex。由 Claude 於 2026-07-23 整理。
-> 一句話現況：**上次成功自動發布一支「選手雷達」影片到 IG＋Threads，佇列還有舊任務沒處理。最後活動 2026-07-10。**
+> 2026-08-10 由 Codex 更新。這份狀態以 `codex/lol-recovery-security` 為準；原本 dirty `main` 工作目錄沒有被 reset、clean、checkout 或覆蓋。
 
----
-## ▼ 貼給 🧠 Claude（討論／規劃／決策）
+## 本輪狀態
 
-我要規劃 LoL 影片生成器的下一步。先讀 `STATUS.md`。
+- 整合分支：`codex/lol-recovery-security`，以 GitHub `main` 的 `07bacdbdee98ee408b2c0d590f97db6c5ede28fd` 為基線。
+- 永久救援：`rescue/2026-08-09-main-wip` 指向 `8550fe8c0f9bdba116de46846a4b655a5f9a69c3`；外部救援副本在 `/Users/cengweiting/Developer/lol-video-generator-rescue-20260809.PIixWe`。
+- 原本 34 個未提交路徑已整合成 rescue commit；Player Radar 的 30 個原始 commits 已完整搬入。
+- 壞掉的 Player Radar worktree 已修復連結，實體仍在 `.worktrees/player-radar-dual-read/`，沒有 prune。
 
-這是《英雄聯盟》改版/賽事資訊自動化影音生成（Next.js + Remotion）。上次成功發了一支 HLE vs BLG 的選手雷達影片到 Instagram 和 Threads。
+## 這輪完成的能力
 
-幫我想清楚：接下來要做哪種內容、要不要把「工具商業化」（我之前有討論過）、佇列裡的舊任務哪些還要跑。想清楚後切成工單。
+1. 發佈佇列與 `public/publish-packages/` 改為每次操作時解析目前 worktree，不再把測試 clip 寫進另一個專案。
+2. 保留 Daily one-click、Leaguepedia cooldown／BotPassword 登入、標準化 API 錯誤與 Player Radar 雙讀證據鏈。
+3. 保留 GitHub 線的唯讀展示、無 shell 渲染、呼叫者提供音樂及帳號識別資訊不進 log。
+4. 合併更新 Next／Sharp／PostCSS／nanoid／Undici／fast-uri，沒有降低 `npm audit --audit-level=high` 閘門。
 
-我完全沒有程式背景，專有名詞第一次出現請先用白話解釋。
+## 依賴版本
 
----
-## ▼ 貼給 🖐 Codex（照計畫實作）
+- Next `16.3.0`
+- Sharp `0.35.3`
+- PostCSS `8.5.23`
+- nanoid `3.3.18`
+- Undici `7.29.0`
+- fast-uri `3.1.5`
 
-我要接續實作 LoL 影片生成器。先讀 `STATUS.md` 與 `HANDOFF.md`。
+## 驗證證據
 
-Next.js + Remotion（React 做影片）；`docs/` 有 player radar dual-read 的設計與計畫。
+- `npm ci`：通過，`found 0 vulnerabilities`
+- `npm run tdd:doctor`：通過
+- `npm run test:coverage`：450 tests；448 pass、2 個外部 LoLalytics contract tests skipped、0 fail；line 96.84%、branch 80.31%、function 96.23%
+- `npx next build`：通過；26 個頁面／API route 建置完成
+- `npm audit --audit-level=high`：通過，0 vulnerabilities
+- `npm run qa:render`：6/6 個 1080×1920 stills 均大於 25 KB
+- Player Radar H.264：`/tmp/lol-recovery-player-radar.mp4`，1080×1920、30fps、540,931 bytes
+- 最終桌面／手機截圖：`.screenshots/round2-desktop.png`、`.screenshots/round2-mobile.png`
+- 正式主佇列 SHA-256 測試前後相同：`225bc1a66d7324553ca65171313794729f7897355792249b92e7dc248d19a98b`
+- 整合 worktree 沒有產生 `.data/publish-queue.json`。
 
-**這次要做的**：先幫我列出佇列裡還有哪些待發布/待處理的任務，我再決定要不要跑。
+## Runtime 資料限制
 
-⚠️ 2026-07-23 已清掉 `public/renders/`（已發布的舊影片）與 `tmp/`；若流程需要那些檔案請告訴我。`node_modules` 若不在時可先 `npm install`。
+- 主 queue 共 379 筆；歷史盤點為 PUBLISHED 335、QUEUED 26、FAILED 10、MANUAL_DELETE_REQUIRED 8。
+- 非 PUBLISHED 任務的影片檔仍大量缺失；GitHub 不包含 `.data/`、renders、publish packages 或 tmp，不能從遠端自動補回。
+- Player Radar worktree 的 2 筆 QUEUED 是測試污染證據，不要執行；這輪只阻止新污染，沒有刪除舊資料。
+
+## 剩餘限制與下一步
+
+- GitHub 目前仍會顯示 18 個 open Dependabot alerts，直到安全 lockfile 推上分支並進入 default branch 後才能確認自動關閉。
+- PR #2／#3／#4 的舊紅燈根因是各自只修一個套件，而 audit 掃整本 lockfile；整合 PR 綠後再讓它們 superseded。
+- Next build 有 2 個動態檔案路徑追蹤 warning；不阻塞建置，但可能增加部署包體積。
+- Google Fonts 的一支外部 Outfit woff2 回傳 404，瀏覽器使用既定 fallback；頁面本身可開且沒有 server error。
+- Player Radar 前約 1.5–2 秒主數據才進場，屬 Shorts 留存風險；另開視覺節奏工單，不和本輪救援混改。
+
+下一步：推送 `codex/lol-recovery-security`、建立 ready PR、等 GitHub Actions 全綠後合併，重新校準 Dependabot 警報數，再檢查既有 production 部署。
