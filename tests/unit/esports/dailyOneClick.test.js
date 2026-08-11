@@ -2,6 +2,12 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { makeSampleAggregatedSeries } = require("../../../utils/esports/sampleData");
 
+test("localDateOffset defaults to the Pacific publishing calendar", () => {
+  const { localDateOffset } = require("../../../utils/esports/dailyOneClick");
+
+  assert.equal(localDateOffset(1, new Date("2026-07-06T01:00:00Z")), "2026-07-04");
+});
+
 test("runDailyOneClick publishes yesterday zh recap videos directly to Instagram and Threads", async () => {
   const { runDailyOneClick } = require("../../../utils/esports/dailyOneClick");
   const calls = {

@@ -7,8 +7,9 @@ const { renderVideosFromRequest } = require("../render/renderService");
 
 const DEFAULT_ONE_CLICK_LANGUAGES = ["zh"];
 const DEFAULT_ONE_CLICK_VIDEO_TYPES = ["recap"];
+const DEFAULT_DAILY_TIME_ZONE = "America/Los_Angeles";
 
-function localDateOffset(daysAgo = 1, nowInput = new Date(), timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+function localDateOffset(daysAgo = 1, nowInput = new Date(), timeZone = DEFAULT_DAILY_TIME_ZONE) {
   const now = nowInput instanceof Date ? nowInput : new Date(nowInput);
   const target = new Date(now.getTime() - Math.max(0, Number(daysAgo) || 0) * 24 * 60 * 60 * 1000);
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -115,6 +116,7 @@ async function runDailyOneClick(options = {}, deps = {}) {
 }
 
 module.exports = {
+  DEFAULT_DAILY_TIME_ZONE,
   DEFAULT_ONE_CLICK_LANGUAGES,
   DEFAULT_ONE_CLICK_VIDEO_TYPES,
   localDateOffset,

@@ -17,13 +17,13 @@
 - `codex/lol-recovery-security` 已整合最新 GitHub `main`、34 路徑未提交救援及 Player Radar 30 commits。
 - 測試與發佈佇列已隔離，不再因 Node module cache 把另一個 worktree 的 cwd 固定成寫入目標。
 - 依賴安全圖在本機 `npm audit --audit-level=high` 為 0。
+- Daily one-click 的「昨天」已固定採洛杉磯發布日曆，UTC CI 與本機會選到相同賽事日期。
 - CI 等價驗證、production build、6 張 QA stills 與 Player Radar H.264 片段均通過。
 - 原本 dirty `main`、rescue ref、外部救援副本與 runtime queue 都仍保留。
 
 ## GitHub 待確認
 
-- 推送整合分支並建立 PR。
-- 等 CI 全綠再合併 `main`。
+- 整合分支已推送為 PR #5；等修正版 CI 全綠再合併 `main`。
 - 合併後用兩種分頁方法重算 Dependabot；目前 GitHub snapshot 是 18 open alerts。
 - 讓 #2、#3、#4 在整合修補後標記為 superseded，不要直接合併三張紅 PR。
 

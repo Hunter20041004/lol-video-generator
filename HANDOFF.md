@@ -15,6 +15,7 @@
 2. 保留 Daily one-click、Leaguepedia cooldown／BotPassword 登入、標準化 API 錯誤與 Player Radar 雙讀證據鏈。
 3. 保留 GitHub 線的唯讀展示、無 shell 渲染、呼叫者提供音樂及帳號識別資訊不進 log。
 4. 合併更新 Next／Sharp／PostCSS／nanoid／Undici／fast-uri，沒有降低 `npm audit --audit-level=high` 閘門。
+5. Daily one-click 的預設發布日曆固定為 `America/Los_Angeles`，避免 GitHub UTC runner 把「昨天」算成不同日期；呼叫端仍可明確覆寫時區。
 
 ## 依賴版本
 
@@ -29,7 +30,8 @@
 
 - `npm ci`：通過，`found 0 vulnerabilities`
 - `npm run tdd:doctor`：通過
-- `npm run test:coverage`：450 tests；448 pass、2 個外部 LoLalytics contract tests skipped、0 fail；line 96.84%、branch 80.31%、function 96.23%
+- `npm run test:coverage`：451 tests；449 pass、2 個外部 LoLalytics contract tests skipped、0 fail；line 96.84%、branch 80.26%、function 96.23%
+- `TZ=UTC node --test tests/unit/esports/dailyOneClick.test.js`：2/2 通過，涵蓋 GitHub runner 與本機時區差異
 - `npx next build`：通過；26 個頁面／API route 建置完成
 - `npm audit --audit-level=high`：通過，0 vulnerabilities
 - `npm run qa:render`：6/6 個 1080×1920 stills 均大於 25 KB
@@ -52,4 +54,4 @@
 - Google Fonts 的一支外部 Outfit woff2 回傳 404，瀏覽器使用既定 fallback；頁面本身可開且沒有 server error。
 - Player Radar 前約 1.5–2 秒主數據才進場，屬 Shorts 留存風險；另開視覺節奏工單，不和本輪救援混改。
 
-下一步：推送 `codex/lol-recovery-security`、建立 ready PR、等 GitHub Actions 全綠後合併，重新校準 Dependabot 警報數，再檢查既有 production 部署。
+整合 PR：GitHub #5。等修正版 GitHub Actions 全綠後合併，再重新校準 Dependabot 警報數、處理舊 PR 並檢查既有 production 部署。
