@@ -1,18 +1,24 @@
 const fs = require("fs");
 const path = require("path");
 
-const DATA_DIR = path.join(process.cwd(), ".data");
-const QUEUE_PATH = path.join(DATA_DIR, "publish-queue.json");
+function getDataDir(cwd = process.cwd()) {
+  return path.join(cwd, ".data");
+}
+
+function getQueuePath(cwd = process.cwd()) {
+  return path.join(getDataDir(cwd), "publish-queue.json");
+}
 
 function ensureDataDir() {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(getDataDir(), { recursive: true });
 }
 
 function readQueue() {
+  const queuePath = getQueuePath();
   ensureDataDir();
-  if (!fs.existsSync(QUEUE_PATH)) return [];
+  if (!fs.existsSync(queuePath)) return [];
   try {
-    const parsed = JSON.parse(fs.readFileSync(QUEUE_PATH, "utf8"));
+    const parsed = JSON.parse(fs.readFileSync(queuePath, "utf8"));
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     console.warn(`[PublishQueue] Could not parse queue file: ${error.message}`);
@@ -21,8 +27,9 @@ function readQueue() {
 }
 
 function writeQueue(tasks) {
+  const queuePath = getQueuePath();
   ensureDataDir();
-  fs.writeFileSync(QUEUE_PATH, JSON.stringify(tasks, null, 2), "utf8");
+  fs.writeFileSync(queuePath, JSON.stringify(tasks, null, 2), "utf8");
 }
 
 function createTaskId(platform, locale) {
@@ -66,13 +73,20 @@ function listTasks(filter = {}) {
   });
 }
 
-module.exports = {
-  DATA_DIR,
-  QUEUE_PATH,
+const queueStore = {
   readQueue,
   writeQueue,
   createTaskId,
   upsertTask,
   updateTask,
   listTasks,
+  getDataDir,
+  getQueuePath,
 };
+
+Object.defineProperties(queueStore, {
+  DATA_DIR: { enumerable: true, get: getDataDir },
+  QUEUE_PATH: { enumerable: true, get: getQueuePath },
+});
+
+module.exports = queueStore;

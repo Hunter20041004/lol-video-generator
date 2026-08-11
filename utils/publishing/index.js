@@ -14,7 +14,10 @@ const PLATFORM_ADAPTERS = {
 };
 
 const DEFAULT_PLATFORMS = ["instagram", "threads"];
-const PACKAGE_ROOT = path.join(process.cwd(), "public", "publish-packages");
+
+function getPublishPackageRoot(cwd = process.cwd()) {
+  return path.join(cwd, "public", "publish-packages");
+}
 
 const normalizePlatform = (platform) => String(platform || "instagram").toLowerCase();
 const isSupportedPlatform = (platform) => Object.hasOwn(PLATFORM_ADAPTERS, normalizePlatform(platform));
@@ -63,8 +66,9 @@ function resolveLocalVideoPath(videoUrl = "") {
 }
 
 function writePublishPackage(task) {
-  fs.mkdirSync(PACKAGE_ROOT, { recursive: true });
-  const dir = path.join(PACKAGE_ROOT, task.id);
+  const packageRoot = getPublishPackageRoot();
+  fs.mkdirSync(packageRoot, { recursive: true });
+  const dir = path.join(packageRoot, task.id);
   fs.mkdirSync(dir, { recursive: true });
 
   const captionPath = path.join(dir, `${task.platform}_${task.locale}_caption.txt`);
@@ -252,4 +256,5 @@ module.exports = {
   publishTask,
   processQueuedTasks,
   summarizeJobs,
+  getPublishPackageRoot,
 };
