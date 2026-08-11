@@ -8,10 +8,11 @@
 - 永久救援：`rescue/2026-08-09-main-wip` 指向 `8550fe8c0f9bdba116de46846a4b655a5f9a69c3`；外部救援副本在 `/Users/cengweiting/Developer/lol-video-generator-rescue-20260809.PIixWe`。
 - 原本 34 個未提交路徑已整合成 rescue commit；Player Radar 的 30 個原始 commits 已完整搬入。
 - 壞掉的 Player Radar worktree 已修復連結，實體仍在 `.worktrees/player-radar-dual-read/`，沒有 prune。
+- 2026-08-10 依產品決策將本機與外部 runtime 救援副本的歷史影片資料歸零；Git、原始內容資料與 tracked 示範素材未刪除。
 
 ## 這輪完成的能力
 
-1. 發佈佇列與 `public/publish-packages/` 改為每次操作時解析目前 worktree，不再把測試 clip 寫進另一個專案。
+1. 發佈佇列、每日執行紀錄與 `public/publish-packages/` 改為每次操作時解析目前 worktree，不再把測試 clip 或 dry-run 寫進另一個專案。
 2. 保留 Daily one-click、Leaguepedia cooldown／BotPassword 登入、標準化 API 錯誤與 Player Radar 雙讀證據鏈。
 3. 保留 GitHub 線的唯讀展示、無 shell 渲染、呼叫者提供音樂及帳號識別資訊不進 log。
 4. 合併更新 Next／Sharp／PostCSS／nanoid／Undici／fast-uri，沒有降低 `npm audit --audit-level=high` 閘門。
@@ -36,19 +37,21 @@
 - `TZ=UTC node --test tests/unit/esports/dailyOneClick.test.js`：2/2 通過，涵蓋 GitHub runner 與本機時區差異
 - `npx next build`：通過；26 個頁面／API route 建置完成
 - `npm audit --audit-level=high`：通過，0 vulnerabilities
+- 歷史影片歸零後驗收：queue 0、daily runs 0、78/78 內容題目為 `READY`、舊影片／社群引用 0、既定刪除路徑殘留 0。
+- 歸零後重跑 queue isolation 與 content store：20/20 通過；新增 daily-run worktree 隔離回歸測試後，全套為 454 tests、452 pass、2 個外部 contract tests skipped、0 fail。
 - `npm run qa:render`：6/6 個 1080×1920 stills 均大於 25 KB
-- Player Radar H.264：`/tmp/lol-recovery-player-radar.mp4`，1080×1920、30fps、540,931 bytes
+- Player Radar H.264 曾通過 1080×1920、30fps 驗收；該暫存影片已隨歷史影片歸零刪除。
 - 最終桌面／手機截圖：`.screenshots/round2-desktop.png`、`.screenshots/round2-mobile.png`
-- 正式主佇列 SHA-256 測試前後相同：`225bc1a66d7324553ca65171313794729f7897355792249b92e7dc248d19a98b`
 - 整合 worktree 沒有產生 `.data/publish-queue.json`。
 - 合併後 detached `main` 再跑同一套 CI：453 tests、451 pass、2 skip、0 fail；build 與 audit 均通過。
 - GitHub PR #5：CI、CodeQL actions、CodeQL JavaScript 與 PR security gate 全部通過。
 
 ## Runtime 資料限制
 
-- 主 queue 共 379 筆；歷史盤點為 PUBLISHED 335、QUEUED 26、FAILED 10、MANUAL_DELETE_REQUIRED 8。
-- 非 PUBLISHED 任務的影片檔仍大量缺失；GitHub 不包含 `.data/`、renders、publish packages 或 tmp，不能從遠端自動補回。
-- Player Radar worktree 的 2 筆 QUEUED 是測試污染證據，不要執行；這輪只阻止新污染，沒有刪除舊資料。
+- 主專案、兩個 worktree 與外部 runtime 救援副本共刪除 2,040 個歷史檔案（87,819,029 bytes），包含 queue、daily runs、renders、publish packages、render assets 與舊內容資料庫快照。
+- 主程式目前讀到 publish queue 0 筆、daily runs 0 筆；內容資料庫保留 78 個題目，78 筆全為 `READY`，舊 render／publish 結果與社群貼文 ID／網址引用為 0。
+- `public/demo/meta-tier-ranking.mp4` 是 Git tracked 的產品示範素材，刻意保留；其餘 runtime 影片均已移除。
+- Instagram／Threads 上既有公開貼文未做遠端刪除；本機已不再保留其貼文 ID，因此後續發布會視為全新任務。
 
 ## GitHub 與部署結果
 

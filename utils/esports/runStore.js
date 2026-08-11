@@ -1,18 +1,24 @@
 const fs = require("fs");
 const path = require("path");
 
-const DATA_DIR = path.join(process.cwd(), ".data");
-const STORE_PATH = path.join(DATA_DIR, "esports-daily-runs.json");
+function getDataDir(cwd = process.cwd()) {
+  return path.join(cwd, ".data");
+}
+
+function getStorePath(cwd = process.cwd()) {
+  return path.join(getDataDir(cwd), "esports-daily-runs.json");
+}
 
 function ensureDataDir() {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(getDataDir(), { recursive: true });
 }
 
 function readStore() {
+  const storePath = getStorePath();
   ensureDataDir();
-  if (!fs.existsSync(STORE_PATH)) return { version: 1, runs: [] };
+  if (!fs.existsSync(storePath)) return { version: 1, runs: [] };
   try {
-    const parsed = JSON.parse(fs.readFileSync(STORE_PATH, "utf8"));
+    const parsed = JSON.parse(fs.readFileSync(storePath, "utf8"));
     return {
       version: 1,
       runs: Array.isArray(parsed.runs) ? parsed.runs : [],
@@ -24,8 +30,9 @@ function readStore() {
 }
 
 function writeStore(store) {
+  const storePath = getStorePath();
   ensureDataDir();
-  fs.writeFileSync(STORE_PATH, JSON.stringify({
+  fs.writeFileSync(storePath, JSON.stringify({
     version: 1,
     runs: Array.isArray(store.runs) ? store.runs : [],
   }, null, 2), "utf8");
@@ -98,13 +105,20 @@ function appendManualAction(seriesId, action = {}) {
   return targetRun;
 }
 
-module.exports = {
-  DATA_DIR,
-  STORE_PATH,
+const runStore = {
   readStore,
   writeStore,
   upsertRun,
   listRuns,
   hasPublishedSeries,
   appendManualAction,
+  getDataDir,
+  getStorePath,
 };
+
+Object.defineProperties(runStore, {
+  DATA_DIR: { enumerable: true, get: getDataDir },
+  STORE_PATH: { enumerable: true, get: getStorePath },
+});
+
+module.exports = runStore;

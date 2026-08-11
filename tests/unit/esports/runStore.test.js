@@ -96,3 +96,29 @@ test("runStore updates runs, filters lists, recovers malformed JSON, and records
     assert.equal(updated.manualActions[0].type, "republish");
   });
 });
+
+test("runStore follows the active project after the module was loaded elsewhere", async () => {
+  const originalCwd = process.cwd();
+  const loadedFrom = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-esports-store-loaded-"));
+  const activeProject = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-esports-store-active-"));
+  try {
+    process.chdir(loadedFrom);
+    clearStoreModule();
+    const { upsertRun } = require(path.join(ROOT, "utils/esports/runStore.js"));
+
+    process.chdir(activeProject);
+    upsertRun({ date: "2026-08-10", dryRun: true, status: "DRY_RUN_COMPLETE" });
+
+    assert.equal(fs.existsSync(path.join(loadedFrom, ".data", "esports-daily-runs.json")), false);
+    const stored = JSON.parse(fs.readFileSync(
+      path.join(activeProject, ".data", "esports-daily-runs.json"),
+      "utf8",
+    ));
+    assert.equal(stored.runs.length, 1);
+  } finally {
+    process.chdir(originalCwd);
+    clearStoreModule();
+    fs.rmSync(loadedFrom, { recursive: true, force: true });
+    fs.rmSync(activeProject, { recursive: true, force: true });
+  }
+});

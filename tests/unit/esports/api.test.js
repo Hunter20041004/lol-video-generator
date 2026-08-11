@@ -175,12 +175,17 @@ test("handleDailyApiRequest honors requested recap-only video types", async () =
 });
 
 test("handleDailyApiRequest can use the production dependency path with compact output", async () => {
+  const fs = require("fs");
+  const os = require("os");
   const path = require("path");
   const ROOT = path.resolve(__dirname, "../../..");
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-production-path-"));
   const apiPath = path.join(ROOT, "utils/esports/apiHandlers.js");
   const fetcherPath = path.join(ROOT, "utils/esports/seriesFetcher.js");
   const samplePath = path.join(ROOT, "utils/esports/sampleData.js");
   const renderPath = path.join(ROOT, "utils/render/renderService.js");
+  process.chdir(dir);
   delete require.cache[apiPath];
   const originalFetcherModule = require.cache[fetcherPath];
   const originalRenderModule = require.cache[renderPath];
@@ -226,12 +231,15 @@ test("handleDailyApiRequest can use the production dependency path with compact 
     assert.equal(result.run.selected[0].seriesScore, "3-2");
     assert.equal(result.run.outputs[0].semanticSummary.matchupEdgeCount, 5);
     assert.equal(result.run.outputs[0].videos.length, 4);
+    assert.equal(fs.existsSync(path.join(ROOT, ".data", "esports-daily-runs.json")), false);
   } finally {
     delete require.cache[apiPath];
     if (originalFetcherModule) require.cache[fetcherPath] = originalFetcherModule;
     else delete require.cache[fetcherPath];
     if (originalRenderModule) require.cache[renderPath] = originalRenderModule;
     else delete require.cache[renderPath];
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
   }
 });
 
