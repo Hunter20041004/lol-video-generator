@@ -134,6 +134,32 @@ test("scanEsportsCandidates rejects runtime sample mode", async () => {
   });
 });
 
+test("scanEsportsCandidates resolves daily mode into active tournament filters before fetching", async () => {
+  await withTempProject(async () => {
+    const { scanEsportsCandidates } = require(path.join(ROOT, "utils/esports/candidateScanner.js"));
+    const fetchQueries = [];
+
+    const result = await scanEsportsCandidates({
+      date: "2026-07-06",
+      activeMode: "daily",
+      languages: ["zh"],
+    }, {
+      fetchSeriesCandidates: async (query) => {
+        fetchQueries.push(query);
+        return [aggregatedSeries()];
+      },
+      now: () => new Date("2026-07-07T08:00:00.000Z"),
+    });
+
+    assert.equal(fetchQueries.length, 1);
+    assert.equal(fetchQueries[0].date, "2026-07-06");
+    assert.equal(fetchQueries[0].activeMode.mode, "msi");
+    assert.deepEqual(fetchQueries[0].activeMode.tournaments, ["MSI", "Mid-Season Invitational"]);
+    assert.equal(result.activeMode, "msi");
+    assert.equal(result.sourceStatus.status, "ready");
+  });
+});
+
 test("scanEsportsCandidates handles empty scans and raw game candidates", async () => {
   await withTempProject(async () => {
     const { scanEsportsCandidates, averageRadarScore, pickRecommendedMvp } = require(path.join(ROOT, "utils/esports/candidateScanner.js"));

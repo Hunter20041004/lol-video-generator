@@ -116,6 +116,64 @@ test("renderActualVideos converts render service results into four typed video o
   }
 });
 
+test("handleDailyApiRequest honors requested recap-only video types", async () => {
+  const fs = require("fs");
+  const os = require("os");
+  const path = require("path");
+  const ROOT = path.resolve(__dirname, "../../..");
+  const originalCwd = process.cwd();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-recap-only-"));
+  process.chdir(dir);
+  [
+    "utils/esports/apiHandlers.js",
+    "utils/esports/candidateStore.js",
+  ].forEach((file) => delete require.cache[path.join(ROOT, file)]);
+
+  try {
+    const { makeSampleAggregatedSeries } = require(path.join(ROOT, "utils/esports/sampleData.js"));
+    const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    writeCandidateSnapshot({
+      scanId: "recap-only-scan",
+      createdAt: new Date().toISOString(),
+      candidates: [makeSampleAggregatedSeries({
+        seriesId: "MSI 2026::2026-07-06::T1::FURIA",
+        date: "2026-07-06",
+        tournament: "MSI 2026",
+        teamA: "T1",
+        teamB: "FURIA",
+        teams: ["T1", "FURIA"],
+        winningTeam: "T1",
+        seriesScore: "3-0",
+        scoreLabel: "3-0",
+      })],
+    });
+
+    const { handleDailyApiRequest } = require(path.join(ROOT, "utils/esports/apiHandlers.js"));
+    const result = await handleDailyApiRequest({
+      scanId: "recap-only-scan",
+      seriesId: "MSI 2026::2026-07-06::T1::FURIA",
+      dryRun: true,
+      date: "2026-07-06",
+      activeMode: "msi",
+      languages: ["zh"],
+      videoTypes: ["recap"],
+      allowRepublish: true,
+    });
+
+    assert.deepEqual(
+      result.run.outputs[0].videos.map((video) => `${video.type}:${video.locale}`),
+      ["recap:zh"]
+    );
+  } finally {
+    process.chdir(originalCwd);
+    [
+      "utils/esports/apiHandlers.js",
+      "utils/esports/candidateStore.js",
+    ].forEach((file) => delete require.cache[path.join(ROOT, file)]);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("handleDailyApiRequest can use the production dependency path with compact output", async () => {
   const path = require("path");
   const ROOT = path.resolve(__dirname, "../../..");
@@ -199,4 +257,63 @@ test("summarizeRunForApi handles missing arrays and series fallback fields", () 
   assert.equal(result.outputs[0].videos.length, 0);
   assert.equal(result.outputs[0].semanticSummary.matchupEdgeCount, 0);
   assert.equal(result.publishJobs.length, 0);
+});
+
+test("handleDailyOneClickApiRequest returns compact publish links and public media status", async () => {
+  const { handleDailyOneClickApiRequest } = require("../../../utils/esports/apiHandlers");
+
+  const result = await handleDailyOneClickApiRequest({
+    date: "2026-07-04",
+    activeMode: "msi",
+    maxSeries: 2,
+  }, {
+    runDailyOneClick: async (body) => {
+      assert.equal(body.date, "2026-07-04");
+      assert.equal(body.activeMode, "msi");
+      assert.equal(body.maxSeries, 2);
+      return {
+        success: true,
+        publicMedia: [{ status: "READY", sampleUrl: "https://example.test/renders/recap.mp4" }],
+        run: {
+          runId: "one-click-2026-07-04",
+          date: "2026-07-04",
+          dryRun: false,
+          languages: ["zh"],
+          videoTypes: ["recap"],
+          candidates: [],
+          selected: [],
+          outputs: [{
+            seriesId: "series-1",
+            dryRun: false,
+            status: "RENDERED",
+            series: { teams: ["HLE", "G2"], scoreLabel: "3-0" },
+            semantic: { matchupEdges: [], recapPoints: [{}, {}, {}], contentConfidence: "high" },
+            videos: [{ type: "recap", locale: "zh", videoUrl: "/renders/recap.mp4" }],
+            gate: { passed: true, reasons: [] },
+            publishReady: true,
+            publishResult: {
+              jobs: [
+                { id: "ig-1", platform: "instagram", status: "PUBLISHED", result: { url: "https://instagram.example/reel" } },
+                { id: "th-1", platform: "threads", status: "PUBLISHED", result: { url: "https://threads.example/post" } },
+              ],
+            },
+          }],
+          publishJobs: [
+            { id: "ig-1", platform: "instagram", status: "PUBLISHED", result: { url: "https://instagram.example/reel" } },
+            { id: "th-1", platform: "threads", status: "PUBLISHED", result: { url: "https://threads.example/post" } },
+          ],
+          status: "PUBLISHED",
+        },
+      };
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.publicMedia[0].status, "READY");
+  assert.equal(result.run.date, "2026-07-04");
+  assert.equal(result.run.outputs[0].videos.length, 1);
+  assert.deepEqual(result.publishLinks, [
+    { platform: "instagram", url: "https://instagram.example/reel", status: "PUBLISHED" },
+    { platform: "threads", url: "https://threads.example/post", status: "PUBLISHED" },
+  ]);
 });

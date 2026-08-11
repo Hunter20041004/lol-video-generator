@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 const { handleSingleSeriesApiRequest } = require('../../../../utils/esports/apiHandlers');
+const { formatEsportsApiError } = require('../../../../utils/esports/apiErrors');
 
 export async function POST(request) {
   try {
@@ -7,9 +8,9 @@ export async function POST(request) {
     const result = await handleSingleSeriesApiRequest(body);
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Esports single-series test failed.',
-    }, { status: 500 });
+    const payload = formatEsportsApiError(error, {
+      fallbackMessage: '單一系列賽測試失敗。',
+    });
+    return NextResponse.json(payload, { status: payload.status });
   }
 }

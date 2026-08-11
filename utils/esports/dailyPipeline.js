@@ -3,6 +3,7 @@ const { aggregateSeries } = require("./seriesAggregator");
 const { scoreSeries, selectDailySeries } = require("./matchScorer");
 const { planSeriesContent } = require("./contentPlanner");
 const { evaluateSeriesGate } = require("./gatekeeper");
+const { normalizeVideoTypes } = require("./gatekeeper");
 const { createEsportsPublishJobs: defaultCreateEsportsPublishJobs } = require("./publishing");
 const {
   hasPublishedSeries: defaultHasPublishedSeries,
@@ -53,14 +54,16 @@ function normalizeLanguages(languages = ["zh", "en"]) {
   return [...new Set(values.map((language) => String(language || "zh").toLowerCase().startsWith("en") ? "en" : "zh"))];
 }
 
-async function defaultRenderSeriesVideos({ series }) {
+async function defaultRenderSeriesVideos({ series, languages = ["zh", "en"], videoTypes = ["radar", "recap"] }) {
   const base = String(series.seriesId || "series").replace(/[^a-z0-9_-]+/gi, "-").toLowerCase();
-  return [
-    { type: "radar", locale: "zh", videoUrl: `/renders/${base}-radar-zh.mp4`, exists: true },
-    { type: "radar", locale: "en", videoUrl: `/renders/${base}-radar-en.mp4`, exists: true },
-    { type: "recap", locale: "zh", videoUrl: `/renders/${base}-recap-zh.mp4`, exists: true },
-    { type: "recap", locale: "en", videoUrl: `/renders/${base}-recap-en.mp4`, exists: true },
-  ];
+  return normalizeLanguages(languages).flatMap((locale) =>
+    normalizeVideoTypes(videoTypes).map((type) => ({
+      type,
+      locale,
+      videoUrl: `/renders/${base}-${type}-${locale}.mp4`,
+      exists: true,
+    }))
+  );
 }
 
 async function runDailyEsportsPipeline(options = {}, deps = {}) {
@@ -69,6 +72,7 @@ async function runDailyEsportsPipeline(options = {}, deps = {}) {
   const activeMode = resolveActiveMode(config, options.now || new Date(`${date}T15:30:00.000Z`));
   const dryRun = Boolean(options.dryRun);
   const languages = normalizeLanguages(options.languages);
+  const videoTypes = normalizeVideoTypes(options.videoTypes);
   const fetchSeriesCandidates = deps.fetchSeriesCandidates || defaultFetchSeriesCandidates;
   const hasPublishedSeries = deps.hasPublishedSeries || defaultHasPublishedSeries;
   const renderSeriesVideos = deps.renderSeriesVideos || defaultRenderSeriesVideos;
@@ -88,12 +92,13 @@ async function runDailyEsportsPipeline(options = {}, deps = {}) {
   for (const selectedSeries of selected) {
     const series = contentSeriesFor(selectedSeries);
     const contentPlan = planSeriesContent(series);
-    const videos = await renderSeriesVideos({ series, contentPlan, dryRun, languages });
-    const requiredVideoCount = languages.length * 2;
+    const videos = await renderSeriesVideos({ series, contentPlan, dryRun, languages, videoTypes });
+    const requiredVideoCount = languages.length * videoTypes.length;
     const seriesRun = {
       seriesId: series.seriesId,
       dryRun,
       languages,
+      videoTypes,
       status: videos.length === requiredVideoCount ? "RENDERED" : "FAILED",
       series,
       semantic: contentPlan.semantic,
@@ -118,6 +123,7 @@ async function runDailyEsportsPipeline(options = {}, deps = {}) {
     date,
     dryRun,
     languages,
+    videoTypes,
     activeMode,
     candidates,
     selected,

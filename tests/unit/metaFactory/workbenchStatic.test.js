@@ -60,15 +60,54 @@ test("root layout declares an existing favicon asset for browser smoke tests", (
   assert.match(favicon, /HVS/);
 });
 
-test("esports workbench defaults date input from local calendar day instead of UTC", () => {
+test("esports workbench defaults date input from previous local calendar day instead of UTC", () => {
   const page = fs.readFileSync(path.join(ROOT, "app/page.jsx"), "utf8");
 
   assert.match(page, /function getLocalDateInputValue/);
+  assert.match(page, /function getPreviousLocalDateInputValue/);
   assert.equal(page.includes("new Date().toISOString().slice(0, 10)"), false);
   assert.match(page, /getFullYear\(\)/);
   assert.match(page, /getMonth\(\) \+ 1/);
   assert.match(page, /getDate\(\)/);
-  assert.match(page, /useState\(\(\) => getLocalDateInputValue\(\)\)/);
+  assert.match(page, /useState\(\(\) => getPreviousLocalDateInputValue\(\)\)/);
+});
+
+test("esports workbench marks implemented esports modes as supported without exposing internal contracts", () => {
+  const page = fs.readFileSync(path.join(ROOT, "app/page.jsx"), "utf8");
+
+  assert.match(page, /id: "esports",[\s\S]{0,90}label: "電競賽事工廠",[\s\S]{0,90}status: "已支援"/);
+  assert.match(page, /id: "daily", label: "每日系列賽", status: "已支援"/);
+  assert.match(page, /id: "player", label: "選手雷達", status: "已支援"/);
+  assert.equal(page.includes("<h2>資料契約</h2>"), false);
+  assert.equal(page.includes("contractList"), false);
+  assert.equal(page.includes("Candidates scan"), false);
+  assert.equal(page.includes("Daily Gate first"), false);
+});
+
+test("esports workbench exposes one-click daily recap publishing", () => {
+  const page = fs.readFileSync(path.join(ROOT, "app/page.jsx"), "utf8");
+  const globals = fs.readFileSync(path.join(ROOT, "app/globals.css"), "utf8");
+
+  assert.match(page, /async function runDailyOneClick/);
+  assert.match(page, /\/api\/esports\/daily-one-click/);
+  assert.match(page, /每日一鍵產片並發布/);
+  assert.match(page, /body: JSON\.stringify\(\{\s*date,/);
+  assert.match(page, /maxSeries:\s*2/);
+  assert.match(page, /activeMode:\s*mode === "daily" \? "auto" : mode/);
+  assert.match(page, /<VideoPreview videos=\{esportsPreviewVideos\} empty="尚無賽事影片" \/>/);
+  assert.match(globals, /\.hvsShell \.oneClickPanel/);
+  assert.match(globals, /\.hvsShell \.oneClickButton/);
+  assert.match(globals, /\.hvsShell \.publishLinkList/);
+});
+
+test("esports date input opens the native picker and remains usable as a workflow control", () => {
+  const page = fs.readFileSync(path.join(ROOT, "app/page.jsx"), "utf8");
+  const globals = fs.readFileSync(path.join(ROOT, "app/globals.css"), "utf8");
+
+  assert.match(page, /function openDatePicker/);
+  assert.match(page, /type="date"[\s\S]{0,140}aria-label="賽事日期"[\s\S]{0,140}onClick=\{openDatePicker\}/);
+  assert.match(globals, /\.hvsShell input\[type="date"\]/);
+  assert.match(globals, /::-webkit-calendar-picker-indicator/);
 });
 
 test("workbench disables selected render when the selected candidate is hard-blocked", () => {
@@ -121,13 +160,19 @@ test("workbench previews rendered videos from render result payloads", () => {
   const globals = fs.readFileSync(path.join(ROOT, "app/globals.css"), "utf8");
 
   assert.match(page, /function getPreviewVideos/);
+  assert.match(page, /function getResultError/);
   assert.match(page, /function VideoPreview/);
   assert.match(page, /function ResultPanel\(\{ title, payload, empty = "尚未執行", showPreview = true \}\)/);
   assert.match(page, /showPreview \? getPreviewVideos\(payload\) : \[\]/);
+  assert.match(page, /payload\?\.success === false/);
+  assert.match(page, /className="resultError"/);
+  assert.match(page, /payload\.userMessage \|\| payload\.error/);
+  assert.match(page, /payload\.recoverySuggestion/);
   assert.match(page, /payload\?\.videos/);
   assert.match(page, /<video\s+controls/);
   assert.match(page, /開新分頁/);
   assert.match(page, /download=\{video\.fileName \|\| true\}/);
+  assert.match(globals, /\.hvsShell \.resultError/);
   assert.match(globals, /\.hvsShell \.videoPreviewGrid/);
   assert.match(globals, /\.hvsShell \.videoPreviewItem video/);
 });

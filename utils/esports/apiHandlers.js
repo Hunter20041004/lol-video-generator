@@ -1,4 +1,5 @@
 const { runDailyEsportsPipeline, runSingleSeriesTest } = require("./dailyPipeline");
+const { runDailyOneClick: defaultRunDailyOneClick } = require("./dailyOneClick");
 const { fetchCompletedSeriesForDate } = require("./seriesFetcher");
 const { readCandidateSnapshot } = require("./candidateStore");
 const { renderVideosFromRequest } = require("../render/renderService");
@@ -8,12 +9,23 @@ function normalizeLanguages(languages = ["zh", "en"]) {
   return [...new Set(values.map((language) => String(language || "zh").toLowerCase().startsWith("en") ? "en" : "zh"))];
 }
 
-async function renderPlannedVideos({ series, languages = ["zh", "en"] }) {
+const SUPPORTED_VIDEO_TYPES = ["radar", "recap"];
+
+function normalizeVideoTypes(videoTypes = ["radar", "recap"]) {
+  const values = Array.isArray(videoTypes) && videoTypes.length > 0 ? videoTypes : ["radar", "recap"];
+  return [...new Set(values.map((type) => String(type || "").toLowerCase()).filter((type) => SUPPORTED_VIDEO_TYPES.includes(type)))];
+}
+
+async function renderPlannedVideos({ series, languages = ["zh", "en"], videoTypes = ["radar", "recap"] }) {
   const base = String(series.seriesId || "sample-series").replace(/[^a-z0-9_-]+/gi, "-").toLowerCase();
-  return normalizeLanguages(languages).flatMap((locale) => [
-    { type: "radar", locale, videoUrl: `/renders/${base}-radar-${locale}.mp4`, exists: true },
-    { type: "recap", locale, videoUrl: `/renders/${base}-recap-${locale}.mp4`, exists: true },
-  ]);
+  return normalizeLanguages(languages).flatMap((locale) =>
+    normalizeVideoTypes(videoTypes).map((type) => ({
+      type,
+      locale,
+      videoUrl: `/renders/${base}-${type}-${locale}.mp4`,
+      exists: true,
+    }))
+  );
 }
 
 function buildDeps(body = {}) {
@@ -33,11 +45,14 @@ function buildDeps(body = {}) {
   };
 }
 
-async function renderActualVideos({ contentPlan, languages = ["zh", "en"] }) {
-  const payloads = normalizeLanguages(languages).flatMap((locale) => [
-    { type: "radar", locale, payload: contentPlan.localized[locale].radar },
-    { type: "recap", locale, payload: contentPlan.localized[locale].recap },
-  ]);
+async function renderActualVideos({ contentPlan, languages = ["zh", "en"], videoTypes = ["radar", "recap"] }) {
+  const payloads = normalizeLanguages(languages).flatMap((locale) =>
+    normalizeVideoTypes(videoTypes).map((type) => ({
+      type,
+      locale,
+      payload: contentPlan.localized[locale][type],
+    }))
+  );
   const videos = [];
   for (const entry of payloads) {
     const result = await renderVideosFromRequest({
@@ -116,12 +131,27 @@ function summarizeRunForApi(run = {}) {
   };
 }
 
+function getPublishedUrl(job = {}) {
+  return job.result?.url || job.url || "";
+}
+
+function summarizePublishLinks(jobs = []) {
+  return jobs
+    .filter((job) => job?.platform)
+    .map((job) => ({
+      platform: job.platform,
+      url: getPublishedUrl(job),
+      status: job.status || "",
+    }));
+}
+
 async function handleDailyApiRequest(body = {}) {
   const run = await runDailyEsportsPipeline({
     dryRun: body.dryRun !== false,
     seriesId: body.seriesId,
     scanId: body.scanId,
     languages: normalizeLanguages(body.languages),
+    videoTypes: normalizeVideoTypes(body.videoTypes),
     date: body.date,
     activeMode: body.activeMode || "regular",
     allowRepublish: Boolean(body.allowRepublish),
@@ -131,6 +161,27 @@ async function handleDailyApiRequest(body = {}) {
   return {
     success: true,
     run: summarizeRunForApi(run),
+  };
+}
+
+async function handleDailyOneClickApiRequest(body = {}, deps = {}) {
+  const runDailyOneClick = deps.runDailyOneClick || defaultRunDailyOneClick;
+  const result = await runDailyOneClick({
+    date: body.date,
+    now: body.now,
+    timeZone: body.timeZone,
+    activeMode: body.activeMode || "auto",
+    maxSeries: body.maxSeries,
+    allowRepublish: Boolean(body.allowRepublish),
+    config: body.config || {},
+  });
+  const run = summarizeRunForApi(result.run);
+  return {
+    success: true,
+    date: result.date || result.run?.date,
+    publicMedia: result.publicMedia || [],
+    run,
+    publishLinks: summarizePublishLinks(run.publishJobs),
   };
 }
 
@@ -153,8 +204,10 @@ async function handleSingleSeriesApiRequest(body = {}) {
 
 module.exports = {
   handleDailyApiRequest,
+  handleDailyOneClickApiRequest,
   handleSingleSeriesApiRequest,
   renderPlannedVideos,
   renderActualVideos,
   summarizeRunForApi,
+  summarizePublishLinks,
 };

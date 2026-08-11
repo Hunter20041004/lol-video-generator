@@ -833,6 +833,9 @@ h1, h2, h3, h4 {
 .hvsShell .resultPanel {
   grid-column: 1 / -1;
 }
+.hvsShell .esportsActionPanel {
+  grid-column: 1 / -1;
+}
 .hvsShell .videoPreview {
   display: grid;
   gap: 12px;
@@ -930,6 +933,74 @@ h1, h2, h3, h4 {
   font-size: 13px;
   font-weight: 900;
 }
+.hvsShell .oneClickPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+  border-left: 3px solid var(--cyan);
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, rgba(53, 208, 200, 0.14), rgba(200, 170, 110, 0.06)),
+    rgba(9, 15, 23, 0.62);
+  padding: 12px;
+}
+.hvsShell .oneClickPanel h2 {
+  margin-bottom: 4px;
+}
+.hvsShell .oneClickPanel p {
+  max-width: 48ch;
+  margin-top: 0;
+  line-height: 1.45;
+}
+.hvsShell .oneClickEyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--cyan);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.hvsShell .oneClickButton {
+  min-width: 118px;
+  text-align: center;
+  border-color: rgba(53, 208, 200, 0.64);
+  background: #102327;
+  color: #d9fffb;
+}
+.hvsShell .oneClickButton:hover:not(:disabled) {
+  border-color: var(--cyan);
+  background: #123036;
+}
+.hvsShell .oneClickButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.hvsShell .publishLinkList {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.hvsShell .publishLinkList a,
+.hvsShell .publishLinkList span {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(4, 10, 18, 0.52);
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 0 10px;
+  text-decoration: none;
+}
+.hvsShell .publishLinkList a:hover {
+  border-color: var(--cyan);
+  color: #d9fffb;
+}
 .hvsShell .fieldGrid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-bottom: 14px;
@@ -954,6 +1025,18 @@ h1, h2, h3, h4 {
   font: inherit;
   font-size: 13px;
   padding: 0 10px;
+}
+.hvsShell input[type="date"] {
+  color-scheme: dark;
+  cursor: pointer;
+}
+.hvsShell input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(1);
+  opacity: 0.72;
+}
+.hvsShell input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
 }
 .hvsShell input::placeholder {
   color: #6e7b8b;
@@ -1169,6 +1252,37 @@ h1, h2, h3, h4 {
   font-size: 12px;
   line-height: 1.55;
 }
+.hvsShell .resultError {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(255, 154, 154, 0.38);
+  border-left: 3px solid var(--red);
+  border-radius: 6px;
+  background: rgba(32, 13, 18, 0.56);
+  color: #ffd7d7;
+  padding: 12px;
+}
+.hvsShell .resultError strong {
+  color: #ffe7e7;
+  font-size: 14px;
+}
+.hvsShell .resultError span {
+  color: #d8aeb3;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.hvsShell .resultError details {
+  color: #b9c5d4;
+  font-size: 12px;
+}
+.hvsShell .resultError summary {
+  cursor: pointer;
+  font-weight: 900;
+}
+.hvsShell .resultError pre {
+  margin-top: 8px;
+  max-height: 220px;
+}
 .hvsShell .empty {
   min-height: 120px;
   display: grid;
@@ -1215,6 +1329,12 @@ h1, h2, h3, h4 {
   }
   .hvsShell .topbar {
     grid-template-columns: 1fr;
+  }
+  .hvsShell .oneClickPanel {
+    grid-template-columns: 1fr;
+  }
+  .hvsShell .oneClickButton {
+    width: 100%;
   }
   .hvsShell h1 {
     font-size: 24px;

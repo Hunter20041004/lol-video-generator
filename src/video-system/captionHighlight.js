@@ -1,4 +1,4 @@
-const TEAM_TAGS = ["T1", "TL", "KC", "GEN", "G2", "BLG", "JDG", "TES", "HLE", "DK", "KT", "CFO", "PSG"];
+const TEAM_TAGS = ["T1", "TL", "KC", "GEN", "G2", "BLG", "JDG", "TES", "HLE", "TSW", "DK", "KT", "CFO", "PSG"];
 const KEYWORD_PATTERN = /^(增強|削弱|重塑|調整|核心|實戰|排位)/;
 const TEAM_PATTERN = new RegExp(`^(${TEAM_TAGS.map((tag) => tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?![A-Za-z0-9])`, "i");
 const STANDALONE_NUMBER_PATTERN = /^[0-9]+(?:\.[0-9]+)*(?:[KkMm%])?/;

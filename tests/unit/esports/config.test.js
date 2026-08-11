@@ -29,6 +29,17 @@ test("resolveActiveMode uses configured auto windows before falling back to regu
   assert.deepEqual(regular.leagues, ["LCK", "LPL"]);
 });
 
+test("resolveActiveMode defaults auto to MSI during the 2026 MSI window", () => {
+  const { resolveActiveMode } = require("../../../utils/esports/config");
+
+  const result = resolveActiveMode({ activeMode: "auto" }, new Date("2026-07-06T15:30:00.000Z"));
+
+  assert.equal(result.mode, "msi");
+  assert.equal(result.source, "auto");
+  assert.deepEqual(result.leagues, ["MSI"]);
+  assert.deepEqual(result.tournaments, ["MSI", "Mid-Season Invitational"]);
+});
+
 test("resolveActiveMode normalizes world aliases and merges custom tournament filters", () => {
   const { normalizeMode, resolveActiveMode } = require("../../../utils/esports/config");
 

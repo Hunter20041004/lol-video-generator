@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const { aggregateSeries } = require("./seriesAggregator");
 const { fetchCompletedSeriesForDate } = require("./seriesFetcher");
 const { writeCandidateSnapshot } = require("./candidateStore");
+const { resolveActiveMode } = require("./config");
 
 function normalizeLanguages(languages = ["zh", "en"]) {
   const values = Array.isArray(languages) && languages.length > 0 ? languages : ["zh", "en"];
@@ -55,6 +56,12 @@ function createScanId({ date, activeMode }, createdAt) {
   return `scan-${date || "unknown"}-${hash}`;
 }
 
+function resolveScanTime(date, now) {
+  if (date) return new Date(`${String(date).slice(0, 10)}T15:30:00.000Z`);
+  const value = now();
+  return value instanceof Date ? value : new Date(value);
+}
+
 async function scanEsportsCandidates(options = {}, deps = {}) {
   if (options.useSample) {
     throw new Error("useSample is not supported for esports candidates.");
@@ -63,9 +70,13 @@ async function scanEsportsCandidates(options = {}, deps = {}) {
   const now = deps.now || (() => new Date());
   const createdAt = (now() instanceof Date ? now() : new Date(now())).toISOString();
   const fetchSeriesCandidates = deps.fetchSeriesCandidates || fetchCompletedSeriesForDate;
+  const activeMode = resolveActiveMode({
+    ...(options.config || {}),
+    activeMode: options.activeMode || "auto",
+  }, resolveScanTime(options.date, now));
   const rawCandidates = await fetchSeriesCandidates({
     date: options.date,
-    activeMode: options.activeMode,
+    activeMode,
     tournamentScope: options.tournamentScope,
     languages: normalizeLanguages(options.languages),
   });
@@ -74,7 +85,8 @@ async function scanEsportsCandidates(options = {}, deps = {}) {
     scanId: createScanId(options, createdAt),
     createdAt,
     date: options.date,
-    activeMode: options.activeMode || "daily",
+    activeMode: activeMode.mode,
+    activeModeDetails: activeMode,
     languages: normalizeLanguages(options.languages),
     tournamentScope: options.tournamentScope || "configured",
     sourceStatus: {
