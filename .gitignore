@@ -16,6 +16,8 @@ out/
 dist/
 build/
 coverage/
+.screenshots/
+.playwright-cli/
 
 # Local runtime data and caches
 .data/
