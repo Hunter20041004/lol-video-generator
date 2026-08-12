@@ -5,15 +5,16 @@ const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "../../..");
 
-test("Remotion registers repository-hosted Outfit before rendering", () => {
-  const helperPath = path.join(ROOT, "src/video-system/localFonts.js");
+test("Remotion exposes repository-hosted Outfit without a long-lived render lock", () => {
+  const stylesheetPath = path.join(ROOT, "src/video-system/localFonts.css");
   const indexSource = fs.readFileSync(path.join(ROOT, "src/index.jsx"), "utf8");
 
-  assert.equal(fs.existsSync(helperPath), true);
-  const helperSource = fs.readFileSync(helperPath, "utf8");
-  assert.match(indexSource, /import\s+\{\s*ensureLocalVideoFonts\s*\}\s+from\s+["']\.\/video-system\/localFonts["']/);
-  assert.match(indexSource, /ensureLocalVideoFonts\(\)/);
-  assert.match(helperSource, /staticFile\(["']fonts\/Outfit-Variable\.woff2["']\)/);
-  assert.match(helperSource, /delayRender\(/);
-  assert.match(helperSource, /continueRender\(/);
+  assert.equal(fs.existsSync(stylesheetPath), true);
+  const stylesheetSource = fs.readFileSync(stylesheetPath, "utf8");
+  assert.match(indexSource, /import\s+["']\.\/video-system\/localFonts\.css["']/);
+  assert.doesNotMatch(indexSource, /ensureLocalVideoFonts/);
+  assert.match(stylesheetSource, /@font-face/);
+  assert.match(stylesheetSource, /font-family:\s*["']Outfit["']/);
+  assert.match(stylesheetSource, /url\(["']?\/public\/fonts\/Outfit-Variable\.woff2["']?\)/);
+  assert.match(stylesheetSource, /font-display:\s*block/);
 });

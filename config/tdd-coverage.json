@@ -181,9 +181,9 @@
     },
     {
       "id": "repository-hosted-video-fonts",
-      "description": "Repository-hosted Outfit registration before Remotion rendering",
+      "description": "Repository-hosted Outfit stylesheet for Remotion rendering",
       "productionFiles": [
-        "src/video-system/localFonts.js"
+        "src/video-system/localFonts.css"
       ],
       "testFiles": [
         "tests/unit/render/localFonts.test.js",
