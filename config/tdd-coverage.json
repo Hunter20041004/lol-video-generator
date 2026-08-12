@@ -166,6 +166,18 @@
       "testFiles": [
         "tests/unit/metaFactory/workbenchStatic.test.js"
       ]
+    },
+    {
+      "id": "genai-request-boundary",
+      "description": "Single-attempt Google GenAI requests with a bounded native timeout and deterministic API fallback",
+      "productionFiles": [
+        "reasoning.js",
+        "utils/genaiClient.js"
+      ],
+      "testFiles": [
+        "tests/unit/genaiClient.test.js",
+        "tests/unit/reasoning.test.js"
+      ]
     }
   ]
 }

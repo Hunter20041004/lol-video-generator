@@ -1,8 +1,8 @@
 require('dotenv').config();
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { normalizePipelinePayload } = require('./src/schemas/pipelineSchemas');
 const { cleanJSONCandidate, extractBalancedJSON } = require('./utils/jsonExtraction');
+const { generateModelText } = require('./utils/genaiClient');
 const { getPipelinePromptForDataType, PROMPTS_BY_DATA_TYPE } = require('./utils/pipelinePrompts');
 
 const LOCKED_MODEL_NAME = 'gemma-4-31b-it';
@@ -237,82 +237,70 @@ function backfillRequiredFields(parsed, inputData, dataType, locale) {
   }
 }
 
-async function analyzeChange(inputData = {}) {
-  const locale = inputData.locale || 'zh';
-  const dataType = inputData.dataType || 'PATCH';
-  const target = inputData.championName || inputData.proPlayer || inputData.compName || inputData.headline || inputData.playerName || inputData.role || inputData.targetName || '?';
-  console.log(`🧠 [AI] dataType=${dataType} locale=${locale} target=${target}`);
+function createAnalyzeChange({ generateText = generateModelText } = {}) {
+  return async function analyzeChange(inputData = {}) {
+    const locale = inputData.locale || 'zh';
+    const dataType = inputData.dataType || 'PATCH';
+    const target = inputData.championName || inputData.proPlayer || inputData.compName || inputData.headline || inputData.playerName || inputData.role || inputData.targetName || '?';
+    console.log(`🧠 [AI] dataType=${dataType} locale=${locale} target=${target}`);
 
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error('尚未設置 GEMINI_API_KEY');
-  }
-
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: LOCKED_MODEL_NAME });
-  const systemPrompt = getPipelinePromptForDataType(dataType);
-  const userMessage = buildUserMessage(inputData);
-  const promptToSend = `${systemPrompt}\n\n=== USER REQUEST ===\n${userMessage}`;
-
-  console.log(`📦 [Prompt] model=${LOCKED_MODEL_NAME} dataType=${dataType} system=${systemPrompt.length} chars user=${userMessage.length} chars total=${promptToSend.length} chars`);
-
-  const maxRetries = Number(process.env.GEMMA_31B_MAX_RETRIES || 2);
-  const modelTimeoutMs = Number(process.env.GEMINI_MODEL_TIMEOUT_MS || 60000);
-  let rawText = '';
-  let lastAIError = null;
-
-  const generateWithTimeout = () => Promise.race([
-    model.generateContent(promptToSend),
-    new Promise((_, reject) => setTimeout(() => reject(new Error(`MODEL_TIMEOUT after ${modelTimeoutMs}ms`)), modelTimeoutMs)),
-  ]);
-
-  for (let attempt = 1; attempt <= maxRetries; attempt += 1) {
-    try {
-      const result = await generateWithTimeout();
-      rawText = result.response.text();
-      if (rawText && rawText.trim()) break;
-      lastAIError = new Error('Gemma returned empty text');
-    } catch (error) {
-      lastAIError = error;
-      console.warn(`⚠️ [Gemma Attempt ${attempt}/${maxRetries}] ${error.message}`);
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('尚未設置 GEMINI_API_KEY');
     }
-  }
 
-  if (!rawText && lastAIError) throw lastAIError;
+    const systemPrompt = getPipelinePromptForDataType(dataType);
+    const userMessage = buildUserMessage(inputData);
+    const promptToSend = `${systemPrompt}\n\n=== USER REQUEST ===\n${userMessage}`;
 
-  const jsonStr = cleanJSONCandidate(extractBalancedJSON(rawText));
-  if (!jsonStr) {
-    console.error('❌ [AI RAW DEBUG]:', rawText);
-    throw new Error('模型回傳內容不包含有效的 JSON 結構');
-  }
+    console.log(`📦 [Prompt] model=${LOCKED_MODEL_NAME} dataType=${dataType} system=${systemPrompt.length} chars user=${userMessage.length} chars total=${promptToSend.length} chars`);
 
-  let parsed;
-  try {
-    parsed = JSON.parse(jsonStr);
-  } catch (error) {
-    console.error('❌ [JSON Parse Error]:', error.message);
-    console.error('❌ [Faulty JSON]:', jsonStr);
-    throw error;
-  }
+    const modelTimeoutMs = process.env.GEMINI_MODEL_TIMEOUT_MS || 30_000;
+    const rawText = await generateText({
+      apiKey: process.env.GEMINI_API_KEY,
+      model: LOCKED_MODEL_NAME,
+      prompt: promptToSend,
+      timeoutMs: modelTimeoutMs,
+    });
+    if (!rawText.trim()) throw new Error('Gemma returned empty text');
 
-  const reasoningStats = stripReasoningInPlace(parsed);
-  if (reasoningStats.stripped > 0) {
-    console.log(`🧹 [CoT Cleanup] stripped ${reasoningStats.stripped} _reasoning fields`);
-  }
+    const jsonStr = cleanJSONCandidate(extractBalancedJSON(rawText));
+    if (!jsonStr) {
+      console.error('❌ [AI RAW DEBUG]:', rawText);
+      throw new Error('模型回傳內容不包含有效的 JSON 結構');
+    }
 
-  inferStatChangesFromStoryboard(parsed);
-  backfillRequiredFields(parsed, inputData, dataType, locale);
-  normalizeStoryboardText(parsed, locale);
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch (error) {
+      console.error('❌ [JSON Parse Error]:', error.message);
+      console.error('❌ [Faulty JSON]:', jsonStr);
+      throw error;
+    }
 
-  const normalized = normalizePipelinePayload(parsed);
-  if (normalized.issues.length > 0) {
-    console.warn(`⚠️ [Schema Contract] ${dataType}: ${normalized.issues.map((issue) => `${issue.path.join('.') || '(root)'}:${issue.message}`).slice(0, 4).join(' | ')}`);
-  }
+    const reasoningStats = stripReasoningInPlace(parsed);
+    if (reasoningStats.stripped > 0) {
+      console.log(`🧹 [CoT Cleanup] stripped ${reasoningStats.stripped} _reasoning fields`);
+    }
 
-  return normalized.data;
+    inferStatChangesFromStoryboard(parsed);
+    backfillRequiredFields(parsed, inputData, dataType, locale);
+    normalizeStoryboardText(parsed, locale);
+
+    const normalized = normalizePipelinePayload(parsed);
+    if (normalized.issues.length > 0) {
+      console.warn(`⚠️ [Schema Contract] ${dataType}: ${normalized.issues.map((issue) => `${issue.path.join('.') || '(root)'}:${issue.message}`).slice(0, 4).join(' | ')}`);
+    }
+
+    return normalized.data;
+  };
 }
+
+const analyzeChange = createAnalyzeChange();
 
 module.exports = {
   analyzeChange,
+  createAnalyzeChange,
   SYSTEM_PROMPT_BASE,
   buildUserMessage,
   MAX_USER_MSG_CHARS,

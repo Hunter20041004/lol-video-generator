@@ -127,6 +127,15 @@ test("package does not directly depend on a platform-specific Remotion composito
   );
 });
 
+test("legacy Gemini cache manager and SDK are absent from the production surface", () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+
+  assert.equal(fs.existsSync(path.join(ROOT, "scripts", "manageCache.js")), false);
+  assert.equal(Object.keys(pkg.scripts).some((name) => name.startsWith("cache:")), false);
+  assert.equal(Object.hasOwn(pkg.dependencies, "@google/generative-ai"), false);
+  assert.equal(pkg.dependencies["@google/genai"], "2.16.0");
+});
+
 test("generic analyze entrypoints do not expose retired player radar prompts or whitelists", () => {
   const { PROMPTS_BY_DATA_TYPE, getPipelinePromptForDataType } = require(path.join(ROOT, "utils/pipelinePrompts.js"));
   const promptSource = fs.readFileSync(path.join(ROOT, "utils/pipelinePrompts.js"), "utf8");
