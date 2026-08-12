@@ -45,7 +45,10 @@ function assertCiWorkflow(workflow) {
   assert.equal(verify?.["runs-on"], "ubuntu-latest", "verify must run on ubuntu-latest");
   assert.equal(verify?.["timeout-minutes"], 25, "verify must use a 25-minute timeout");
   const steps = Array.isArray(verify?.steps) ? verify.steps : [];
+  const checkout = steps.find((step) => String(step?.uses || "").startsWith("actions/checkout@"));
   const setupNode = steps.find((step) => String(step?.uses || "").startsWith("actions/setup-node@"));
+  assert.equal(checkout?.uses, "actions/checkout@v7", "verify must use the Node 24 checkout runtime");
+  assert.equal(setupNode?.uses, "actions/setup-node@v7", "verify must use the Node 24 setup-node runtime");
   assert.equal(String(setupNode?.with?.["node-version"]), "22", "verify must use Node 22");
   assert.deepEqual(
     steps.filter((step) => typeof step?.run === "string").map((step) => step.run),
