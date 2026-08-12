@@ -302,6 +302,33 @@ test("Radar chart does not synthesize fallback evidence axes", () => {
   assert.match(source, /hasEvidenceDisplayValue/);
 });
 
+test("Player radar hook renders selected opening evidence without a delayed data gate", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+  const hookSource = source.match(/const HookScene = \([\s\S]*?\n\};\n\nconst MatchupEdgeScene/);
+
+  assert.ok(hookSource, "expected HookScene source");
+  assert.match(hookSource[0], /const openingEvidence = getOpeningEvidence\(data\)/);
+  assert.match(hookSource[0], /kicker=\{openingEvidence\.label\}/);
+  assert.match(hookSource[0], /value=\{openingEvidence\.value\}/);
+  assert.doesNotMatch(hookSource[0], /localFrame\s*[>=]=?\s*15/);
+});
+
+test("Player radar timeline starts at frame zero", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+
+  assert.match(source, /buildTimeline\(storyboard, fps, 0\)/);
+});
+
+test("Player radar scene body never hides data behind an entrance animation", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+  const stageSource = source.match(/const MobileShortStage = \([\s\S]*?\n\nconst OnePointSceneBody/);
+
+  assert.ok(stageSource, "expected MobileShortStage source");
+  assert.doesNotMatch(stageSource[0], /spring\(/);
+  assert.doesNotMatch(stageSource[0], /opacity:\s*enter/);
+  assert.doesNotMatch(stageSource[0], /localFrame\s*-\s*5/);
+});
+
 test("Remotion root player radar preview uses the dual-read payload shape", () => {
   const rootSource = fs.readFileSync(path.join(ROOT, "src/Root.jsx"), "utf8");
   const playerRadarBlock = rootSource.match(/const mockPlayerRadarData = \{[\s\S]*?\n\};\n\nconst mockEsportsH2HRadarData = \{/);
@@ -336,6 +363,49 @@ test("Player radar hook proof pill uses the explicit proof player before MVP fal
   });
 
   assert.equal(value, "Keria");
+});
+
+test("Player radar opening evidence prefers the strongest matchup metric", () => {
+  const { getOpeningEvidence } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
+
+  const evidence = getOpeningEvidence({
+    matchupSegment: {
+      reasons: [{ metric: "DPM", delta: 220 }],
+    },
+    proofSegment: {
+      proofType: "mvp",
+      player: { name: "Faker" },
+    },
+  });
+
+  assert.deepEqual(evidence, { label: "DPM", value: "+220" });
+});
+
+test("Player radar opening evidence falls back to the proof pill", () => {
+  const { getOpeningEvidence } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
+
+  const evidence = getOpeningEvidence({
+    locale: "zh",
+    matchupSegment: { reasons: [] },
+    proofSegment: {
+      proofType: "key_player",
+      player: { name: "Keria" },
+    },
+  });
+
+  assert.deepEqual(evidence, { label: "關鍵人物", value: "Keria" });
+});
+
+test("Player radar opening evidence formats percentage-point deltas", () => {
+  const { getOpeningEvidence } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
+
+  const evidence = getOpeningEvidence({
+    matchupSegment: {
+      reasons: [{ metric: "KP%", delta: 0.21 }],
+    },
+  });
+
+  assert.deepEqual(evidence, { label: "KP%", value: "+21pp" });
 });
 
 test("Player radar matchup display keeps loser-focus scenes paired against the actual opponent", () => {
@@ -412,4 +482,13 @@ test("Player radar Chinese locale copy avoids unfinished English proof labels", 
   assert.equal(copy.proofBadgeLabels.mvp, "MVP 證明");
   assert.equal(copy.proofBadgeLabels.key_player, "關鍵人物證明");
   assert.doesNotMatch(copy.proofBadgeLabels.mvp, /CASE/);
+});
+
+test("Player radar localized opening hooks last 45 frames", () => {
+  const { getPlayerRadarCopy } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
+
+  for (const locale of ["zh", "en"]) {
+    const hook = getPlayerRadarCopy({ locale }).storyboard.find((scene) => scene.tag === "HOOK");
+    assert.equal(hook.durationInFrames, 45, locale);
+  }
 });

@@ -47,7 +47,7 @@ const getPlayerRadarCopy = (data = {}) => {
       conclusionChipsSamePlayer: ["最大對位差", "MVP 證明", "同一人"],
       conclusionChipsSplit: ["對位差距", "關鍵人物", "雙判讀"],
       storyboard: [
-        { tag: "HOOK", text: "(playerName)賽後雷達\n數據一眼看懂", durationInFrames: 86 },
+        { tag: "HOOK", text: "(playerName)賽後雷達\n數據一眼看懂", durationInFrames: 45 },
         { tag: "MATCHUP_EDGE", text: "對位差距先看\n誰把優勢打穿", durationInFrames: 126 },
         { tag: "PLAYER_PROOF", text: "關鍵人物理由\n數據直接列出來", durationInFrames: 112 },
         { tag: "CONCLUSION_CTA", text: "這場是不是 MVP\n留言告訴我", durationInFrames: 92 },
@@ -78,7 +78,7 @@ const getPlayerRadarCopy = (data = {}) => {
       conclusionChipsSamePlayer: ["Matchup edge", "MVP case", "Same player"],
       conclusionChipsSplit: ["Matchup edge", "Key player", "Dual read"],
       storyboard: [
-        { tag: "HOOK", text: "(playerName) player radar\nThe numbers tell the story", durationInFrames: 86 },
+        { tag: "HOOK", text: "(playerName) player radar\nThe numbers tell the story", durationInFrames: 45 },
         { tag: "MATCHUP_EDGE", text: "Start with the lane swing\nWho broke the matchup open", durationInFrames: 126 },
         { tag: "PLAYER_PROOF", text: "Make the key-player case\nStack the proof cleanly", durationInFrames: 112 },
         { tag: "CONCLUSION_CTA", text: "Was this the MVP read\nDrop your take below", durationInFrames: 92 },
@@ -138,6 +138,26 @@ const getHookProofPillValue = (data = {}) => {
   return getPlayer(data).name || "MVP";
 };
 
+const getOpeningEvidence = (data = {}) => {
+  const reason = data.matchupSegment?.reasons?.[0];
+  if (!reason) {
+    const copy = getPlayerRadarCopy(data);
+    const proofType = data.proofSegment?.proofType === "mvp" ? "mvp" : "key_player";
+    return {
+      label: copy.hookProofTypeLabels[proofType],
+      value: getHookProofPillValue(data),
+    };
+  }
+
+  const metric = String(reason.metric || "");
+  const delta = Number(reason.delta);
+  const formattedDelta = metric === "KP%"
+    ? `${Math.round(delta * 100)}pp`
+    : (metric === "DPM" || metric === "GPM" ? Math.round(delta) : delta);
+  const value = Number.isFinite(delta) ? `+${formattedDelta}` : String(reason.delta || "");
+  return { label: metric, value };
+};
+
 const buildConclusionVerdict = (data = {}) => {
   const copy = getPlayerRadarCopy(data);
   const focusPlayer = data.matchupSegment?.focusPlayer || data.matchupSegment?.edgePlayer || {};
@@ -171,6 +191,7 @@ module.exports = {
   buildConclusionVerdict,
   deriveMatchupDisplayPlayers,
   getMatchupMetricDisplay,
+  getOpeningEvidence,
   getHookProofPillValue,
   getPlayer,
   getPlayerRadarCopy,

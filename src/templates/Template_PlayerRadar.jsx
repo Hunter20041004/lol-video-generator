@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { BgmLayer } from "../video-system/BgmLayer";
 import { HextechBackground, HEXTECH_COLORS } from "../video-system/HextechBackground";
 import { SubtitleCaption } from "../video-system/SubtitleCaption";
@@ -17,6 +17,7 @@ const {
   deriveMatchupDisplayPlayers,
   getHookProofPillValue,
   getMatchupMetricDisplay,
+  getOpeningEvidence,
   getPlayer,
   getPlayerRadarCopy,
   getRoleLabel,
@@ -480,24 +481,19 @@ const EvidenceCard = ({ reason, index, theme, data = {}, large = false }) => (
   <CompactEvidenceCard reason={reason} index={index} theme={theme} data={data} large={large} />
 );
 
-const MobileShortStage = ({ children, localFrame = 0, offset = 0 }) => {
-  const enter = spring({ frame: Math.max(0, localFrame - 5), fps: 30, config: { stiffness: 150, damping: 19 } });
-
-  return (
-    <div
-      style={{
-        height: "100%",
-        display: "grid",
-        alignContent: "center",
-        padding: "22px 2px 168px",
-        transform: `translateY(${interpolate(enter, [0, 1], [24 + offset, offset])}px)`,
-        opacity: enter,
-      }}
-    >
-      {children}
-    </div>
-  );
-};
+const MobileShortStage = ({ children, offset = 0 }) => (
+  <div
+    style={{
+      height: "100%",
+      display: "grid",
+      alignContent: "center",
+      padding: "22px 2px 168px",
+      transform: `translateY(${offset}px)`,
+    }}
+  >
+    {children}
+  </div>
+);
 
 const OnePointSceneBody = ({ children, gap = 22, style = {} }) => (
   <div
@@ -664,10 +660,7 @@ const HookScene = ({ data, theme, localFrame }) => {
   const en = isEnglishLocale(data);
   const isSamePlayer = samePlayer(edgePlayer, proofPlayer);
   const roleLabel = getRoleLabel(edgePlayer.role || player.role, data);
-  const primaryMetric = primaryMatchupReason?.metric || templateCopy.primaryGap;
-  const primaryDelta = primaryMatchupReason
-    ? formatMetricDelta(primaryMatchupReason.metric, primaryMatchupReason.delta)
-    : getHookProofPillValue(data);
+  const openingEvidence = getOpeningEvidence(data);
   const headline = isSamePlayer
     ? (en ? `${proofPlayer.name} owns the ${roleLabel}` : `${proofPlayer.name} 打穿${roleLabel}`)
     : (en ? `${edgePlayer.name} gap, ${proofPlayer.name} case` : `${edgePlayer.name} 對位差，${proofPlayer.name} 關鍵人物`);
@@ -693,8 +686,8 @@ const HookScene = ({ data, theme, localFrame }) => {
           </div>
         </div>
         <HeroNumber
-          kicker={primaryMetric}
-          value={primaryDelta}
+          kicker={openingEvidence.label}
+          value={openingEvidence.value}
           label={en ? "Start with the lane swing" : "先看這路贏在哪"}
           accent={HEXTECH_COLORS.gold}
           theme={theme}
@@ -886,7 +879,7 @@ export const Template_PlayerRadar = ({ data }) => {
   const { fps } = useVideoConfig();
   const theme = getPipelineTheme("PLAYER_RADAR");
   const storyboard = buildRadarStoryboard(data);
-  const timeline = buildTimeline(storyboard, fps);
+  const timeline = buildTimeline(storyboard, fps, 0);
   const active = getActiveTimelineScene(timeline, frame);
   const tag = active.scene?.tag || "HOOK";
 
