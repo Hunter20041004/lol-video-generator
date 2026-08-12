@@ -176,15 +176,16 @@ async function waitForPublicMediaUrlHealthy({
 }
 
 function updateEnvFileValue({
-  cwd,
-  fileName = ".env.local",
+  envPath,
   key,
   value,
 } = {}) {
-  const envPath = cwd
-    ? path.join(cwd, fileName)
-    : path.join(/* turbopackIgnore: true */ process.cwd(), fileName);
-  const existing = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf8") : "";
+  if (!envPath || path.basename(envPath) !== ".env.local") {
+    throw new Error("updateEnvFileValue requires an explicit .env.local path.");
+  }
+  const existing = fs.existsSync(/* turbopackIgnore: true */ envPath)
+    ? fs.readFileSync(/* turbopackIgnore: true */ envPath, "utf8")
+    : "";
   const line = `${key}=${value}`;
   const lines = existing.split(/\r?\n/);
   let replaced = false;
@@ -199,7 +200,7 @@ function updateEnvFileValue({
     if (nextLines.length > 0 && nextLines[nextLines.length - 1] !== "") nextLines.push("");
     nextLines.push(line);
   }
-  fs.writeFileSync(envPath, `${nextLines.join("\n").replace(/\n+$/, "")}\n`, "utf8");
+  fs.writeFileSync(/* turbopackIgnore: true */ envPath, `${nextLines.join("\n").replace(/\n+$/, "")}\n`, "utf8");
   return envPath;
 }
 
@@ -310,7 +311,8 @@ async function ensurePublicMediaBaseUrl({
     if (refreshedHealth.ok) {
       process.env.PUBLIC_MEDIA_BASE_URL = tunnel.baseUrl;
       if (updateEnv) {
-        updateEnvFileValue({ cwd, key: "PUBLIC_MEDIA_BASE_URL", value: tunnel.baseUrl });
+        const envPath = path.join(cwd || process.cwd(), ".env.local");
+        updateEnvFileValue({ envPath, key: "PUBLIC_MEDIA_BASE_URL", value: tunnel.baseUrl });
       }
 
       return {

@@ -25,16 +25,22 @@ function requiredVideoKeysForLanguages(languages = ["zh", "en"], videoTypes = DE
   return normalizeLanguages(languages).flatMap((locale) => types.map((type) => `${type}:${locale}`));
 }
 
-function localVideoPath(videoUrl = "") {
-  if (!videoUrl || /^https?:\/\//i.test(videoUrl)) return "";
-  const relative = String(videoUrl).startsWith("/") ? String(videoUrl).slice(1) : String(videoUrl);
-  return path.join(/*turbopackIgnore: true*/ process.cwd(), "public", relative);
+function resolveRenderFilePath(video = {}, cwd = process.cwd()) {
+  const rawPath = video.filePath || video.videoUrl || "";
+  if (!rawPath || /^https?:\/\//i.test(rawPath)) return "";
+
+  const renderRoot = path.resolve(cwd, "public", "renders");
+  const candidate = video.filePath
+    ? path.resolve(String(rawPath))
+    : path.resolve(cwd, "public", String(rawPath).replace(/^\/+/, ""));
+
+  return candidate.startsWith(`${renderRoot}${path.sep}`) ? candidate : "";
 }
 
 function videoExists(video = {}) {
   if (video.exists === true) return true;
-  const filePath = video.filePath || localVideoPath(video.videoUrl);
-  return Boolean(filePath && fs.existsSync(filePath));
+  const filePath = resolveRenderFilePath(video);
+  return Boolean(filePath && fs.existsSync(/* turbopackIgnore: true */ filePath));
 }
 
 function evaluateSeriesGate(run = {}) {
@@ -89,6 +95,7 @@ module.exports = {
   REQUIRED_VIDEO_KEYS,
   normalizeVideoTypes,
   requiredVideoKeysForLanguages,
+  resolveRenderFilePath,
   evaluateSeriesGate,
   videoExists,
 };

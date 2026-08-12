@@ -101,8 +101,11 @@ test("evaluateSeriesGate reports all hard completeness failures and accepts real
 test("videoExists supports explicit file paths and rejects empty or missing relative URLs", () => {
   const { videoExists, evaluateSeriesGate } = require("../../../utils/esports/gatekeeper");
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-esports-gate-file-"));
+  const originalCwd = process.cwd();
   try {
-    const filePath = path.join(dir, "video.mp4");
+    process.chdir(dir);
+    fs.mkdirSync(path.join(dir, "public", "renders"), { recursive: true });
+    const filePath = path.join(process.cwd(), "public", "renders", "video.mp4");
     fs.writeFileSync(filePath, "video");
 
     assert.equal(videoExists({ filePath }), true);
@@ -129,6 +132,41 @@ test("videoExists supports explicit file paths and rejects empty or missing rela
 
     assert.equal(result.passed, true);
   } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("videoExists rejects an existing file outside public/renders", () => {
+  const { videoExists } = require("../../../utils/esports/gatekeeper");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-esports-gate-outside-"));
+  const originalCwd = process.cwd();
+  try {
+    process.chdir(dir);
+    const outsidePath = path.join(dir, "private-video.mp4");
+    fs.writeFileSync(outsidePath, "video");
+
+    assert.equal(videoExists({ filePath: outsidePath }), false);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("videoExists rejects files in a same-prefix renders sibling", () => {
+  const { videoExists } = require("../../../utils/esports/gatekeeper");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-esports-gate-prefix-"));
+  const originalCwd = process.cwd();
+  try {
+    process.chdir(dir);
+    const siblingDir = path.join(process.cwd(), "public", "renders-evil");
+    fs.mkdirSync(siblingDir, { recursive: true });
+    const siblingPath = path.join(siblingDir, "clip.mp4");
+    fs.writeFileSync(siblingPath, "video");
+
+    assert.equal(videoExists({ filePath: siblingPath }), false);
+  } finally {
+    process.chdir(originalCwd);
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });

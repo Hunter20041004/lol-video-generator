@@ -193,23 +193,35 @@ test("startTryCloudflareTunnel parses the generated quick tunnel URL", async () 
 
 test("updateEnvFileValue replaces existing keys and appends missing keys", () => {
   const cwd = makeTempProject();
-  fs.writeFileSync(path.join(cwd, ".env.local"), "A=1\nPUBLIC_MEDIA_BASE_URL=https://old.example\n", "utf8");
+  const originalCwd = process.cwd();
+  const envPath = path.join(cwd, "config", ".env.local");
+  try {
+    fs.mkdirSync(path.dirname(envPath), { recursive: true });
+    fs.writeFileSync(envPath, "A=1\nPUBLIC_MEDIA_BASE_URL=https://old.example\n", "utf8");
+    process.chdir(cwd);
 
-  updateEnvFileValue({ cwd, key: "PUBLIC_MEDIA_BASE_URL", value: "https://new.example" });
-  updateEnvFileValue({ cwd, key: "EXTRA_KEY", value: "extra" });
+    updateEnvFileValue({ envPath, key: "PUBLIC_MEDIA_BASE_URL", value: "https://new.example" });
+    updateEnvFileValue({ envPath, key: "EXTRA_KEY", value: "extra" });
 
-  const envText = fs.readFileSync(path.join(cwd, ".env.local"), "utf8");
-  assert.match(envText, /PUBLIC_MEDIA_BASE_URL=https:\/\/new\.example/);
-  assert.match(envText, /EXTRA_KEY=extra/);
-  fs.rmSync(cwd, { recursive: true, force: true });
+    const envText = fs.readFileSync(envPath, "utf8");
+    assert.match(envText, /PUBLIC_MEDIA_BASE_URL=https:\/\/new\.example/);
+    assert.match(envText, /EXTRA_KEY=extra/);
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
 });
 
-test("updateEnvFileValue can write to the active project directory when cwd is omitted", () => {
+test("updateEnvFileValue can write to the active project env path", () => {
   const originalCwd = process.cwd();
   const cwd = makeTempProject();
   try {
     process.chdir(cwd);
-    updateEnvFileValue({ key: "PUBLIC_MEDIA_BASE_URL", value: "https://active-dir.trycloudflare.com" });
+    updateEnvFileValue({
+      envPath: path.join(cwd, ".env.local"),
+      key: "PUBLIC_MEDIA_BASE_URL",
+      value: "https://active-dir.trycloudflare.com",
+    });
 
     const envText = fs.readFileSync(path.join(cwd, ".env.local"), "utf8");
     assert.match(envText, /PUBLIC_MEDIA_BASE_URL=https:\/\/active-dir\.trycloudflare\.com/);
