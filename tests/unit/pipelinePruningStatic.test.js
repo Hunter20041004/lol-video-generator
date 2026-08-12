@@ -155,6 +155,19 @@ test("package does not directly depend on a platform-specific Remotion composito
   );
 });
 
+test("package declares only directly used Remotion packages", () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  const directRemotionDependencies = Object.keys({
+    ...pkg.dependencies,
+    ...pkg.devDependencies,
+    ...pkg.optionalDependencies,
+  })
+    .filter((name) => name === "remotion" || name.startsWith("@remotion/"))
+    .sort();
+
+  assert.deepEqual(directRemotionDependencies, ["@remotion/cli", "remotion"]);
+});
+
 test("legacy Gemini cache manager and SDK are absent from the production surface", () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
 
