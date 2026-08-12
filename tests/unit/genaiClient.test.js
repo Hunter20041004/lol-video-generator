@@ -31,3 +31,44 @@ test("normalizeModelTimeoutMs clamps overrides to the supported request budget",
   assert.equal(normalizeModelTimeoutMs(50), 1_000);
   assert.equal(normalizeModelTimeoutMs(120_000), 60_000);
 });
+
+test("generateModelText uses the official SDK boundary and tolerates an empty model response", async () => {
+  const sdkPath = require.resolve("@google/genai");
+  const originalSdkModule = require.cache[sdkPath];
+  const calls = [];
+
+  class FakeGoogleGenAI {
+    constructor(options) {
+      calls.push({ options });
+      this.models = {
+        generateContent: async (request) => {
+          calls.push({ request });
+          return {};
+        },
+      };
+    }
+  }
+
+  require.cache[sdkPath] = {
+    id: sdkPath,
+    filename: sdkPath,
+    loaded: true,
+    exports: { GoogleGenAI: FakeGoogleGenAI },
+  };
+
+  try {
+    const result = await generateModelText({
+      apiKey: "test-key",
+      model: "gemma-4-31b-it",
+      prompt: "prompt",
+      timeoutMs: "1549.6",
+    });
+
+    assert.equal(result, "");
+    assert.deepEqual(calls[0], { options: { apiKey: "test-key" } });
+    assert.equal(calls[1].request.config.httpOptions.timeout, 1_550);
+  } finally {
+    if (originalSdkModule) require.cache[sdkPath] = originalSdkModule;
+    else delete require.cache[sdkPath];
+  }
+});

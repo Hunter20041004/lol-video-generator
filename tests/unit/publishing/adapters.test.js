@@ -74,14 +74,28 @@ test("publishes Threads text only when explicitly allowed", async () => {
     return jsonResponse({ id: "post-1" });
   };
 
-  const result = await threads.publish(task({ publicVideoUrl: "", videoUrl: "" }));
+  const result = await threads.publish(task({
+    publicVideoUrl: "",
+    videoUrl: "",
+    copy: { title: "title-only post" },
+  }));
 
   assert.equal(result.status, "PUBLISHED");
   assert.equal(createBody.get("media_type"), "TEXT");
+  assert.equal(createBody.get("text"), "title-only post");
 });
 
 test("Threads returns NEEDS_AUTH when locale credentials are missing", async () => {
   delete process.env.THREADS_ZH_USER_ID;
+  delete process.env.THREADS_ZH_ACCESS_TOKEN;
+
+  const result = await threads.publish(task());
+
+  assert.equal(result.status, "NEEDS_AUTH");
+});
+
+test("Threads returns NEEDS_AUTH when only the account id is configured", async () => {
+  process.env.THREADS_ZH_USER_ID = "threads-user";
   delete process.env.THREADS_ZH_ACCESS_TOKEN;
 
   const result = await threads.publish(task());
@@ -108,6 +122,50 @@ test("Threads surfaces media creation errors from the API", async () => {
   await assert.rejects(() => threads.publish(task()), /create failed/);
 });
 
+test("Threads surfaces an exhausted network retry without hiding the provider error", async () => {
+  process.env.THREADS_ZH_USER_ID = "threads-user";
+  process.env.THREADS_ZH_ACCESS_TOKEN = "threads-token";
+  process.env.META_FETCH_RETRY_ATTEMPTS = "0";
+  process.env.META_FETCH_RETRY_DELAY_MS = "0";
+  global.fetch = async () => {
+    throw new Error("threads offline");
+  };
+
+  await assert.rejects(() => threads.publish(task()), /threads offline/);
+});
+
+test("Threads retries one transient network failure before a text-only publish", async () => {
+  process.env.THREADS_ZH_USER_ID = "threads-user";
+  process.env.THREADS_ZH_ACCESS_TOKEN = "threads-token";
+  process.env.THREADS_ALLOW_TEXT_ONLY = "true";
+  process.env.META_FETCH_RETRY_ATTEMPTS = "2";
+  process.env.META_FETCH_RETRY_DELAY_MS = "0";
+  let calls = 0;
+  global.fetch = async (url) => {
+    calls += 1;
+    if (calls === 1) throw new Error("temporary threads outage");
+    if (String(url).endsWith("/me/threads")) return jsonResponse({ id: "container-1" });
+    return jsonResponse({ id: "post-1" });
+  };
+
+  const result = await threads.publish(task({ publicVideoUrl: "", videoUrl: "" }));
+
+  assert.equal(result.status, "PUBLISHED");
+  assert.equal(calls, 3);
+});
+
+test("Threads reports the HTTP status when an error body is not JSON", async () => {
+  process.env.THREADS_ZH_USER_ID = "threads-user";
+  process.env.THREADS_ZH_ACCESS_TOKEN = "threads-token";
+  global.fetch = async () => ({
+    ok: false,
+    status: 502,
+    json: async () => { throw new Error("not json"); },
+  });
+
+  await assert.rejects(() => threads.publish(task()), /Threads API failed \(502\)/);
+});
+
 test("Threads surfaces container polling errors from the API", async () => {
   process.env.THREADS_ZH_USER_ID = "threads-user";
   process.env.THREADS_ZH_ACCESS_TOKEN = "threads-token";
@@ -119,6 +177,21 @@ test("Threads surfaces container polling errors from the API", async () => {
   await assert.rejects(() => threads.publish(task()), /poll failed/);
 });
 
+test("Threads reports the HTTP status when a polling error is not JSON", async () => {
+  process.env.THREADS_ZH_USER_ID = "threads-user";
+  process.env.THREADS_ZH_ACCESS_TOKEN = "threads-token";
+  global.fetch = async (url) => {
+    if (String(url).endsWith("/me/threads")) return jsonResponse({ id: "container-1" });
+    return {
+      ok: false,
+      status: 503,
+      json: async () => { throw new Error("not json"); },
+    };
+  };
+
+  await assert.rejects(() => threads.publish(task()), /Threads API failed \(503\)/);
+});
+
 test("Threads stops when the media container reports ERROR", async () => {
   process.env.THREADS_ZH_USER_ID = "threads-user";
   process.env.THREADS_ZH_ACCESS_TOKEN = "threads-token";
@@ -128,6 +201,17 @@ test("Threads stops when the media container reports ERROR", async () => {
   };
 
   await assert.rejects(() => threads.publish(task()), /video failed/);
+});
+
+test("Threads supplies a fallback when an ERROR container omits its message", async () => {
+  process.env.THREADS_ZH_USER_ID = "threads-user";
+  process.env.THREADS_ZH_ACCESS_TOKEN = "threads-token";
+  global.fetch = async (url) => {
+    if (String(url).endsWith("/me/threads")) return jsonResponse({ id: "container-1" });
+    return jsonResponse({ status: "ERROR" });
+  };
+
+  await assert.rejects(() => threads.publish(task()), /Threads media container failed/);
 });
 
 test("Threads timeout includes container id and last status", async () => {
@@ -143,6 +227,22 @@ test("Threads timeout includes container id and last status", async () => {
   await assert.rejects(
     () => threads.publish(task()),
     /Threads media container container-1 was not ready.*IN_PROGRESS/
+  );
+});
+
+test("Threads timeout is clear even before the first container status", async () => {
+  process.env.THREADS_ZH_USER_ID = "threads-user";
+  process.env.THREADS_ZH_ACCESS_TOKEN = "threads-token";
+  process.env.THREADS_CONTAINER_MAX_ATTEMPTS = "0";
+  process.env.THREADS_CONTAINER_POLL_MS = "0";
+  global.fetch = async (url) => {
+    if (String(url).endsWith("/me/threads")) return jsonResponse({ id: "container-1" });
+    throw new Error(`unexpected request: ${url}`);
+  };
+
+  await assert.rejects(
+    () => threads.publish(task()),
+    /Threads media container container-1 was not ready after 0ms\.$/,
   );
 });
 
@@ -196,6 +296,71 @@ test("Instagram publishing still succeeds if permalink lookup fails", async () =
   assert.equal(result.url, "");
 });
 
+test("Instagram publishing tolerates a successful permalink response without a URL", async () => {
+  process.env.INSTAGRAM_ZH_USER_ID = "ig-user";
+  process.env.INSTAGRAM_ZH_ACCESS_TOKEN = "ig-token";
+  process.env.INSTAGRAM_CONTAINER_POLL_MS = "0";
+  global.fetch = async (url) => {
+    if (String(url).endsWith("/ig-user/media")) return jsonResponse({ id: "container-1" });
+    if (String(url).includes("/container-1?")) return jsonResponse({ status_code: "FINISHED" });
+    if (String(url).endsWith("/ig-user/media_publish")) return jsonResponse({ id: "media-1" });
+    return jsonResponse({});
+  };
+
+  const result = await instagram.publish(task());
+
+  assert.equal(result.status, "PUBLISHED");
+  assert.equal(result.url, "");
+});
+
+test("Instagram retries one transient network failure before publishing", async () => {
+  process.env.INSTAGRAM_ZH_USER_ID = "ig-user";
+  process.env.INSTAGRAM_ZH_ACCESS_TOKEN = "ig-token";
+  process.env.INSTAGRAM_CONTAINER_POLL_MS = "0";
+  process.env.META_FETCH_RETRY_ATTEMPTS = "2";
+  process.env.META_FETCH_RETRY_DELAY_MS = "0";
+  let calls = 0;
+
+  global.fetch = async (url) => {
+    calls += 1;
+    if (calls === 1) throw new Error("temporary offline");
+    if (String(url).endsWith("/ig-user/media")) return jsonResponse({ id: "container-1" });
+    if (String(url).includes("/container-1?")) return jsonResponse({ status_code: "FINISHED" });
+    if (String(url).endsWith("/ig-user/media_publish")) return jsonResponse({ id: "media-1" });
+    return jsonResponse({ permalink: "https://instagram.com/reel/retried" });
+  };
+
+  const result = await instagram.publish(task());
+
+  assert.equal(result.status, "PUBLISHED");
+  assert.equal(result.url, "https://instagram.com/reel/retried");
+  assert.equal(calls, 5);
+});
+
+test("Instagram surfaces an exhausted network retry without hiding the provider error", async () => {
+  process.env.INSTAGRAM_ZH_USER_ID = "ig-user";
+  process.env.INSTAGRAM_ZH_ACCESS_TOKEN = "ig-token";
+  process.env.META_FETCH_RETRY_ATTEMPTS = "1";
+  process.env.META_FETCH_RETRY_DELAY_MS = "0";
+  global.fetch = async () => {
+    throw new Error("instagram offline");
+  };
+
+  await assert.rejects(() => instagram.publish(task()), /instagram offline/);
+});
+
+test("Instagram reports the HTTP status when an error body is not JSON", async () => {
+  process.env.INSTAGRAM_ZH_USER_ID = "ig-user";
+  process.env.INSTAGRAM_ZH_ACCESS_TOKEN = "ig-token";
+  global.fetch = async () => ({
+    ok: false,
+    status: 503,
+    json: async () => { throw new Error("not json"); },
+  });
+
+  await assert.rejects(() => instagram.publish(task()), /Instagram API failed \(503\)/);
+});
+
 test("Instagram returns NEEDS_AUTH when locale credentials are missing", async () => {
   delete process.env.INSTAGRAM_ZH_USER_ID;
   delete process.env.INSTAGRAM_ZH_ACCESS_TOKEN;
@@ -203,6 +368,42 @@ test("Instagram returns NEEDS_AUTH when locale credentials are missing", async (
   const result = await instagram.publish(task());
 
   assert.equal(result.status, "NEEDS_AUTH");
+});
+
+test("Instagram returns NEEDS_AUTH when only the account id is configured", async () => {
+  process.env.INSTAGRAM_ZH_USER_ID = "ig-user";
+  delete process.env.INSTAGRAM_ZH_ACCESS_TOKEN;
+
+  const result = await instagram.publish(task());
+
+  assert.equal(result.status, "NEEDS_AUTH");
+});
+
+test("Instagram derives the public video URL and falls back to description copy", async () => {
+  process.env.INSTAGRAM_ZH_USER_ID = "ig-user";
+  process.env.INSTAGRAM_ZH_ACCESS_TOKEN = "ig-token";
+  process.env.INSTAGRAM_CONTAINER_POLL_MS = "0";
+  process.env.PUBLIC_MEDIA_BASE_URL = "https://media.example.com";
+  let createBody;
+
+  global.fetch = async (url, options = {}) => {
+    if (String(url).endsWith("/ig-user/media")) {
+      createBody = options.body;
+      return jsonResponse({ id: "container-1" });
+    }
+    if (String(url).includes("/container-1?")) return jsonResponse({ status_code: "FINISHED" });
+    if (String(url).endsWith("/ig-user/media_publish")) return jsonResponse({ id: "media-1" });
+    return jsonResponse({ permalink: "https://instagram.com/reel/fallback" });
+  };
+
+  const result = await instagram.publish(task({
+    publicVideoUrl: "",
+    copy: { description: "description text" },
+  }));
+
+  assert.equal(result.status, "PUBLISHED");
+  assert.equal(createBody.get("video_url"), "https://media.example.com/renders/video.mp4");
+  assert.equal(createBody.get("caption"), "description text");
 });
 
 test("Instagram returns NEEDS_PUBLIC_URL when the render has no public URL", async () => {
@@ -234,6 +435,21 @@ test("Instagram surfaces container polling errors from the API", async () => {
   await assert.rejects(() => instagram.publish(task()), /poll failed/);
 });
 
+test("Instagram reports the HTTP status when a polling error is not JSON", async () => {
+  process.env.INSTAGRAM_ZH_USER_ID = "ig-user";
+  process.env.INSTAGRAM_ZH_ACCESS_TOKEN = "ig-token";
+  global.fetch = async (url) => {
+    if (String(url).endsWith("/ig-user/media")) return jsonResponse({ id: "container-1" });
+    return {
+      ok: false,
+      status: 502,
+      json: async () => { throw new Error("not json"); },
+    };
+  };
+
+  await assert.rejects(() => instagram.publish(task()), /Instagram API failed \(502\)/);
+});
+
 test("Instagram stops when the media container reports ERROR", async () => {
   process.env.INSTAGRAM_ZH_USER_ID = "ig-user";
   process.env.INSTAGRAM_ZH_ACCESS_TOKEN = "ig-token";
@@ -243,6 +459,33 @@ test("Instagram stops when the media container reports ERROR", async () => {
   };
 
   await assert.rejects(() => instagram.publish(task()), /video failed/);
+});
+
+test("Instagram supplies a fallback when an EXPIRED container omits its message", async () => {
+  process.env.INSTAGRAM_ZH_USER_ID = "ig-user";
+  process.env.INSTAGRAM_ZH_ACCESS_TOKEN = "ig-token";
+  global.fetch = async (url) => {
+    if (String(url).endsWith("/ig-user/media")) return jsonResponse({ id: "container-1" });
+    return jsonResponse({ status_code: "EXPIRED" });
+  };
+
+  await assert.rejects(() => instagram.publish(task()), /Instagram container EXPIRED/);
+});
+
+test("Instagram timeout is clear even before the first container status", async () => {
+  process.env.INSTAGRAM_ZH_USER_ID = "ig-user";
+  process.env.INSTAGRAM_ZH_ACCESS_TOKEN = "ig-token";
+  process.env.INSTAGRAM_CONTAINER_MAX_ATTEMPTS = "0";
+  process.env.INSTAGRAM_CONTAINER_POLL_MS = "0";
+  global.fetch = async (url) => {
+    if (String(url).endsWith("/ig-user/media")) return jsonResponse({ id: "container-1" });
+    throw new Error(`unexpected request: ${url}`);
+  };
+
+  await assert.rejects(
+    () => instagram.publish(task()),
+    /Instagram media container container-1 was not ready after 0ms\.$/,
+  );
 });
 
 test("Instagram timeout includes container id and last status", async () => {
