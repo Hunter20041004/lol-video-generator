@@ -1,8 +1,16 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-11 由 Codex 更新。整合 PR #5 已合併到 GitHub `main`；原本 dirty `main` 工作目錄沒有被 reset、clean、checkout 或覆蓋。
+> 2026-08-12 由 Codex 更新。本輪在隔離的 `codex/reliability-lightweight` worktree 完成；沒有 reset、clean、覆蓋 runtime 資料或執行任何社群發布。
 
 ## 本輪狀態
+
+- 本輪 9 個實作提交已完成 AI latency、filesystem confinement、Actions runtime、本機字型、Player Radar 開場、死碼清理、Remotion 依賴瘦身與發布錯誤邊界測試。
+- AI 模型透過 `utils/genaiClient.js` 單次呼叫，預設 timeout 30,000ms，可設定範圍 1,000–60,000ms；逾時仍交給既有 deterministic fallback。
+- repository-hosted Outfit／Cinzel 已同時供 Next 與 Remotion 使用；Remotion 改用 CSS `@font-face`，避免長片持有未清除的 `delayRender` handle。
+- Player Radar 預設 Hook 86→45 幀，timeline 從 frame 0 開始；開場優先顯示第一個 matchup evidence，缺少時才回退到 proof pill。
+- runtime 清理只處理 Git 可回復且無入口的程式碼；歷史 runtime 影片已依 2026-08-10 的產品決策歸零，本輪未再刪除媒體或內容資料。
+- Remotion 直接依賴 14→2（`@remotion/cli`、`remotion`）；CLI 所需 renderer 等仍由 lockfile 正常帶入。
+- 目前待完成：合併 `main`、在 `main` 重跑全套、push，等待 GitHub CI／CodeQL，再重算 Dependabot 與 open PR。
 
 - GitHub `main`：PR #5 已於 `d91c5a2f7cf374c8c739999b3cd5dc305b5394ea` 合併；原始整合 head 為 `22f8a1fd449e5409aaeee16f68ec18e7dde6d311`。
 - 永久救援：`rescue/2026-08-09-main-wip` 指向 `8550fe8c0f9bdba116de46846a4b655a5f9a69c3`；外部救援副本在 `/Users/cengweiting/Developer/lol-video-generator-rescue-20260809.PIixWe`。
@@ -35,6 +43,15 @@
 - fast-uri `3.1.5`
 
 ## 驗證證據
+
+- 2026-08-12 CI parity：`npm ci`、`npm run tdd:doctor`、`npm run test:coverage`、`npx next build`、`npm audit --audit-level=high` 全通過。
+- 覆蓋率：500 tests、498 pass、2 個外部 LoLalytics contract skip、0 fail；line 94.28%、branch 80.02%、function 96.37%。
+- Production build：26 routes；`Dynamic filesystem access causes tracing` 計數 0。
+- Remotion dependency canary：乾淨安裝後辨識 8 種 composition；`npm run qa:render` 的 6 種 still 全成功。
+- Player Radar 完整 canary：`/tmp/player-radar-canary.mp4`，H.264／AAC、1080×1920、48kHz stereo、14.72 秒、1,189,093 bytes；使用已授權 `audio/bgm1.mp3`，沒有發布。
+- Player Radar 動效審查：移除 35 幀 lead-in 與會遮資料的 stage spring；保留不改 layout 的背景光束與 badge 回饋，第一幀即可讀證據。
+- 網站兩輪最終截圖：`.screenshots/reliability-round2-desktop.png`、`.screenshots/reliability-round2-mobile.png`；Outfit 200、Cinzel 200、375px scrollWidth=375、console 0 error／0 warning。
+- 資料安全：隔離 worktree content DB absent、queue 0、daily runs 0、publish packages 0；主內容 DB SHA-256 仍為 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`。
 
 - `npm ci`：通過，`found 0 vulnerabilities`
 - `npm run tdd:doctor`：通過
@@ -73,7 +90,8 @@
 
 ## 剩餘限制
 
-- Next build 有 2 個既有動態檔案路徑追蹤 warning；本輪曲庫最初增加 3 個 warning，改為 build-time 靜態載入後已消除，最終沒有新增 warning。
-- Google Fonts 的一支外部 Outfit woff2 回傳 404，瀏覽器使用既定 fallback；頁面本身可開且沒有 server error。
-- Player Radar 前約 1.5–2 秒主數據才進場，屬 Shorts 留存風險；另開視覺節奏工單，不和本輪救援混改。
-- Gemma 仍可能 timeout 或回傳不合 schema 的欄位；格式錯誤現已安全正規化／丟棄，timeout 仍會走 deterministic fallback，不阻塞正確產片但會增加約 60–100 秒等待。
+- 這台 macOS 舊於 15，Remotion 會顯示相容性提醒；完整 H.264／AAC canary 與 QA still 均實測成功。
+- `npm ci` 仍有 `whatwg-encoding`、`source-map@0.8.0-beta.0`、`node-domexception` 三個間接 deprecated 提示；audit 為 0，這輪不強制 override 間接依賴。
+- Riot Data Dragon 偶爾回 HTTP 503；render asset 本機 fallback 已實測接手。
+- Node coverage 會提示兩個 ES module 重新解析 warning；若要徹底消除需規劃全專案 ESM 遷移，不在本輪輕量化範圍。
+- Repo 仍沒有既有 production deployment target；完成 GitHub push 後只驗證 source CI，不建立新付費站點。

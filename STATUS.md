@@ -1,42 +1,40 @@
 # 專案現況 — LoL 影片生成器
 
-> 2026-08-10 更新。詳細救援與驗證證據見 `HANDOFF.md`。
+> 2026-08-12 更新。詳細實作與驗證證據見 `HANDOFF.md`。
 
 ## 產品
 
-這是把《英雄聯盟》改版與賽事資料做成直式影片的 Next.js + Remotion 工具，包含：
-
-- 版本改動工廠
-- 電競賽事 Daily one-click
-- Player Radar 雙讀短影音
-- Meta 內容工廠
-- Instagram／Threads 發佈與成效控制台
+這是把《英雄聯盟》改版與賽事資料做成直式影片的 Next.js + Remotion 工具，包含版本改動、電競賽事 Daily one-click、Player Radar、Meta 內容工廠，以及 Instagram／Threads 發佈與成效控制台。
 
 ## 本輪狀態
 
-- PR #5 已合併到 GitHub `main`，包含 34 路徑未提交救援及 Player Radar 30 commits。
-- 測試與發佈佇列已隔離，不再因 Node module cache 把另一個 worktree 的 cwd 固定成寫入目標。
-- 依賴安全圖在本機 `npm audit --audit-level=high` 為 0。
-- Daily one-click 的「昨天」已固定採洛杉磯發布日曆，UTC CI 與本機會選到相同賽事日期。
-- PR #5 首輪 CodeQL 找到的多項式正規表示式與無效自我替換已用測試保護並修正。
-- CI 等價驗證、production build、6 張 QA stills 與 Player Radar H.264 片段均通過。
-- 原本 dirty `main`、rescue ref、外部救援副本與 runtime queue 都仍保留。
+- AI 單次模型請求上限固定為 30 秒；逾時後走既有 deterministic fallback，不再等待 60–100 秒。
+- runtime 檔案操作限制在核可的 `.data/`、`public/renders/`、`public/publish-packages/` 與暫存邊界；測試與 worktree 不會互相污染 queue。
+- 網站與 Remotion 都改用 repository-hosted Outfit／Cinzel，沒有 Google Fonts 依賴或字型 404。
+- Player Radar 第一幀即顯示來源證據，預設 Hook 從 86 幀縮成 45 幀；場景資料不再被入口動畫遮住。
+- 已刪除 7 個無 runtime 入口的舊模組與 1 個完成使命的專用測試；假賽事資料已移到 `tests/fixtures/`。
+- Remotion 頂層依賴由 14 個降成 2 個，乾淨安裝仍能辨識 8 種 composition 並完成 6 種 QA still。
+- GitHub Actions 已更新到 Node 24 runtime 的主版 actions；安全閘門仍維持 `npm audit --audit-level=high`。
 
-## GitHub 結果
+## 驗證摘要
 
-- PR #5 的 CI 與 CodeQL 全綠，已用 merge commit 合併。
-- Dependabot 兩種分頁方法都量到 0 open；18 筆全數 fixed。
-- #2、#3、#4 已標記由 #5 取代並關閉，沒有合併或刪分支。
-- 沒有已設定的 production deployment／Pages 流程，因此這輪未部署。
+- `npm ci`：通過，287 packages，0 vulnerabilities。
+- `npm run tdd:doctor`：12 個 TDD slice 全通過。
+- `npm run test:coverage`：500 tests；498 pass、2 個外部 contract skip、0 fail；line 94.28%、branch 80.02%、function 96.37%。
+- `npx next build`：26 routes，0 個 dynamic filesystem tracing warnings。
+- Player Radar 完整 canary：H.264／AAC、1080×1920、14.72 秒，含已授權 `bgm1.mp3`。
+- 網站桌面／手機各兩輪自檢通過；375px 無橫向捲動，字型請求 200，console 0 error／0 warning。
+- 隔離 worktree：queue 0、daily runs 0、publish packages 0；主內容 DB SHA-256 仍為 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`。
 
-## Runtime 待人工決策
+## GitHub 與部署
 
-- 26 個 QUEUED、10 個 FAILED、8 個 MANUAL_DELETE_REQUIRED 歷史任務仍在主 queue。
-- 多數非 PUBLISHED 任務已沒有本機影片；不可直接跑 queue。
-- Player Radar worktree 的 2 筆 QUEUED 是測試污染，不是真實待發內容。
+- 上一輪 18 個 Dependabot alerts 已全部 fixed，舊 PR #2／#3／#4 已由 PR #5 取代並關閉。
+- 本輪 `codex/reliability-lightweight` 已完成本機驗證，下一步是合併 `main`、重跑同套 CI、push，並重新核對遠端 CI／CodeQL／Dependabot／open PR。
+- Repository 沒有 production deployment workflow、Pages 或既有正式站，因此不新增付費部署。
 
 ## 已知非阻塞項目
 
-- Next 16.3 build 的 2 個動態 filesystem tracing warnings。
-- Google Fonts 外部 Outfit 檔 404，現有 fallback 正常。
-- Player Radar 開頭資料進場約慢 1.5–2 秒，可能影響 Shorts 留存。
+- 這台 macOS 舊於 15，Remotion 會顯示相容性提醒；完整影片與 QA still 實測均成功。
+- `npm ci` 仍顯示 3 個間接套件 deprecated 提示；它們不是直接依賴，也不是安全漏洞。
+- 外部 Riot Data Dragon 偶爾回 HTTP 503；既有本機 fallback 已在測試中接手，未阻斷渲染。
+- Node 測試會提示兩個 ES module 重新解析的效能 warning；不影響 build 或產品行為，未為消除提示而把全專案改成 ESM。
