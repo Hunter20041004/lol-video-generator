@@ -1,4 +1,4 @@
-const { ROLE_ORDER } = require("./seriesAggregator");
+const { ROLE_ORDER } = require("../../../utils/esports/seriesAggregator");
 
 function makeSamplePlayer(team, role, score, side) {
   const stronger = score >= 70;

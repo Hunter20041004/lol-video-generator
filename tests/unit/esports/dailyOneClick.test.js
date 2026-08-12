@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { makeSampleAggregatedSeries } = require("../../../utils/esports/sampleData");
+const { makeSampleAggregatedSeries } = require("../../fixtures/esports/sampleData");
 
 test("localDateOffset defaults to the Pacific publishing calendar", () => {
   const { localDateOffset } = require("../../../utils/esports/dailyOneClick");

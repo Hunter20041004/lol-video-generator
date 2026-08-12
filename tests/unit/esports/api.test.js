@@ -130,7 +130,7 @@ test("handleDailyApiRequest honors requested recap-only video types", async () =
   ].forEach((file) => delete require.cache[path.join(ROOT, file)]);
 
   try {
-    const { makeSampleAggregatedSeries } = require(path.join(ROOT, "utils/esports/sampleData.js"));
+    const { makeSampleAggregatedSeries } = require(path.join(ROOT, "tests/fixtures/esports/sampleData.js"));
     const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
     writeCandidateSnapshot({
       scanId: "recap-only-scan",
@@ -183,7 +183,7 @@ test("handleDailyApiRequest can use the production dependency path with compact 
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-production-path-"));
   const apiPath = path.join(ROOT, "utils/esports/apiHandlers.js");
   const fetcherPath = path.join(ROOT, "utils/esports/seriesFetcher.js");
-  const samplePath = path.join(ROOT, "utils/esports/sampleData.js");
+  const samplePath = path.join(ROOT, "tests/fixtures/esports/sampleData.js");
   const renderPath = path.join(ROOT, "utils/render/renderService.js");
   process.chdir(dir);
   delete require.cache[apiPath];

@@ -2,7 +2,6 @@
   "name": "lol-video-generator",
   "version": "1.0.0",
   "description": "Bilingual LoL data-to-video pipeline with guarded social publishing.",
-  "main": "scraper.js",
   "scripts": {
     "dev": "next dev --webpack",
     "test": "node --test \"tests/**/*.test.js\"",

@@ -88,6 +88,34 @@ test("package does not expose worker commands whose entrypoint cannot resolve", 
   assert.equal(fs.existsSync(path.join(ROOT, "worker.js")), false, "delete the broken worker entrypoint");
 });
 
+test("compatibility scraper is absent from the runtime package", () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+
+  assert.equal(fs.existsSync(path.join(ROOT, "scraper.js")), false);
+  assert.equal(Object.hasOwn(pkg, "main"), false);
+});
+
+test("unused SocialComments component is removed", () => {
+  assert.equal(fs.existsSync(path.join(ROOT, "src/components/SocialComments.jsx")), false);
+});
+
+test("unused SubtitleOverlay component is removed", () => {
+  assert.equal(fs.existsSync(path.join(ROOT, "src/components/SubtitleOverlay.jsx")), false);
+});
+
+test("unused SocialScraper parser is removed", () => {
+  assert.equal(fs.existsSync(path.join(ROOT, "src/parsers/SocialScraper.js")), false);
+});
+
+test("orphan RadarChart component is removed", () => {
+  assert.equal(fs.existsSync(path.join(ROOT, "src/components/charts/RadarChart.jsx")), false);
+});
+
+test("completed pipeline pruner is removed", () => {
+  assert.equal(fs.existsSync(path.join(ROOT, "utils/pipelinePruner.js")), false);
+  assert.equal(fs.existsSync(path.join(ROOT, "tests/unit/pipelinePruner.test.js")), false);
+});
+
 test("orphan scheduler that depends on retired pipeline modules is deleted", () => {
   const schedulerPath = path.join(ROOT, "scheduler.js");
   const schedulerExists = fs.existsSync(schedulerPath);

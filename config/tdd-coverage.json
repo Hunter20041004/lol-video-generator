@@ -66,7 +66,6 @@
         "utils/esports/runStore.js",
         "utils/esports/publishing.js",
         "utils/esports/dailyPipeline.js",
-        "utils/esports/sampleData.js",
         "utils/esports/apiHandlers.js"
       ],
       "testFiles": [
@@ -85,17 +84,15 @@
     },
     {
       "id": "pipeline-pruning-runtime-policy",
-      "description": "Runtime registry, API guards, static pruning checks, and persisted data cleanup for removed pipelines and platforms",
+      "description": "Runtime registry, API guards, and static checks for removed pipelines and platforms",
       "productionFiles": [
         "utils/pipelineRegistry.js",
-        "utils/apiGuards.js",
-        "utils/pipelinePruner.js"
+        "utils/apiGuards.js"
       ],
       "testFiles": [
         "tests/unit/pipelineRegistry.test.js",
         "tests/unit/apiBoundaryContracts.test.js",
         "tests/unit/pipelinePruningStatic.test.js",
-        "tests/unit/pipelinePruner.test.js",
         "tests/unit/render/compositionScope.test.js"
       ]
     },

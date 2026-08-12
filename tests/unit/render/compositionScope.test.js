@@ -23,7 +23,6 @@ test("Remotion router and root defaults contain only retained dataTypes", () => 
     "src/Composition.jsx",
     "src/Root.jsx",
     "src/video-system/VideoPrimitives.jsx",
-    "src/components/SubtitleOverlay.jsx",
   ];
 
   for (const file of files) {
@@ -287,19 +286,6 @@ test("Player radar template uses mobile-first shorts layout with one readable fo
   assert.equal(source.includes("paddingTop: 310"), false);
   assert.equal(source.includes("paddingTop: 260"), false);
   assert.equal(source.includes("${getTeamLine(match)} ${getScoreText(match)}"), false);
-});
-
-test("Radar chart does not synthesize fallback evidence axes", () => {
-  const source = fs.readFileSync(path.join(ROOT, "src/components/charts/RadarChart.jsx"), "utf8");
-
-  assert.equal(source.includes("while (stats.length < 5)"), false);
-  assert.equal(source.includes("rawValue: \"—\""), false);
-  assert.equal(source.includes("label: `?"), false);
-  assert.equal(source.includes("|| \"?\""), false);
-  assert.equal(source.includes("?? \"—\""), false);
-  assert.equal(source.includes("Number(s.normalizedScore) || 0"), false);
-  assert.equal(source.includes("Number(stats[i].normalizedScore) || 0"), false);
-  assert.match(source, /hasEvidenceDisplayValue/);
 });
 
 test("Player radar hook renders selected opening evidence without a delayed data gate", () => {
