@@ -10,7 +10,7 @@
 - Player Radar 預設 Hook 86→45 幀，timeline 從 frame 0 開始；開場優先顯示第一個 matchup evidence，缺少時才回退到 proof pill。
 - runtime 清理只處理 Git 可回復且無入口的程式碼；歷史 runtime 影片已依 2026-08-10 的產品決策歸零，本輪未再刪除媒體或內容資料。
 - Remotion 直接依賴 14→2（`@remotion/cli`、`remotion`）；CLI 所需 renderer 等仍由 lockfile 正常帶入。
-- 目前待完成：合併 `main`、在 `main` 重跑全套、push，等待 GitHub CI／CodeQL，再重算 Dependabot 與 open PR。
+- 已 fast-forward 合併 `main` 並正常 push；code verification SHA `5b334d95cc9b9d57c4ed2fd57502cd8958cf7be7` 的 CI 與 CodeQL 均成功。
 
 - GitHub `main`：PR #5 已於 `d91c5a2f7cf374c8c739999b3cd5dc305b5394ea` 合併；原始整合 head 為 `22f8a1fd449e5409aaeee16f68ec18e7dde6d311`。
 - 永久救援：`rescue/2026-08-09-main-wip` 指向 `8550fe8c0f9bdba116de46846a4b655a5f9a69c3`；外部救援副本在 `/Users/cengweiting/Developer/lol-video-generator-rescue-20260809.PIixWe`。
@@ -86,6 +86,9 @@
 
 - Dependabot 以 `per_page=1` 與 `per_page=100` 兩種分頁重算均為 0 open；18 筆全數為 `fixed`。
 - PR #2／#3／#4 已各附上由 #5 取代的原因並關閉；沒有合併或刪除其分支。
+- 本輪 code verification SHA 的 [CI run](https://github.com/Hunter20041004/lol-video-generator/actions/runs/31652438369) 與 [CodeQL run](https://github.com/Hunter20041004/lol-video-generator/actions/runs/31652438032) 全綠；Actions 與 JavaScript/TypeScript 分析都成功。
+- 最新三個 checks annotations 均為 0；沒有 Node 20 deprecation，Code Scanning open alerts 為 0。
+- open PR 以 `per_page=1` 與 `per_page=100` 重算皆為 0。
 - Repo 沒有 deployment workflow、Vercel／Netlify／Pages／Sites 設定；GitHub Deployments 為 0，因此這輪沒有可沿用的正式站可部署。
 
 ## 剩餘限制

@@ -29,7 +29,9 @@
 ## GitHub 與部署
 
 - 上一輪 18 個 Dependabot alerts 已全部 fixed，舊 PR #2／#3／#4 已由 PR #5 取代並關閉。
-- 本輪 `codex/reliability-lightweight` 已完成本機驗證，下一步是合併 `main`、重跑同套 CI、push，並重新核對遠端 CI／CodeQL／Dependabot／open PR。
+- 本輪已合併並推送 `main`；code verification SHA `5b334d95cc9b9d57c4ed2fd57502cd8958cf7be7` 的 CI 與 CodeQL 全綠。
+- Dependabot 用 `per_page=1`／`100` 都是 0 open，歷史 18 筆全為 fixed；open PR 兩種分頁都是 0，Code Scanning open 也是 0。
+- 最新 checks 使用 `actions/checkout@v7`、`actions/setup-node@v7`，annotations 為 0，沒有 Node 20 deprecation。
 - Repository 沒有 production deployment workflow、Pages 或既有正式站，因此不新增付費部署。
 
 ## 已知非阻塞項目
