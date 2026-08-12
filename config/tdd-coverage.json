@@ -178,6 +178,17 @@
         "tests/unit/genaiClient.test.js",
         "tests/unit/reasoning.test.js"
       ]
+    },
+    {
+      "id": "repository-hosted-video-fonts",
+      "description": "Repository-hosted Outfit registration before Remotion rendering",
+      "productionFiles": [
+        "src/video-system/localFonts.js"
+      ],
+      "testFiles": [
+        "tests/unit/render/localFonts.test.js",
+        "tests/unit/portfolioPresentation.test.js"
+      ]
     }
   ]
 }

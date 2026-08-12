@@ -119,6 +119,14 @@ test("CI uses least privilege and non-live local parity", () => {
   assert.doesNotThrow(() => assertCiWorkflow(workflow));
 });
 
+test("web typography uses repository-hosted Outfit and Cinzel fonts", () => {
+  const css = fs.readFileSync(path.join(ROOT, "app/globals.css"), "utf8");
+
+  assert.match(css, /@font-face\s*\{[^}]*font-family:\s*["']Outfit["'][^}]*Outfit-Variable\.woff2[^}]*font-display:\s*swap/is);
+  assert.match(css, /@font-face\s*\{[^}]*font-family:\s*["']Cinzel["'][^}]*Cinzel-Variable\.woff2[^}]*font-display:\s*swap/is);
+  assert.doesNotMatch(css, /fonts\.(?:googleapis|gstatic)\.com/i);
+});
+
 test("CI contract rejects malformed workflow YAML", () => {
   const workflow = fs.readFileSync(
     path.join(ROOT, ".github/workflows/ci.yml"),
@@ -252,6 +260,27 @@ test("package identity and tracked media have explicit rights", () => {
     assert.equal(track.rightsStatus, "verified");
     assert.equal(track.sha256, expectedHashes.get(name));
     assert.equal(crypto.createHash("sha256").update(fs.readFileSync(audioPath)).digest("hex"), track.sha256);
+  }
+});
+
+test("repository-hosted fonts retain official source and OFL evidence", () => {
+  const rights = fs.readFileSync(path.join(ROOT, "THIRD_PARTY_ASSETS.md"), "utf8");
+  const fontLicense = fs.readFileSync(path.join(ROOT, "public/fonts/OFL.txt"), "utf8");
+  const expectedHashes = new Map([
+    ["Outfit-Variable.woff2", "92684e4acde79ef07758cd09380b7e01e9824d8b061eddeda046f78c166d7b12"],
+    ["Cinzel-Variable.woff2", "ef95296c778719c3d658a8284d65078100450948851b9114485ada01d9d3d3f8"],
+  ]);
+
+  assert.match(rights, /Google Fonts/i);
+  assert.match(rights, /Outfit-Variable\.woff2/);
+  assert.match(rights, /Cinzel-Variable\.woff2/);
+  assert.match(rights, /SIL Open Font License, Version 1\.1/i);
+  assert.match(fontLicense, /The Outfit Project Authors/);
+  assert.match(fontLicense, /The Cinzel Project Authors/);
+
+  for (const [name, expectedHash] of expectedHashes) {
+    const contents = fs.readFileSync(path.join(ROOT, "public/fonts", name));
+    assert.equal(crypto.createHash("sha256").update(contents).digest("hex"), expectedHash);
   }
 });
 
