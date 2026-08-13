@@ -1,6 +1,6 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-13 由 Codex 更新。25 秒「賽後判讀／POST MATCH READ」已完成 inline TDD、GEN／HLE preview-only canary、main 整合與本機全套驗證；等待 push 後 GitHub checks。
+> 2026-08-13 由 Codex 更新。25 秒「賽後判讀／POST MATCH READ」已完成 inline TDD、GEN／HLE preview-only canary、main 整合、本機全套驗證與 GitHub checks。
 
 ## 本輪狀態
 
@@ -15,6 +15,7 @@
 - Fast-forward 合併 `main` 後已重新執行 `tdd:doctor`、完整 coverage、Next build、audit 與 QA render：562 tests、558 pass、4 skip、0 fail，line 94.28%、branch 80.47%、function 96.10%，audit 0 vulnerabilities、QA 6/6。
 - 真實邊界：Data Dragon square／splash／Smite／map、三首授權音樂 25 秒 WAV、Ruler portrait identity／SHA／dimensions 全通過。Leaguepedia Cargo 在最後複驗時回傳 rate-limit，cooldown until `2026-08-13T22:58:40.868Z`；保留為外部限制，不以 mock 宣稱 live contract 通過。
 - Next 16.3.0 production build 成功但有 3 個 `playerPortraitManifest.js` dynamic filesystem tracing warnings；可能增加 server bundle，尚未造成 build 或 runtime 失敗，列為下一輪輕量化候選，不在本輪安全／視覺修復中冒險改動。
+- GitHub source SHA `6b3aecb60133ffa0483ad1b3291a36a605c348f6` 的 CI run `31751291684` 與 CodeQL run `31751290739` 均成功；Dependabot open 0、open PR 0、Code Scanning open alerts 0。Repo 仍無正式 deployment target，因此沒有建立新站。
 
 - 2026-08-13 使用者已核可下一版「賽後判讀」25 秒視覺：主方案為 Broadcast Hero 對位／MVP＋Tactical Transmission 戰局分析；英雄身份使用官方方形頭像，splash 僅作氣氛，MVP 直接使用已授權選手照片，中央線與 dashboard 同版型不再使用。
 - 核可節奏為 `0–4 秒結果 Hook → 4–9 秒對位 → 9–17 秒遊戲過程 → 17–22 秒數據 MVP 候選 → 22–25 秒最後判讀`，最後 1.5 秒完全靜止；GEN 2–0 HLE 為第一支不發布 canary 範例。
