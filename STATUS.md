@@ -9,6 +9,7 @@
 ## 本輪狀態
 
 - 最新 Leaguepedia 實片演練發現並以 TDD 修正「同系列主客隊順序交換會被拆成兩組」；2026-08-12 的 HLE Challengers 對 HANJIN BRION Challengers 現在正確合併為三局 2-1。
+- coverage gate 原本緊貼 80% 且受 Node 實驗性統計小幅波動；保留 80% 門檻並補上原始賽事聚合測試後，完整 coverage 連跑兩次均通過。
 - 新的中文版 Player Radar canary 已加入授權 BGM 3 並輸出到本機；沒有建立 publish queue、daily run 或遠端貼文，舊 Aphelios canary 已依歷史影片歸零決策移除。
 - AI 單次模型請求上限固定為 30 秒；逾時後走既有 deterministic fallback，不再等待 60–100 秒。
 - runtime 檔案操作限制在核可的 `.data/`、`public/renders/`、`public/publish-packages/` 與暫存邊界；測試與 worktree 不會互相污染 queue。
@@ -22,7 +23,7 @@
 
 - `npm ci`：通過，287 packages，0 vulnerabilities。
 - `npm run tdd:doctor`：12 個 TDD slice 全通過。
-- `npm run test:coverage`：501 tests；499 pass、2 個外部 contract skip、0 fail；line 94.28%、branch 80.04%、function 96.38%。
+- `npm run test:coverage`：502 tests；500 pass、2 個外部 contract skip、0 fail；line 94.29%、branch 80.19%（前一次 80.24%）、function 96.38%。
 - `npx next build`：26 routes，0 個 dynamic filesystem tracing warnings。
 - Player Radar 完整 canary：H.264／AAC、1080×1920、14.72 秒，含已授權 `bgm1.mp3`。
 - 網站桌面／手機各兩輪自檢通過；375px 無橫向捲動，字型請求 200，console 0 error／0 warning。

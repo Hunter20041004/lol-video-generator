@@ -76,6 +76,40 @@ function makeFakeDeps() {
   };
 }
 
+test("prepareSeries aggregates raw games before applying candidate priority", () => {
+  const { prepareSeries } = require("../../../utils/esports/dailyPipeline");
+  const players = ROLES.flatMap((role) => {
+    const left = makePlayer("T1", role, 82);
+    const right = makePlayer("GEN", role, 48);
+    return [
+      { ...left, ...left.rawStats },
+      { ...right, ...right.rawStats },
+    ];
+  });
+
+  const result = prepareSeries({
+    priorityScore: 77,
+    scoreLabel: "1-0",
+    games: [{
+      seriesId: "raw-lck-game",
+      date: "2026-06-20",
+      league: "LCK",
+      tournament: "LCK 2026 Summer",
+      teamA: "T1",
+      teamB: "GEN",
+      winTeam: "T1",
+      gamelengthMin: 30,
+      players,
+    }],
+  });
+
+  assert.equal(result.games, 1);
+  assert.equal(result.players.length, 10);
+  assert.equal(result.roleMatchups.length, 5);
+  assert.equal(result.selectionScore, 77);
+  assert.equal(result.seriesScore, "1-0");
+});
+
 test("runDailyEsportsPipeline dry run renders four test videos per selected series without queueing official publish jobs", async () => {
   const { runDailyEsportsPipeline } = require("../../../utils/esports/dailyPipeline");
 
