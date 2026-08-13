@@ -139,6 +139,7 @@ const mockPlayerRadarData = {
           src: `https://ddragon.leagueoflegends.com/cdn/16.9.1/img/champion/${championName}.png`,
         })),
       },
+      mapSrc: "https://ddragon.leagueoflegends.com/cdn/16.9.1/img/map/map11.png",
     },
     audioPlan: null,
     storyboard: [

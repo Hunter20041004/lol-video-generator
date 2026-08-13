@@ -1,6 +1,6 @@
 import { staticFile } from "remotion";
 
-const LOCAL_RENDER_ASSET_PATTERN = /^\/?render-assets\//;
+const LOCAL_RENDER_ASSET_PATTERN = /^\/?(?:render-assets|player-portraits)\//;
 const DIRECT_ASSET_PATTERN = /^(https?:|data:|blob:)/i;
 
 export const resolveRenderAssetSrc = (src = "") => {

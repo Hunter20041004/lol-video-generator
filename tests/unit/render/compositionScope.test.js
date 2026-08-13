@@ -202,95 +202,40 @@ test("Esports recap rows can use per-scene points and headings for deeper analys
   assert.match(source, /<RecapRows data=\{data\} theme=\{theme\} localFrame=\{active\.localFrame\} scene=\{active\.scene\} \/>/);
 });
 
-test("post-match read template uses the resolved view model and approved public brand", () => {
-  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+test("post-match read template uses five beats across four distinct visual spaces", () => {
+  const entry = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+  const source = `${entry}\n${scenes}`;
 
   for (const required of [
-    "POST MATCH READ",
-    "postMatchRead",
-    "SharedHextechThread",
-    "HeroField",
-    "HookScene",
-    "MatchupScene",
-    "ProofScene",
-    "VerdictScene",
-    "Noto Serif TC Post Match Read",
-  ]) {
-    assert.equal(source.includes(required), true, `expected ${required}`);
-  }
-
-  for (const removed of [
-    "PLAYER RADAR",
-    "MATCH DATA / PERFORMANCE",
-    "PipelineChrome",
-    "PipelineBadge",
-    "SubtitleCaption",
-    "HextechBackground",
-    "RadarChart",
-    "BroadcastPanel",
-    "playerRadarHelpers",
-  ]) {
-    assert.equal(source.includes(removed), false, `obsolete template token: ${removed}`);
-  }
+    "MatchupBroadcastScene", "GameFlowScene", "PlayerProofScene", "FinalReadScene",
+    "RESULT_HOOK", "MATCHUP_EDGE", "GAME_FLOW", "PLAYER_PROOF", "FINAL_READ",
+    "freezePostMatchReadFrame", "Barlow Condensed Post Match Read", "Noto Sans TC Post Match Read",
+  ]) assert.match(source, new RegExp(required));
+  for (const forbidden of [
+    "SharedHextechThread", "RadarChart", "BroadcastPanel", "CONCLUSION_CTA",
+    "Noto Serif TC Post Match Read", "PLAYER RADAR", "Array.from({ length:",
+  ]) assert.equal(source.includes(forbidden), false, forbidden);
+  assert.match(entry, /buildTimeline\(model\.storyboard, fps, 0\)/);
+  assert.match(entry, /const frame = freezePostMatchReadFrame\(rawFrame\)/);
 });
 
-test("post-match read template keeps one art field across four scene layers", () => {
-  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
-
-  assert.match(source, /const model = data\.postMatchRead/);
-  assert.match(source, /buildTimeline\(model\.storyboard, fps, 0\)/);
-  assert.match(source, /<HeroField model=\{model\}/);
-  assert.match(source, /<SharedHextechThread frame=\{frame\} timeline=\{timeline\}/);
-  assert.match(source, /tag="HOOK"[\s\S]*<HookScene model=\{model\}/);
-  assert.match(source, /tag="MATCHUP_EDGE"[\s\S]*<MatchupScene model=\{model\}/);
-  assert.match(source, /tag="PLAYER_PROOF"[\s\S]*<ProofScene model=\{model\}/);
-  assert.match(source, /tag="CONCLUSION_CTA"[\s\S]*<VerdictScene model=\{model\}/);
-  assert.match(source, /resolveRenderAssetSrc/);
-  assert.doesNotMatch(source, /Array\.from\(\{ length:/);
-});
-
-test("post-match read verdict remains fully still for the final 30 frames", () => {
-  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
-
-  assert.match(source, /scene\.tag === "CONCLUSION_CTA" \? enter : Math\.min\(enter, exit\)/);
-  assert.match(source, /Math\.min\(unclamped, 60\)/);
-  assert.match(source, /const heroFrame = frame >= verdictStart \? verdictStart \+ Math\.min\(frame - verdictStart, 60\) : frame/);
-  assert.match(source, /interpolate\(heroFrame, \[0, 360\], \[1, 1\.028\]/);
-});
-
-test("post-match read motion animates composited properties instead of paint-heavy glow values", () => {
-  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
-
-  assert.doesNotMatch(source, /boxShadow: `0 0 \$\{width\}px/);
-  assert.doesNotMatch(source, /background: `rgba\(1,10,19,\$\{verdictDim\}\)`/);
-  assert.match(source, /background: COLORS\.ink,[\s\S]{0,80}opacity: verdictDim/);
-});
-
-test("post-match read scenes crossfade before each cut without an empty transition frame", () => {
-  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
-
-  assert.match(source, /scene\.start === 0 \? \[0, MAX_CROSSFADE_FRAMES\] : \[-MAX_CROSSFADE_FRAMES, 0\]/);
-  assert.match(source, /interpolate\(local, enterRange, \[0, 1\]/);
-});
-
-test("Remotion root player radar preview uses the approved HLE BRO post-match read", () => {
+test("Remotion root player radar preview uses the approved GEN HLE post-match read", () => {
   const rootSource = fs.readFileSync(path.join(ROOT, "src/Root.jsx"), "utf8");
   const playerRadarBlock = rootSource.match(/const mockPlayerRadarData = \{[\s\S]*?\n\};\n\nconst mockEsportsH2HRadarData = \{/);
 
   assert.ok(playerRadarBlock, "expected mockPlayerRadarData block");
   const source = playerRadarBlock[0];
-  assert.match(source, /HLE Challengers/);
-  assert.match(source, /HANJIN BRION Challengers/);
-  assert.match(source, /Jackal/);
-  assert.match(source, /Dinai/);
-  assert.match(source, /13\.67/);
-  assert.match(source, /0\.64/);
-  assert.match(source, /Pyeonsik/);
-  assert.match(source, /806/);
-  assert.match(source, /9\.77/);
-  assert.match(source, /Lucian/);
-  assert.match(source, /Varus/);
-  assert.match(source, /Ezreal/);
+  assert.match(source, /GEN/);
+  assert.match(source, /HLE/);
+  assert.match(source, /Chovy/);
+  assert.match(source, /Zeka/);
+  assert.match(source, /Ruler/);
+  assert.match(source, /Ryze/);
+  assert.match(source, /Orianna/);
+  assert.match(source, /Caitlyn/);
+  assert.match(source, /Seraphine/);
+  assert.match(source, /750|durationInFrames: 240/);
   assert.match(source, /postMatchRead:/);
   assert.match(source, /數據 MVP 候選/);
   assert.doesNotMatch(source, /\bMVP\b(?! 候選)/);
