@@ -99,6 +99,13 @@ function shortTeamLabel(team = "", abbreviation = "") {
   return words.map((word) => word[0]).join("").slice(0, 4).toUpperCase();
 }
 
+function publicPlayer(player = {}) {
+  return {
+    ...player,
+    name: String(player.name || "").replace(/\s*\([^)]*\)\s*$/, "").trim(),
+  };
+}
+
 function buildPostMatchReadViewModel({
   series = {},
   matchupSegment = {},
@@ -141,6 +148,9 @@ function buildPostMatchReadViewModel({
     hook: { ...hook, question: copy.hookQuestion(localizedRole) },
     matchup: {
       ...matchupSegment,
+      focusPlayer: publicPlayer(matchupSegment.focusPlayer),
+      edgePlayer: publicPlayer(matchupSegment.edgePlayer),
+      opponentPlayer: publicPlayer(matchupSegment.opponentPlayer),
       hasAllFiveRoles: allRoles,
       claimScope,
       claim,

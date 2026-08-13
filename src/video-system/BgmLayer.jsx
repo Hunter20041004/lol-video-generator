@@ -7,6 +7,9 @@ export const BgmLayer = ({ bgmFile, audioPlan, volume = DEFAULT_BGM_VOLUME }) =>
   const { fps } = useVideoConfig();
   if (!bgmFile) return null;
   if (audioPlan) {
+    if (audioPlan.preprocessed) {
+      return <Audio src={staticFile(bgmFile)} trimBefore={0} trimAfter={audioPlan.durationInFrames} />;
+    }
     const trimBefore = Math.round(audioPlan.sourceStartSeconds * fps);
     const trimAfter = trimBefore + audioPlan.durationInFrames;
     const plannedVolume = () => {

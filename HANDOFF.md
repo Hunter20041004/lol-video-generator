@@ -1,13 +1,28 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-13 由 Codex 更新。最新工作完成設計規格審核與 implementation plan；沒有修改影片實作、runtime 資料或執行任何社群發布。
+> 2026-08-13 由 Codex 更新。已完成「賽後判讀／POST MATCH READ」實作與不發布 canary 驗收；正式 queue、daily runs、publish packages 與社群平台均未寫入。
 
 ## 本輪狀態
+
+- 2026-08-13 已將對外 Player Radar 全面重做為「賽後判讀／POST MATCH READ」：保留內部 `PLAYER_RADAR`／`PlayerRadarVideo` 相容識別，觀眾端不再出現舊名稱或 dashboard 視覺。
+- 新模板固定 360 frames／12 秒，使用同一英雄主視覺、持續 Hextech 主線與四幕 `約 21× → Jackal 13.7 vs Dinai 0.64 KDA → Pyeonsik 806 DPM → 最終判讀`；最後 1 秒完全靜止。
+- 對位理由改用 normalized gap＋角色固定優先序排序，不再拿不同單位 raw delta 比大小；只有五路完整且自動選擇時才能聲稱最大差距。
+- Pyeonsik 對外明示「數據 MVP 候選」；Jackal 的括號真名只留在來源資料，不進公開短影音。
+- 官方 Data Dragon 原畫、方形英雄頭像、Smite 與地圖先解析至 cache；原畫失敗時退回官方 square＋map，原畫與 square 都失敗則阻擋 render。
+- 三首使用者確認授權的曲目保留 SHA-256 驗證與自動輪替；12 秒 segment 先用 FFmpeg 烘入增益與 34ms sample-accurate fade，再交給 Remotion，避免 frame fade 造成開頭過長低音量。
+- preview／test／dry-run 與 canary 皆只 render＋validate；只有 production 且媒體閘門通過才會建立 publish jobs。Canary 命令本身拒絕 `--publish`、`--queue` 與 production 參數。
+- 最終 canary：`public/renders/render_1786651144635.mp4`（ignored runtime），SHA-256 `d9b408c4f59eeb69b6c5d0dedfb810aaded576200380a289b28d9f57ccb24a97`，授權曲 `licensed-bgm-1`，publish jobs 0。
+- 媒體報告：H.264／AAC、1080×1920、30fps、12.053333 秒、integrated -17.0 LUFS、true peak -7.1 dBFS；開頭低於 -45dB 區段 49.0625ms，符合 50ms 上限。
+- 最終第二輪截圖：`.screenshots/post-match-read-round2/0.0.png`、`1.7.png`、`1.9.png`、`4.9.png`、`5.1.png`、`8.9.png`、`9.1.png`、`11.0.png`。第一輪失敗圖不作最終證據。
+- Canary 前後正式資料封條逐字相同：內容 DB SHA-256 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`；publish queue 與 daily runs 均 `MISSING`；publish packages 0。沒有建立社群貼文。
+- 媒體閘門已自動檢查開頭低音量時間；最終成品報告為 `leadingSilenceMilliseconds: 49.0625`，超過 50ms 會在建立 production jobs 前失敗。
+- 分支驗收：`npm ci`、`npm run tdd:doctor`、`npm run test:coverage`、`npx next build`、`npm audit --audit-level=high`、`npm run qa:render` 與 Data Dragon 真實 contract 全通過；coverage 537 tests、534 pass、3 skip、0 fail，line 94.26%、branch 80.34%、function 96.09%。
+- 下一步只剩提交本輪 canary／音訊修正、fast-forward 合併 main、在 main 重跑全套、push 並等 GitHub CI／CodeQL；repo 沒有正式 deployment target，不建立新站。
 
 - 2026-08-13 完成 Player Radar 的產品與視覺重設決策：對外改名為「賽後判讀／POST MATCH READ」，受眾為一般 LoL 玩家，第一版採音樂＋動態文字、1080×1920、30fps、目標 12 秒。
 - 使用者逐段核可 LoL 原生英雄敘事、四幕 `約 21× → 打野對位 → 806 DPM → 賽事判讀`、三首授權音樂節拍規劃、資料誠實規則、錯誤降級、驗證閘門與垂直 TDD。
 - 正式設計規格 `docs/superpowers/specs/2026-08-13-post-match-read-lol-native-design.md` 已由使用者通過；逐步實作計畫為 `docs/superpowers/plans/2026-08-13-post-match-read-lol-native.md`，指定 inline TDD、不得使用子代理。
-- 目前只完成規格與計畫文件，尚未修改 `Template_PlayerRadar.jsx`、runner、曲庫或發布流程；下一階段從 normalized evidence ranker 的紅燈測試開始。
+- 原「只完成規格與計畫」狀態已由本輪實作取代，保留此條作歷史紀錄。
 - 視覺 brainstorm 與瀏覽器驗證 artifacts 位於 `.superpowers/`、`.screenshots/`，皆為本機忽略項目；正式規格不依賴這些暫存檔才能理解。
 
 - 2026-08-12 以最新 Leaguepedia LCK 資料完成一次不發布的 Player Radar 全流程演練；HLE Challengers 對 HANJIN BRION Challengers 的三局已正確合併為 2-1，而不是因主客隊順序交換被拆成兩個候選。

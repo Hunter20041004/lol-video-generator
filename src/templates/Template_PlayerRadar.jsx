@@ -33,7 +33,8 @@ const findScene = (timeline, tag) => timeline.find((scene) => scene.tag === tag)
 const sceneOpacity = (scene, frame) => {
   if (!scene) return 0;
   const local = frame - scene.start;
-  const enter = interpolate(local, [0, MAX_CROSSFADE_FRAMES], [0, 1], {
+  const enterRange = scene.start === 0 ? [0, MAX_CROSSFADE_FRAMES] : [-MAX_CROSSFADE_FRAMES, 0];
+  const enter = interpolate(local, enterRange, [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.out(Easing.cubic),
@@ -281,7 +282,7 @@ const SourceLine = ({ context }) => (
       gap: 20,
       color: COLORS.darkGold,
       fontFamily: LABEL_FONT,
-      fontSize: 17,
+      fontSize: 19,
       letterSpacing: 3.2,
       zIndex: 10,
     }}
@@ -312,7 +313,7 @@ const Eyebrow = ({ children }) => (
     style={{
       fontFamily: LABEL_FONT,
       color: COLORS.ice,
-      fontSize: 22,
+      fontSize: 26,
       fontWeight: 600,
       letterSpacing: 5,
       textTransform: "uppercase",

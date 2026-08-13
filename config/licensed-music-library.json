@@ -12,6 +12,7 @@
       "safeSegments": [{
         "id": "post-match-read-12s",
         "startSeconds": 1.976,
+        "audibleLeadTrimMilliseconds": 35,
         "durationSeconds": 12,
         "downbeats": [1.976, 4.628, 7.28, 9.932, 12.584],
         "measuredIntegratedLufs": -9.9,
@@ -33,6 +34,7 @@
       "safeSegments": [{
         "id": "post-match-read-12s",
         "startSeconds": 3.833,
+        "audibleLeadTrimMilliseconds": 85,
         "durationSeconds": 12,
         "downbeats": [3.833, 7.226, 10.618, 14.01],
         "measuredIntegratedLufs": -17.8,
@@ -54,6 +56,7 @@
       "safeSegments": [{
         "id": "post-match-read-12s",
         "startSeconds": 1.228,
+        "audibleLeadTrimMilliseconds": 78,
         "durationSeconds": 12,
         "downbeats": [1.228, 2.634, 4.039, 5.445, 6.851, 8.256, 9.662, 11.067, 12.473],
         "measuredIntegratedLufs": -12.1,

@@ -266,6 +266,13 @@ test("post-match read motion animates composited properties instead of paint-hea
   assert.match(source, /background: COLORS\.ink,[\s\S]{0,80}opacity: verdictDim/);
 });
 
+test("post-match read scenes crossfade before each cut without an empty transition frame", () => {
+  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
+
+  assert.match(source, /scene\.start === 0 \? \[0, MAX_CROSSFADE_FRAMES\] : \[-MAX_CROSSFADE_FRAMES, 0\]/);
+  assert.match(source, /interpolate\(local, enterRange, \[0, 1\]/);
+});
+
 test("Remotion root player radar preview uses the approved HLE BRO post-match read", () => {
   const rootSource = fs.readFileSync(path.join(ROOT, "src/Root.jsx"), "utf8");
   const playerRadarBlock = rootSource.match(/const mockPlayerRadarData = \{[\s\S]*?\n\};\n\nconst mockEsportsH2HRadarData = \{/);

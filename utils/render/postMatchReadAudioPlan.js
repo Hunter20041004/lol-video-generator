@@ -4,6 +4,9 @@ const DEFAULT_CUT_FRAMES = Object.freeze([0, 54, 150, 270, 360]);
 
 function buildPostMatchReadAudioPlan(segment = {}, trackId = "") {
   const startSeconds = Number(segment.startSeconds);
+  const fadeMilliseconds = Number.isFinite(Number(segment.fadeMilliseconds))
+    ? Number(segment.fadeMilliseconds)
+    : 34;
   const downbeatFrames = (segment.downbeats || [])
     .map((beat) => Math.round((Number(beat) - startSeconds) * FPS))
     .filter((frame) => Number.isFinite(frame) && frame > 0 && frame < DURATION_IN_FRAMES);
@@ -22,7 +25,7 @@ function buildPostMatchReadAudioPlan(segment = {}, trackId = "") {
     durationInFrames: DURATION_IN_FRAMES,
     cutFrames,
     gain: Number(segment.gain),
-    fadeFrames: 2,
+    fadeFrames: Math.max(1, Math.round((fadeMilliseconds / 1000) * FPS)),
   };
 }
 

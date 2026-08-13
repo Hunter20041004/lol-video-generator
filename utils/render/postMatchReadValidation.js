@@ -16,6 +16,11 @@ function lastNumber(text = "", pattern) {
   return matches.length > 0 ? Number(matches.at(-1)[1]) : NaN;
 }
 
+function leadingSilenceSeconds(text = "") {
+  const match = String(text).match(/silence_start:\s*0(?:\.0+)?[\s\S]*?silence_end:\s*([\d.]+)/);
+  return match ? Number(match[1]) : 0;
+}
+
 function resolveRenderPath(video = {}, cwd = process.cwd()) {
   const rendersDir = path.resolve(cwd, "public", "renders");
   const requested = String(video.fileName || video.videoUrl || "").replace(/^\/renders\//, "");
@@ -48,6 +53,13 @@ async function inspectPostMatchReadMedia(video, {
     "-f", "null", "-",
   ]);
   const loudnessOutput = `${loudness.stdout || ""}\n${loudness.stderr || ""}`;
+  const silence = await execFileImpl("ffmpeg", [
+    "-hide_banner", "-nostats", "-i", filePath,
+    "-af", "silencedetect=noise=-45dB:d=0.005",
+    "-f", "null", "-",
+  ]);
+  const silenceOutput = `${silence.stdout || ""}\n${silence.stderr || ""}`;
+  const leadingSilence = leadingSilenceSeconds(silenceOutput);
 
   return {
     filePath,
@@ -59,6 +71,7 @@ async function inspectPostMatchReadMedia(video, {
     duration: Number(probeJson.format?.duration),
     integratedLufs: lastNumber(loudnessOutput, /I:\s+(-?[\d.]+)\s+LUFS/g),
     truePeakDbfs: lastNumber(loudnessOutput, /Peak:\s+(-?[\d.]+)\s+dBFS/g),
+    leadingSilenceMilliseconds: Number.isFinite(leadingSilence) ? leadingSilence * 1000 : 0,
   };
 }
 
@@ -73,6 +86,9 @@ function validatePostMatchReadMediaReport(media = {}) {
     reasons.push("integrated loudness must be -18 to -16 LUFS");
   }
   if (!Number.isFinite(Number(media.truePeakDbfs)) || Number(media.truePeakDbfs) > -1) reasons.push("true peak must be at most -1 dBFS");
+  if (!Number.isFinite(Number(media.leadingSilenceMilliseconds)) || Number(media.leadingSilenceMilliseconds) > 50) {
+    reasons.push("leading silence must be at most 50ms");
+  }
   return { passed: reasons.length === 0, reasons, media };
 }
 

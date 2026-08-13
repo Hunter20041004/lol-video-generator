@@ -17,6 +17,7 @@ test("validatePostMatchReadMediaReport accepts only the approved 12-second verti
     duration: 12,
     integratedLufs: -17,
     truePeakDbfs: -1.2,
+    leadingSilenceMilliseconds: 49,
   });
   const invalid = validatePostMatchReadMediaReport({
     videoCodec: "vp9",
@@ -27,12 +28,13 @@ test("validatePostMatchReadMediaReport accepts only the approved 12-second verti
     duration: 11.5,
     integratedLufs: -25,
     truePeakDbfs: 0,
+    leadingSilenceMilliseconds: 75,
   });
 
   assert.deepEqual(valid, { passed: true, reasons: [], media: valid.media });
   assert.equal(invalid.passed, false);
-  assert.equal(invalid.reasons.length, 7);
-  assert.match(invalid.reasons.join("; "), /H\.264|AAC|1080×1920|30fps|12\.0 seconds|-18 to -16 LUFS|true peak/);
+  assert.equal(invalid.reasons.length, 8);
+  assert.match(invalid.reasons.join("; "), /H\.264|AAC|1080×1920|30fps|12\.0 seconds|-18 to -16 LUFS|true peak|leading silence/);
 });
 
 test("validatePostMatchReadRender probes only a file under public renders without a shell", async () => {
@@ -51,6 +53,9 @@ test("validatePostMatchReadRender probes only a file under public renders withou
         stderr: "",
       };
     }
+    if (args.includes("silencedetect=noise=-45dB:d=0.005")) {
+      return { stdout: "", stderr: "silence_start: 0\nsilence_end: 0.049 | silence_duration: 0.049\n" };
+    }
     return { stdout: "", stderr: "Summary:\n  I: -17.0 LUFS\n  Peak: -1.2 dBFS\n" };
   };
 
@@ -60,7 +65,7 @@ test("validatePostMatchReadRender probes only a file under public renders withou
   });
 
   assert.equal(report.passed, true);
-  assert.deepEqual(calls.map((call) => call.command), ["ffprobe", "ffmpeg"]);
+  assert.deepEqual(calls.map((call) => call.command), ["ffprobe", "ffmpeg", "ffmpeg"]);
   assert.equal(calls[0].args.at(-1), "/tmp/post-match-read-validation/public/renders/read.mp4");
   await assert.rejects(
     () => inspectPostMatchReadMedia({ fileName: "../../outside.mp4" }, { cwd: "/tmp/post-match-read-validation", execFileImpl }),

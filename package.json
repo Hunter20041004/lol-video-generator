@@ -11,6 +11,7 @@
     "tdd:doctor": "node scripts/tddDoctor.js",
     "verify": "npm run tdd:doctor && npm run test:coverage && npx next build",
     "qa:render": "node scripts/qaRender.js",
+    "canary:post-match-read": "node scripts/renderPostMatchReadCanary.js",
     "publish:queue": "node scripts/publishQueue.js list",
     "publish:run": "node scripts/publishQueue.js run",
     "publish:due": "node scripts/publishQueue.js run --due",

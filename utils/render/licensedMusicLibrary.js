@@ -1,4 +1,5 @@
 const crypto = require("node:crypto");
+const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const TRACKED_LIBRARY = require("../../config/licensed-music-library.json");
@@ -8,6 +9,34 @@ const MUSIC_ROOT_RELATIVE_PATH = path.join(".data", "licensed-music");
 const PUBLIC_AUDIO_ROOT_RELATIVE_PATH = path.join("public", "audio");
 const STAGED_AUDIO_RELATIVE_PATH = path.join("render-assets", "audio");
 const SUPPORTED_EXTENSIONS = new Set([".mp3", ".m4a", ".wav"]);
+
+function buildSegmentAudioArgs({ sourcePath, outputPath, segment }) {
+  const leadTrimSeconds = Number(segment.audibleLeadTrimMilliseconds || 0) / 1000;
+  const start = Number(segment.startSeconds) + leadTrimSeconds;
+  const duration = Number(segment.durationSeconds);
+  const gain = Number(segment.gain);
+  const fadeSeconds = Number(segment.fadeMilliseconds) / 1000;
+  const fadeOutStart = duration - fadeSeconds;
+  return [
+    "-y", "-loglevel", "error",
+    "-ss", String(start),
+    "-t", String(duration),
+    "-i", sourcePath,
+    "-af", `volume=${gain},afade=t=in:st=0:d=${fadeSeconds},afade=t=out:st=${fadeOutStart}:d=${fadeSeconds}`,
+    "-c:a", "pcm_s16le",
+    outputPath,
+  ];
+}
+
+function stageLicensedMusicSegment({ sourcePath, outputPath, segment, execFileSyncImpl = execFileSync }) {
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  if (!fs.existsSync(outputPath)) {
+    execFileSyncImpl("ffmpeg", buildSegmentAudioArgs({ sourcePath, outputPath, segment }), {
+      stdio: "pipe",
+    });
+  }
+  return outputPath;
+}
 
 function fileSha256(filePath) {
   return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
@@ -56,7 +85,12 @@ function readEligibleTracks(rootDir, library) {
   return eligibleTracks;
 }
 
-function selectAndStageLicensedMusic({ rootDir = process.cwd(), random = Math.random, library = TRACKED_LIBRARY } = {}) {
+function selectAndStageLicensedMusic({
+  rootDir = process.cwd(),
+  random = Math.random,
+  library = TRACKED_LIBRARY,
+  stageLicensedMusicSegmentImpl = stageLicensedMusicSegment,
+} = {}) {
   const eligibleTracks = readEligibleTracks(rootDir, library);
   if (eligibleTracks.length === 0) return null;
 
@@ -65,32 +99,36 @@ function selectAndStageLicensedMusic({ rootDir = process.cwd(), random = Math.ra
   const track = eligibleTracks[Math.floor(boundedRandom * eligibleTracks.length)];
   const sourcePath = track.sourcePath;
   const audioPlan = buildPostMatchReadAudioPlan(track.safeSegment, track.id);
-  const extension = path.extname(sourcePath).toLowerCase();
-  if (track.isPublicAsset) {
-    return {
-      trackId: String(track.id || path.basename(sourcePath)),
-      title: String(track.title || track.id || path.basename(sourcePath)),
-      bgmFile: path.relative(path.join(rootDir, "public"), sourcePath).split(path.sep).join(path.posix.sep),
-      audioPlan,
-    };
-  }
-
-  const stagedFileName = `${String(track.sha256).slice(0, 16).toLowerCase()}${extension}`;
+  const segmentHash = crypto
+    .createHash("sha256")
+    .update(JSON.stringify(track.safeSegment))
+    .digest("hex")
+    .slice(0, 8);
+  const stagedFileName = `${String(track.sha256).slice(0, 16).toLowerCase()}-${segmentHash}-post-match-read.wav`;
   const stagedDir = path.join(rootDir, "public", STAGED_AUDIO_RELATIVE_PATH);
   const stagedPath = path.join(stagedDir, stagedFileName);
-  fs.mkdirSync(stagedDir, { recursive: true });
-  if (!fs.existsSync(stagedPath) || fileSha256(stagedPath) !== String(track.sha256).toLowerCase()) {
-    fs.copyFileSync(sourcePath, stagedPath);
-  }
+  stageLicensedMusicSegmentImpl({
+    sourcePath,
+    outputPath: stagedPath,
+    segment: track.safeSegment,
+  });
 
   return {
     trackId: String(track.id || stagedFileName),
     title: String(track.title || track.id || stagedFileName),
     bgmFile: path.posix.join("render-assets", "audio", stagedFileName),
-    audioPlan,
+    audioPlan: {
+      ...audioPlan,
+      preprocessed: true,
+      sourceStartSeconds: 0,
+      gain: 1,
+      fadeFrames: 0,
+    },
   };
 }
 
 module.exports = {
+  buildSegmentAudioArgs,
+  stageLicensedMusicSegment,
   selectAndStageLicensedMusic,
 };

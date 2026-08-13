@@ -98,3 +98,14 @@ test("series context derives short labels from the fallback teams array", () => 
   assert.equal(viewModel.seriesContext.teamA, "BG");
   assert.equal(viewModel.seriesContext.teamB, "GEN");
 });
+
+test("public matchup names omit parenthetical real names", () => {
+  const input = makeInput();
+  input.matchupSegment.edgePlayer.name = "Jackal (Lee Su-min)";
+  input.matchupSegment.focusPlayer.name = "Jackal (Lee Su-min)";
+
+  const viewModel = buildPostMatchReadViewModel(input);
+
+  assert.equal(viewModel.matchup.edgePlayer.name, "Jackal");
+  assert.equal(viewModel.matchup.focusPlayer.name, "Jackal");
+});

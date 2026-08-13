@@ -315,7 +315,8 @@ function buildPlayerRadarPayload(series = {}, selectionOrPlayer = {}, locale = "
 }
 
 async function runPlayerRadarFromSnapshot(options = {}, deps = {}) {
-  const snapshot = readCandidateSnapshot(options.scanId);
+  const readCandidateSnapshotImpl = deps.readCandidateSnapshot || readCandidateSnapshot;
+  const snapshot = readCandidateSnapshotImpl(options.scanId);
   const series = (snapshot.candidates || []).find((candidate) => candidate.seriesId === options.seriesId);
   if (!series) throw new Error(`Series not found in snapshot: ${options.seriesId || "UNKNOWN"}`);
 
