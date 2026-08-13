@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const { normalizePipelinePayload } = require("../../src/schemas/pipelineSchemas");
 const { assertSupportedDataType } = require("../pipelineRegistry");
-const { assertPlayerRadarEvidence, hasPlayerRadarPayload } = require("../esports/playerRadarEvidence");
+const { assertPlayerRadarEvidence, hasPlayerRadarPayload, isPlayerRadarPayload } = require("../esports/playerRadarEvidence");
 const { getChampionEntry, getChampionTWName, getItemEntry, getRuneEntry } = require("../riotLocalization");
 const { splitDenseSkillScenes } = require("../patchStoryboard");
 const { selectAndStageLicensedMusic } = require("./licensedMusicLibrary");
@@ -449,14 +449,22 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
   payloads.forEach(({ payload }) => assertPlayerRadarEvidence(payload));
 
   const hasExplicitRootAudio = Object.prototype.hasOwnProperty.call(requestData, "bgmFile");
-  const needsAutomaticMusic = requestData.bgmMode === "auto" || !hasExplicitRootAudio;
+  const isPostMatchRead = hasPlayerRadarPayload(requestData);
+  const needsAutomaticMusic = isPostMatchRead || requestData.bgmMode === "auto" || !hasExplicitRootAudio;
   const selectLicensedMusicImpl = options.selectLicensedMusicImpl || selectAndStageLicensedMusic;
   const selectedMusic = needsAutomaticMusic
     ? selectLicensedMusicImpl({ rootDir: process.cwd() })
     : null;
+  if (isPostMatchRead && (!selectedMusic?.bgmFile || !selectedMusic?.audioPlan)) {
+    throw new Error("Post Match Read requires a verified 12-second licensed music segment.");
+  }
   if (selectedMusic?.bgmFile) {
     payloads.forEach(({ payload }) => {
       if (payload.bgmFile == null) payload.bgmFile = selectedMusic.bgmFile;
+      if (selectedMusic.audioPlan && isPlayerRadarPayload(payload)) {
+        payload.audioPlan = selectedMusic.audioPlan;
+        payload.postMatchRead.audioPlan = selectedMusic.audioPlan;
+      }
     });
     console.log(`🎵 [BGM] auto-selected verified local track: ${selectedMusic.trackId}`);
   }

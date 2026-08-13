@@ -196,6 +196,7 @@ async function loadRemotionModule(entryFile) {
             export const Img = (props) => React.createElement("img", props);
             export const OffthreadVideo = (props) => React.createElement("video", props);
             export const Sequence = ({ children, ...props }) => React.createElement("div", props, children);
+            export const Easing = { cubic: (value) => value, in: (fn) => fn, out: (fn) => fn };
             export const interpolate = (_value, _input, output) => output[0];
             export const spring = () => 1;
             export const staticFile = (src) => "/" + src;

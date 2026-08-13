@@ -13,6 +13,15 @@ function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
 
+const SAFE_SEGMENT = {
+  id: "post-match-read-12s",
+  startSeconds: 2,
+  durationSeconds: 12,
+  downbeats: [2, 5, 8, 11],
+  gain: 0.5,
+  fadeMilliseconds: 34,
+};
+
 test("selectAndStageLicensedMusic stages only enabled verified tracks", () => {
   const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-licensed-music-"));
   try {
@@ -31,6 +40,7 @@ test("selectAndStageLicensedMusic stages only enabled verified tracks", () => {
           sha256: sha256(verifiedAudio),
           enabled: true,
           rightsStatus: "verified",
+          safeSegments: [SAFE_SEGMENT],
         },
         {
           id: "pending",
@@ -70,16 +80,63 @@ test("selectAndStageLicensedMusic selects a verified tracked public asset", () =
         sha256: sha256(audio),
         enabled: true,
         rightsStatus: "verified",
+        safeSegments: [SAFE_SEGMENT],
       }],
     };
 
     const selected = selectAndStageLicensedMusic({ rootDir, library, random: () => 0 });
 
-    assert.deepEqual(selected, {
-      trackId: "tracked-verified",
-      title: "tracked-verified",
-      bgmFile: "audio/verified.mp3",
-    });
+    assert.equal(selected.trackId, "tracked-verified");
+    assert.equal(selected.title, "tracked-verified");
+    assert.equal(selected.bgmFile, "audio/verified.mp3");
+    assert.equal(selected.audioPlan.sourceStartSeconds, 2);
+    assert.deepEqual(selected.audioPlan.cutFrames, [0, 54, 150, 270, 360]);
+  } finally {
+    fs.rmSync(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("selectAndStageLicensedMusic skips verified tracks without a valid 12-second segment", () => {
+  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-segmented-music-"));
+  try {
+    const invalidAudio = Buffer.from("verified-but-unsegmented");
+    const validAudio = Buffer.from("verified-and-segmented");
+    fs.mkdirSync(path.join(rootDir, "public", "audio"), { recursive: true });
+    fs.writeFileSync(path.join(rootDir, "public", "audio", "invalid.mp3"), invalidAudio);
+    fs.writeFileSync(path.join(rootDir, "public", "audio", "valid.mp3"), validAudio);
+    const library = {
+      version: 1,
+      tracks: [
+        {
+          id: "invalid",
+          sourcePath: "public/audio/invalid.mp3",
+          sha256: sha256(invalidAudio),
+          enabled: true,
+          rightsStatus: "verified",
+        },
+        {
+          id: "valid",
+          sourcePath: "public/audio/valid.mp3",
+          sha256: sha256(validAudio),
+          enabled: true,
+          rightsStatus: "verified",
+          safeSegments: [{
+            id: "post-match-read-12s",
+            startSeconds: 2,
+            durationSeconds: 12,
+            downbeats: [2, 5, 8, 11],
+            gain: 0.5,
+            fadeMilliseconds: 34,
+          }],
+        },
+      ],
+    };
+
+    const selected = selectAndStageLicensedMusic({ rootDir, library, random: () => 0 });
+
+    assert.equal(selected.trackId, "valid");
+    assert.equal(selected.audioPlan.sourceStartSeconds, 2);
+    assert.equal(selected.audioPlan.durationInFrames, 360);
   } finally {
     fs.rmSync(rootDir, { recursive: true, force: true });
   }

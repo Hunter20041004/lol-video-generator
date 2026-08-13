@@ -8,7 +8,19 @@
       "sha256": "fb9fe588eeb13b281542de89b69550f24b9c0bebb7b5d6e4fb4f150a6af93be4",
       "durationSeconds": 171.93795,
       "enabled": true,
-      "rightsStatus": "verified"
+      "rightsStatus": "verified",
+      "safeSegments": [{
+        "id": "post-match-read-12s",
+        "startSeconds": 1.976,
+        "durationSeconds": 12,
+        "downbeats": [1.976, 4.628, 7.28, 9.932, 12.584],
+        "measuredIntegratedLufs": -9.9,
+        "measuredTruePeakDbfs": -0.1,
+        "targetIntegratedLufs": -17,
+        "gain": 0.4417,
+        "fadeMilliseconds": 34,
+        "maxLeadingSilenceMilliseconds": 50
+      }]
     },
     {
       "id": "licensed-bgm-2",
@@ -17,7 +29,19 @@
       "sha256": "c6e83e763f9b18517fca6f9974de7d9d7c48f94f0d2d4b53bbfce894c7d16812",
       "durationSeconds": 235.206525,
       "enabled": true,
-      "rightsStatus": "verified"
+      "rightsStatus": "verified",
+      "safeSegments": [{
+        "id": "post-match-read-12s",
+        "startSeconds": 3.833,
+        "durationSeconds": 12,
+        "downbeats": [3.833, 7.226, 10.618, 14.01],
+        "measuredIntegratedLufs": -17.8,
+        "measuredTruePeakDbfs": -2.1,
+        "targetIntegratedLufs": -17,
+        "gain": 1.0715,
+        "fadeMilliseconds": 34,
+        "maxLeadingSilenceMilliseconds": 50
+      }]
     },
     {
       "id": "licensed-bgm-3",
@@ -26,7 +50,19 @@
       "sha256": "561ad3f5b1311abedfb920ca39ecbff2644fe71b4901424148a94dc6614174c3",
       "durationSeconds": 203.02365,
       "enabled": true,
-      "rightsStatus": "verified"
+      "rightsStatus": "verified",
+      "safeSegments": [{
+        "id": "post-match-read-12s",
+        "startSeconds": 1.228,
+        "durationSeconds": 12,
+        "downbeats": [1.228, 2.634, 4.039, 5.445, 6.851, 8.256, 9.662, 11.067, 12.473],
+        "measuredIntegratedLufs": -12.1,
+        "measuredTruePeakDbfs": 0.6,
+        "targetIntegratedLufs": -17,
+        "gain": 0.568,
+        "fadeMilliseconds": 34,
+        "maxLeadingSilenceMilliseconds": 50
+      }]
     }
   ]
 }

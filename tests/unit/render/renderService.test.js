@@ -267,6 +267,57 @@ test("renderOne rejects unavailable official player art before Remotion props ar
   });
 });
 
+test("renderVideosFromRequest blocks a silent post-match read before Remotion starts", async () => {
+  await withTempProject(async () => {
+    const commands = [];
+
+    await assert.rejects(
+      () => renderVideosFromRequest(makeRenderablePlayerRadarPayload(), {
+        selectLicensedMusicImpl: () => null,
+        execRenderImpl: async (command) => {
+          commands.push(command);
+          return null;
+        },
+      }),
+      /Post Match Read requires a verified 12-second licensed music segment\./
+    );
+
+    assert.deepEqual(commands, []);
+  });
+});
+
+test("renderVideosFromRequest attaches one licensed audio plan to root and post-match read props", async () => {
+  await withTempProject(async () => {
+    const audioPlan = {
+      trackId: "licensed-bgm-1",
+      sourceStartSeconds: 1.976,
+      durationInFrames: 360,
+      cutFrames: [0, 54, 150, 270, 360],
+      gain: 0.4417,
+      fadeFrames: 2,
+    };
+    const renderedPlans = [];
+
+    await renderVideosFromRequest(makeRenderablePlayerRadarPayload(), {
+      timestamp: 1002,
+      selectLicensedMusicImpl: () => ({
+        trackId: "licensed-bgm-1",
+        bgmFile: "audio/licensed-test-segment.mp3",
+        audioPlan,
+      }),
+      assetFetchImpl: async () => ({ ok: true, arrayBuffer: async () => Buffer.alloc(2048, 1) }),
+      execRenderImpl: async (_command, args) => {
+        const propsArg = args.find((arg) => arg.startsWith("--props="));
+        const props = JSON.parse(fs.readFileSync(propsArg.slice("--props=".length), "utf8")).data;
+        renderedPlans.push({ root: props.audioPlan, nested: props.postMatchRead.audioPlan });
+        return null;
+      },
+    });
+
+    assert.deepEqual(renderedPlans, [{ root: audioPlan, nested: audioPlan }]);
+  });
+});
+
 test("localizeRemoteImageAssets caches remote render images before Remotion runs", async () => {
   await withTempProject(async (dir) => {
     const fetched = [];

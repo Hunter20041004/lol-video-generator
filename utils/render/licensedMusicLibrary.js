@@ -2,6 +2,7 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 const TRACKED_LIBRARY = require("../../config/licensed-music-library.json");
+const { buildPostMatchReadAudioPlan } = require("./postMatchReadAudioPlan");
 
 const MUSIC_ROOT_RELATIVE_PATH = path.join(".data", "licensed-music");
 const PUBLIC_AUDIO_ROOT_RELATIVE_PATH = path.join("public", "audio");
@@ -33,7 +34,23 @@ function readEligibleTracks(rootDir, library) {
     if (!fs.existsSync(sourcePath) || !fs.statSync(sourcePath).isFile()) continue;
     if (fileSha256(sourcePath) !== String(track.sha256).toLowerCase()) continue;
 
-    eligibleTracks.push({ ...track, sourcePath, isPublicAsset });
+    const safeSegment = (track.safeSegments || []).find((segment) => {
+      const start = Number(segment?.startSeconds);
+      const duration = Number(segment?.durationSeconds);
+      const gain = Number(segment?.gain);
+      const downbeats = Array.isArray(segment?.downbeats) ? segment.downbeats.map(Number) : [];
+      return segment?.id === "post-match-read-12s"
+        && Number.isFinite(start)
+        && Number.isFinite(duration)
+        && duration >= 12
+        && Number.isFinite(gain)
+        && downbeats.length > 0
+        && downbeats.every(Number.isFinite)
+        && downbeats.some((beat) => beat >= start && beat <= start + duration);
+    });
+    if (!safeSegment) continue;
+
+    eligibleTracks.push({ ...track, sourcePath, isPublicAsset, safeSegment });
   }
 
   return eligibleTracks;
@@ -47,12 +64,14 @@ function selectAndStageLicensedMusic({ rootDir = process.cwd(), random = Math.ra
   const boundedRandom = Number.isFinite(randomValue) ? Math.min(Math.max(randomValue, 0), 0.999999999) : 0;
   const track = eligibleTracks[Math.floor(boundedRandom * eligibleTracks.length)];
   const sourcePath = track.sourcePath;
+  const audioPlan = buildPostMatchReadAudioPlan(track.safeSegment, track.id);
   const extension = path.extname(sourcePath).toLowerCase();
   if (track.isPublicAsset) {
     return {
       trackId: String(track.id || path.basename(sourcePath)),
       title: String(track.title || track.id || path.basename(sourcePath)),
       bgmFile: path.relative(path.join(rootDir, "public"), sourcePath).split(path.sep).join(path.posix.sep),
+      audioPlan,
     };
   }
 
@@ -68,6 +87,7 @@ function selectAndStageLicensedMusic({ rootDir = process.cwd(), random = Math.ra
     trackId: String(track.id || stagedFileName),
     title: String(track.title || track.id || stagedFileName),
     bgmFile: path.posix.join("render-assets", "audio", stagedFileName),
+    audioPlan,
   };
 }
 
