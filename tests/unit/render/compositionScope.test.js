@@ -202,279 +202,89 @@ test("Esports recap rows can use per-scene points and headings for deeper analys
   assert.match(source, /<RecapRows data=\{data\} theme=\{theme\} localFrame=\{active\.localFrame\} scene=\{active\.scene\} \/>/);
 });
 
-test("Player radar template renders dual-read matchup and proof scenes", () => {
+test("post-match read template uses the resolved view model and approved public brand", () => {
   const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
 
-  assert.match(source, /const MatchupEdgeScene/);
-  assert.match(source, /const PlayerProofScene/);
-  assert.match(source, /matchupSegment/);
-  assert.match(source, /proofSegment/);
-  assert.match(source, /active\.scene\?\.tag === "MATCHUP_EDGE"/);
-  assert.match(source, /active\.scene\?\.tag === "PLAYER_PROOF"/);
-  assert.match(source, /focusPlayer/);
-  assert.match(source, /opponentPlayer/);
-  assert.match(source, /proofReasons/);
-  assert.equal(source.includes("FIVE-AXIS PROFILE"), false);
-  assert.equal(source.includes("的真實形狀"), false);
-  assert.equal(source.includes("強項與弱點會自己浮出來"), false);
-  assert.equal(source.includes("不是只有 KDA"), false);
+  for (const required of [
+    "POST MATCH READ",
+    "postMatchRead",
+    "SharedHextechThread",
+    "HeroField",
+    "HookScene",
+    "MatchupScene",
+    "ProofScene",
+    "VerdictScene",
+    "Noto Serif TC Post Match Read",
+  ]) {
+    assert.equal(source.includes(required), true, `expected ${required}`);
+  }
+
+  for (const removed of [
+    "PLAYER RADAR",
+    "MATCH DATA / PERFORMANCE",
+    "PipelineChrome",
+    "PipelineBadge",
+    "SubtitleCaption",
+    "HextechBackground",
+    "RadarChart",
+    "BroadcastPanel",
+    "playerRadarHelpers",
+  ]) {
+    assert.equal(source.includes(removed), false, `obsolete template token: ${removed}`);
+  }
 });
 
-test("Player radar number formatting has no self-replacing cleanup step", () => {
+test("post-match read template keeps one art field across four scene layers", () => {
   const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
 
-  assert.equal(source.includes('.replace(/\\.0$/, ".0")'), false);
+  assert.match(source, /const model = data\.postMatchRead/);
+  assert.match(source, /buildTimeline\(model\.storyboard, fps, 0\)/);
+  assert.match(source, /<HeroField model=\{model\}/);
+  assert.match(source, /<SharedHextechThread frame=\{frame\} timeline=\{timeline\}/);
+  assert.match(source, /tag="HOOK"[\s\S]*<HookScene model=\{model\}/);
+  assert.match(source, /tag="MATCHUP_EDGE"[\s\S]*<MatchupScene model=\{model\}/);
+  assert.match(source, /tag="PLAYER_PROOF"[\s\S]*<ProofScene model=\{model\}/);
+  assert.match(source, /tag="CONCLUSION_CTA"[\s\S]*<VerdictScene model=\{model\}/);
+  assert.match(source, /resolveRenderAssetSrc/);
+  assert.doesNotMatch(source, /Array\.from\(\{ length:/);
 });
 
-test("Player radar template does not render synthetic match placeholders", () => {
+test("post-match read verdict remains fully still for the final 30 frames", () => {
   const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
 
-  assert.equal(source.includes('match.league || "LCK"'), false);
-  assert.equal(source.includes('match.teamA || "T1"'), false);
-  assert.equal(source.includes('match.teamB || "GEN"'), false);
-  assert.equal(source.includes('match.seriesScore || "Game 1"'), false);
-  assert.equal(source.includes('player.name || "Player"'), false);
-  assert.equal(source.includes('opponentPlayer.name || "Opponent"'), false);
-  assert.equal(source.includes('edgePlayer.name || "Edge player"'), false);
+  assert.match(source, /scene\.tag === "CONCLUSION_CTA" \? enter : Math\.min\(enter, exit\)/);
+  assert.match(source, /Math\.min\(unclamped, 60\)/);
+  assert.match(source, /const heroFrame = frame >= verdictStart \? verdictStart \+ Math\.min\(frame - verdictStart, 60\) : frame/);
+  assert.match(source, /interpolate\(heroFrame, \[0, 360\], \[1, 1\.028\]/);
 });
 
-test("Player radar template uses creator-read hero visuals and source-backed stat spotlights", () => {
+test("post-match read motion animates composited properties instead of paint-heavy glow values", () => {
   const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
 
-  assert.match(source, /const PlayerRadarHeroBackdrop/);
-  assert.match(source, /const MatchupStatSpotlight/);
-  assert.match(source, /const EvidenceCard/);
-  assert.match(source, /const shouldShowRadarChart/);
-  assert.match(source, /primaryMatchupReason/);
-  assert.match(source, /proofReasons\.map\(\(reason, index\) => \(\s*<EvidenceCard/);
-  assert.match(source, /radarStats\.length >= 4/);
-  assert.equal(source.includes("Math.round(segment.edgeScore)"), false);
-  assert.equal(source.includes("數據領先:"), false);
-  assert.equal(source.includes('width: 320'), false);
+  assert.doesNotMatch(source, /boxShadow: `0 0 \$\{width\}px/);
+  assert.doesNotMatch(source, /background: `rgba\(1,10,19,\$\{verdictDim\}\)`/);
+  assert.match(source, /background: COLORS\.ink,[\s\S]{0,80}opacity: verdictDim/);
 });
 
-test("Player radar template uses polished broadcast visuals instead of draft dashboard cards", () => {
-  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
-
-  assert.match(source, /const PlayerRadarBroadcastBackdrop/);
-  assert.match(source, /const BroadcastPanel/);
-  assert.match(source, /const SplitMatchupMeter/);
-  assert.match(source, /const VerdictStatRail/);
-  assert.match(source, /const CompactEvidenceCard/);
-  assert.match(source, /clipPath: "polygon\(16px 0/);
-  assert.match(source, /gridTemplateColumns: "1fr 92px 1fr"/);
-  assert.equal(source.includes("<GlassPanel"), false);
-  assert.equal(source.includes("不是抽象分數"), false);
-  assert.equal(source.includes("不硬補假軸"), false);
-  assert.equal(source.includes("fontSize: 168"), false);
-});
-
-test("Player radar template uses mobile-first shorts layout with one readable focus per scene", () => {
-  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
-
-  assert.match(source, /const MobileShortStage/);
-  assert.match(source, /const MinimalScoreBug/);
-  assert.match(source, /const OnePointSceneBody/);
-  assert.match(source, /const HeroNumber/);
-  assert.match(source, /const ShortMetricBar/);
-  assert.match(source, /const VerticalEvidenceStack/);
-  assert.match(source, /const PLAYER_RADAR_STAGE_INSET = "80px 56px 300px"/);
-  assert.match(source, /const PLAYER_RADAR_SUBTITLE_BOTTOM = 235/);
-  assert.equal(source.includes("<RadarChart"), false);
-  assert.equal(source.includes('gridTemplateColumns: "0.88fr 1.12fr"'), false);
-  assert.equal(source.includes('gridTemplateColumns: "1fr 0.62fr"'), false);
-  assert.equal(source.includes("paddingTop: 310"), false);
-  assert.equal(source.includes("paddingTop: 260"), false);
-  assert.equal(source.includes("${getTeamLine(match)} ${getScoreText(match)}"), false);
-});
-
-test("Player radar hook renders selected opening evidence without a delayed data gate", () => {
-  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
-  const hookSource = source.match(/const HookScene = \([\s\S]*?\n\};\n\nconst MatchupEdgeScene/);
-
-  assert.ok(hookSource, "expected HookScene source");
-  assert.match(hookSource[0], /const openingEvidence = getOpeningEvidence\(data\)/);
-  assert.match(hookSource[0], /kicker=\{openingEvidence\.label\}/);
-  assert.match(hookSource[0], /value=\{openingEvidence\.value\}/);
-  assert.doesNotMatch(hookSource[0], /localFrame\s*[>=]=?\s*15/);
-});
-
-test("Player radar timeline starts at frame zero", () => {
-  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
-
-  assert.match(source, /buildTimeline\(storyboard, fps, 0\)/);
-});
-
-test("Player radar scene body never hides data behind an entrance animation", () => {
-  const source = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
-  const stageSource = source.match(/const MobileShortStage = \([\s\S]*?\n\nconst OnePointSceneBody/);
-
-  assert.ok(stageSource, "expected MobileShortStage source");
-  assert.doesNotMatch(stageSource[0], /spring\(/);
-  assert.doesNotMatch(stageSource[0], /opacity:\s*enter/);
-  assert.doesNotMatch(stageSource[0], /localFrame\s*-\s*5/);
-});
-
-test("Remotion root player radar preview uses the dual-read payload shape", () => {
+test("Remotion root player radar preview uses the approved HLE BRO post-match read", () => {
   const rootSource = fs.readFileSync(path.join(ROOT, "src/Root.jsx"), "utf8");
   const playerRadarBlock = rootSource.match(/const mockPlayerRadarData = \{[\s\S]*?\n\};\n\nconst mockEsportsH2HRadarData = \{/);
 
   assert.ok(playerRadarBlock, "expected mockPlayerRadarData block");
-  const playerRadarSource = playerRadarBlock[0];
-
-  assert.match(playerRadarSource, /matchupSegment:/);
-  assert.match(playerRadarSource, /proofSegment:/);
-  assert.match(playerRadarSource, /player:\s*\{/);
-  assert.match(playerRadarSource, /rawStats:\s*\{/);
-  assert.match(playerRadarSource, /radarStats:\s*\[/);
-  assert.match(playerRadarSource, /tag: "HOOK"/);
-  assert.match(playerRadarSource, /tag: "MATCHUP_EDGE"/);
-  assert.match(playerRadarSource, /tag: "PLAYER_PROOF"/);
-  assert.match(playerRadarSource, /tag: "CONCLUSION_CTA"/);
-  assert.doesNotMatch(playerRadarSource, /rawValue:\s*"[^"]*(?:\/分|\bGPM\b)/);
-  assert.doesNotMatch(playerRadarSource, /(?:winnerValue|loserValue):\s*"[^"]*(?:%|\/分|[A-Za-z])/);
-  assert.equal(playerRadarSource.includes('tag: "STAT_REVEAL"'), false);
-});
-
-test("Player radar hook proof pill uses the explicit proof player before MVP fallback", () => {
-  const { getHookProofPillValue } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
-
-  const value = getHookProofPillValue({
-    player: { name: "Zeus" },
-    recommendedMvp: "Faker",
-    proofSegment: {
-      proofType: "key_player",
-      player: { name: "Keria" },
-    },
-  });
-
-  assert.equal(value, "Keria");
-});
-
-test("Player radar opening evidence prefers the strongest matchup metric", () => {
-  const { getOpeningEvidence } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
-
-  const evidence = getOpeningEvidence({
-    matchupSegment: {
-      reasons: [{ metric: "DPM", delta: 220 }],
-    },
-    proofSegment: {
-      proofType: "mvp",
-      player: { name: "Faker" },
-    },
-  });
-
-  assert.deepEqual(evidence, { label: "DPM", value: "+220" });
-});
-
-test("Player radar opening evidence falls back to the proof pill", () => {
-  const { getOpeningEvidence } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
-
-  const evidence = getOpeningEvidence({
-    locale: "zh",
-    matchupSegment: { reasons: [] },
-    proofSegment: {
-      proofType: "key_player",
-      player: { name: "Keria" },
-    },
-  });
-
-  assert.deepEqual(evidence, { label: "關鍵人物", value: "Keria" });
-});
-
-test("Player radar opening evidence formats percentage-point deltas", () => {
-  const { getOpeningEvidence } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
-
-  const evidence = getOpeningEvidence({
-    matchupSegment: {
-      reasons: [{ metric: "KP%", delta: 0.21 }],
-    },
-  });
-
-  assert.deepEqual(evidence, { label: "KP%", value: "+21pp" });
-});
-
-test("Player radar matchup display keeps loser-focus scenes paired against the actual opponent", () => {
-  const { deriveMatchupDisplayPlayers, getMatchupMetricDisplay } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
-
-  const segment = {
-    edgeType: "loser-highlight",
-    focusPlayer: { name: "Chovy", team: "GEN", role: "Mid" },
-    edgePlayer: { name: "Knight", team: "BLG", role: "Mid" },
-    opponentPlayer: { name: "Knight", team: "BLG", role: "Mid" },
-  };
-  const matchup = deriveMatchupDisplayPlayers(segment);
-  const metric = getMatchupMetricDisplay({ winnerValue: 720, loserValue: 360 }, segment);
-
-  assert.equal(matchup.focusPlayer.name, "Chovy");
-  assert.equal(matchup.edgePlayer.name, "Knight");
-  assert.equal(matchup.opponentPlayer.name, "Knight");
-  assert.notEqual(matchup.focusPlayer.name, matchup.opponentPlayer.name);
-  assert.deepEqual(metric, { leftValue: 360, rightValue: 720 });
-});
-
-test("Player radar conclusion keeps missing players on the split-read path", () => {
-  const { buildConclusionVerdict, samePlayer } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
-
-  assert.equal(samePlayer({}, {}), false);
-
-  const verdict = buildConclusionVerdict({ locale: "en" });
-
-  assert.equal(verdict.isSamePlayer, false);
-  assert.equal(verdict.body, "The matchup edge belongs to matchup edge player, while the key-player case belongs to key player.");
-  assert.deepEqual(verdict.chips, ["Matchup edge", "Key player", "Dual read"]);
-});
-
-test("Player radar conclusion uses loser-focused selected matchup subject", () => {
-  const { buildConclusionVerdict } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
-
-  const verdict = buildConclusionVerdict({
-    locale: "en",
-    matchupSegment: {
-      focusPlayer: { name: "GEN Mid", team: "GEN", role: "Mid" },
-      edgePlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
-      opponentPlayer: { name: "T1 Mid", team: "T1", role: "Mid" },
-    },
-    proofSegment: {
-      player: { name: "GEN Mid", team: "GEN", role: "Mid" },
-    },
-  });
-
-  assert.equal(verdict.isSamePlayer, false);
-  assert.equal(verdict.matchupName, "GEN Mid");
-  assert.match(verdict.body, /GEN Mid/);
-  assert.match(verdict.body, /T1 Mid/);
-  assert.doesNotMatch(verdict.body, /owns both/);
-});
-
-test("Player radar English locale copy comes from behavior helpers", () => {
-  const { getPlayerRadarCopy } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
-
-  const copy = getPlayerRadarCopy({ locale: "en" });
-
-  assert.equal(copy.hookSeriesLabel, "Series");
-  assert.equal(copy.hookRoleLabel, "Role");
-  assert.equal(copy.matchupTitle, "BIGGEST MATCHUP EDGE");
-  assert.equal(copy.matchupLoserHighlight, "Loser highlight");
-  assert.equal(copy.proofBadgeLabels.key_player, "KEY PLAYER");
-  assert.equal(copy.proofSubtitle, "Build the key-player case with numbers.");
-});
-
-test("Player radar Chinese locale copy avoids unfinished English proof labels", () => {
-  const { getPlayerRadarCopy } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
-
-  const copy = getPlayerRadarCopy({ locale: "zh" });
-
-  assert.equal(copy.proofBadgeLabels.mvp, "MVP 證明");
-  assert.equal(copy.proofBadgeLabels.key_player, "關鍵人物證明");
-  assert.doesNotMatch(copy.proofBadgeLabels.mvp, /CASE/);
-});
-
-test("Player radar localized opening hooks last 45 frames", () => {
-  const { getPlayerRadarCopy } = require(path.join(ROOT, "src/templates/playerRadarHelpers.js"));
-
-  for (const locale of ["zh", "en"]) {
-    const hook = getPlayerRadarCopy({ locale }).storyboard.find((scene) => scene.tag === "HOOK");
-    assert.equal(hook.durationInFrames, 45, locale);
-  }
+  const source = playerRadarBlock[0];
+  assert.match(source, /HLE Challengers/);
+  assert.match(source, /HANJIN BRION Challengers/);
+  assert.match(source, /Jackal/);
+  assert.match(source, /Dinai/);
+  assert.match(source, /13\.67/);
+  assert.match(source, /0\.64/);
+  assert.match(source, /Pyeonsik/);
+  assert.match(source, /806/);
+  assert.match(source, /9\.77/);
+  assert.match(source, /Lucian/);
+  assert.match(source, /Varus/);
+  assert.match(source, /Ezreal/);
+  assert.match(source, /postMatchRead:/);
+  assert.match(source, /數據 MVP 候選/);
+  assert.doesNotMatch(source, /\bMVP\b(?! 候選)/);
 });

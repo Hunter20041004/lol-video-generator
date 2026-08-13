@@ -8,6 +8,43 @@ export const buildTimeline = (storyboard, fps, narrationStart = 35) => {
   });
 };
 
+export const calculatePacing = (storyboard, fps, { narrationStart = 35 } = {}) => {
+  const basePaddingDefault = fps * 1.5;
+  const basePaddingFast = fps * 0.8;
+  const charsPerSec = 5;
+  const sceneDurations = storyboard.map((scene) => {
+    if (scene.durationInFrames) return scene.durationInFrames;
+    const chars = scene.text ? scene.text.length : 5;
+    let duration =
+      Math.floor((chars / charsPerSec) * fps) +
+      (scene.tag === "SKILL_SHOWCASE" ? basePaddingFast : basePaddingDefault);
+    if (scene.tag === "CONCLUSION_CTA") duration += fps * 2.5;
+    return duration;
+  });
+
+  return {
+    narrationStart,
+    sceneDurations,
+    totalFrames: narrationStart + sceneDurations.reduce((sum, duration) => sum + duration, 0),
+  };
+};
+
+export const calculateMetadataFrames = (
+  storyboards,
+  fps,
+  { narrationStart = 35, finalBuffer = 30 } = {},
+) =>
+  storyboards.reduce(
+    (sum, storyboard) =>
+      sum + calculatePacing(storyboard, fps, { narrationStart }).totalFrames + finalBuffer,
+    0,
+  );
+
+export const getPostMatchReadStoryboard = (data = {}) =>
+  data.dataType === "PLAYER_RADAR" && Array.isArray(data.postMatchRead?.storyboard)
+    ? data.postMatchRead.storyboard
+    : null;
+
 export const getActiveTimelineScene = (timeline, frame) => {
   if (!Array.isArray(timeline) || timeline.length === 0) {
     return { scene: null, index: 0, start: 0, localFrame: frame };

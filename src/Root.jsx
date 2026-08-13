@@ -1,6 +1,7 @@
 import { Composition } from "remotion";
-import { PatchVideo, calculatePacing } from "./Composition";
+import { PatchVideo } from "./Composition";
 import { createPortfolioRenderProps } from "../utils/portfolioDemo";
+import { calculateMetadataFrames, getPostMatchReadStoryboard } from "./video-system/pacing";
 
 const mockPatchData = {
   championName: "Tahm Kench",
@@ -46,67 +47,72 @@ const mockRuneUpdateData = {
 const mockPlayerRadarData = {
   dataType: "PLAYER_RADAR",
   locale: "zh",
-  title: "T1 vs GEN 選手雷達",
-  matchContext: { league: "LCK", teamA: "T1", teamB: "GEN", winningTeam: "T1", seriesScore: "Game 3" },
-  matchupSegment: {
-    role: "Mid",
-    edgeType: "winner-breakpoint",
-    edgeWinnerTeam: "T1",
-    edgeScore: 20.33,
-    focusPlayer: { name: "Faker", team: "T1", role: "Mid", championPlayed: "Azir", rawStats: { dpm: 612, kp: 0.78, gpm: 430 } },
-    edgePlayer: { name: "Faker", team: "T1", role: "Mid", championPlayed: "Azir", rawStats: { dpm: 612, kp: 0.78, gpm: 430 } },
-    opponentPlayer: { name: "Chovy", team: "GEN", role: "Mid", championPlayed: "Orianna", rawStats: { dpm: 488, kp: 0.61, gpm: 390 } },
-    reasons: [
-      { metric: "KP%", winnerValue: 0.78, loserValue: 0.61, delta: 0.17 },
-      { metric: "DPM", winnerValue: 612, loserValue: 488, delta: 124 },
-      { metric: "GPM", winnerValue: 430, loserValue: 390, delta: 40 },
-    ],
-  },
-  proofSegment: {
-    proofType: "mvp",
-    isRecommendedMvp: true,
-    player: {
-      name: "Oner",
-      team: "T1",
+  title: "HLE Challengers 2–1 HANJIN BRION Challengers 賽後判讀",
+  bgmFile: null,
+  postMatchRead: {
+    branding: { publicTitle: "賽後判讀", publicTitleEn: "POST MATCH READ" },
+    seriesContext: {
+      league: "LCK CL",
+      teamA: "HLE",
+      teamB: "BRO",
+      score: "2–1",
+      gameCount: 3,
+      scopeLabel: "3-game series average",
+    },
+    hook: {
+      metric: "KDA",
+      leftRaw: 13.67,
+      rightRaw: 0.64,
+      displayValue: "約 21×",
+      comparisonType: "ratio",
+      approximate: true,
+      question: "這個系列賽，打野差距有多誇張？",
+    },
+    matchup: {
       role: "Jungle",
-      championPlayed: "Viego",
-      rawStats: { kda: 9.4, dpm: 584, kp: 0.81, gpm: 418, csm: 6.4 },
-      radarStats: [
-        { label: "KDA", rawValue: "9.4", normalizedScore: 94 },
-        { label: "DPM", rawValue: "584", normalizedScore: 55 },
-        { label: "KP%", rawValue: "81%", normalizedScore: 77 },
-        { label: "GPM", rawValue: "418", normalizedScore: 66 },
-        { label: "CSM", rawValue: "6.4", normalizedScore: 64 },
+      edgePlayer: { name: "Jackal", team: "HLE Challengers", role: "Jungle", championPlayed: "Xin Zhao" },
+      opponentPlayer: { name: "Dinai", team: "HANJIN BRION Challengers", role: "Jungle", championPlayed: "Vi" },
+      reasons: [{ metric: "KDA", winnerValue: 13.67, loserValue: 0.64 }],
+      claim: "打野差距明顯",
+      claimScope: "role-local",
+      scopeLabel: "3-game series average",
+    },
+    proof: {
+      labelType: "data-mvp-candidate",
+      label: "數據 MVP 候選",
+      player: {
+        name: "Pyeonsik",
+        team: "HLE Challengers",
+        role: "Adc",
+        champions: ["Lucian", "Varus", "Ezreal"],
+        rawStats: { dpm: 806, csm: 9.77 },
+      },
+      proofReasons: [
+        { metric: "DPM", rawValue: "806" },
+        { metric: "CSM", rawValue: "9.77" },
       ],
     },
-    proofReasons: [
-      { metric: "KDA", rawValue: "9.4", score: 94 },
-      { metric: "KP%", rawValue: "81%", score: 77 },
-      { metric: "GPM", rawValue: "418", score: 66 },
+    assets: {
+      matchup: {
+        edge: { championName: "Xin Zhao", mode: "splash", src: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/XinZhao_0.jpg" },
+        opponent: { championName: "Vi", mode: "splash", src: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Vi_0.jpg" },
+      },
+      proof: {
+        champions: ["Lucian", "Varus", "Ezreal"].map((championName) => ({
+          championName,
+          src: `https://ddragon.leagueoflegends.com/cdn/16.9.1/img/champion/${championName}.png`,
+        })),
+      },
+      smiteSrc: "https://ddragon.leagueoflegends.com/cdn/16.9.1/img/spell/SummonerSmite.png",
+    },
+    audioPlan: null,
+    storyboard: [
+      { tag: "HOOK", text: "這個系列賽，打野差距有多誇張？", durationInFrames: 54 },
+      { tag: "MATCHUP_EDGE", text: "不是小贏，是整個系列賽的斷層。", durationInFrames: 96 },
+      { tag: "PLAYER_PROOF", text: "但真正把優勢變成傷害的，在下路。", durationInFrames: 120 },
+      { tag: "CONCLUSION_CTA", text: "打野拉開局勢，下路把優勢變成勝利。\n下一場，你想看哪條路？", durationInFrames: 90 },
     ],
-    verdict: "Oner 有這場最清楚的 MVP 理由。",
   },
-  player: {
-    name: "Oner",
-    team: "T1",
-    role: "Jungle",
-    championPlayed: "Viego",
-    rawStats: { kda: 9.4, dpm: 584, kp: 0.81, gpm: 418, csm: 6.4 },
-  },
-  radarStats: [
-    { label: "KDA", rawValue: "9.4", normalizedScore: 94 },
-    { label: "DPM", rawValue: "584", normalizedScore: 55 },
-    { label: "KP%", rawValue: "81%", normalizedScore: 77 },
-    { label: "GPM", rawValue: "418", normalizedScore: 66 },
-    { label: "CSM", rawValue: "6.4", normalizedScore: 64 },
-  ],
-  verdict: "Oner 有這場最清楚的 MVP 理由。",
-  storyboard: [
-    { text: "最大差距和 MVP\n是同一個人嗎", tag: "HOOK" },
-    { text: "Faker\n打出最大對位差", tag: "MATCHUP_EDGE" },
-    { text: "Oner\n關鍵人物證明", tag: "PLAYER_PROOF" },
-    { text: "對位差和關鍵人物\n你怎麼看", tag: "CONCLUSION_CTA" },
-  ],
 };
 
 const mockEsportsH2HRadarData = {
@@ -194,6 +200,8 @@ const buildItemRuneMetadataStoryboard = (data = {}) => {
 };
 
 const getMetadataStoryboards = (data = {}) => {
+  const postMatchReadStoryboard = getPostMatchReadStoryboard(data);
+  if (postMatchReadStoryboard) return [postMatchReadStoryboard];
   if (!data.dataType || data.dataType === "PATCH") return [buildPatchMetadataStoryboard(data)];
   if (data.dataType === "ITEM_UPDATE" || data.dataType === "RUNE_UPDATE") {
     return [buildItemRuneMetadataStoryboard(data)];
@@ -207,13 +215,12 @@ const getMetadataStoryboards = (data = {}) => {
 
 const calculateMetadata = ({ props }) => {
   const fps = 30;
-  const finalBuffer = 30;
   const storyboards = getMetadataStoryboards(props.data);
-
-  const totalFrames = storyboards.reduce((sum, storyboard) => {
-    const pacing = calculatePacing(storyboard, fps);
-    return sum + pacing.totalFrames + finalBuffer;
-  }, 0);
+  const isPostMatchRead = props.data.dataType === "PLAYER_RADAR";
+  const totalFrames = calculateMetadataFrames(storyboards, fps, {
+    narrationStart: isPostMatchRead ? 0 : 35,
+    finalBuffer: isPostMatchRead ? 0 : 30,
+  });
 
   return {
     durationInFrames: totalFrames,
