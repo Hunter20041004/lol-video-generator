@@ -18,6 +18,7 @@ build/
 coverage/
 .screenshots/
 .playwright-cli/
+.superpowers/
 
 # Local runtime data and caches
 .data/
