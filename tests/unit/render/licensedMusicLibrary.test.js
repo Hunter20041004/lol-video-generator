@@ -16,12 +16,13 @@ function sha256(value) {
 }
 
 const SAFE_SEGMENT = {
-  id: "post-match-read-12s",
+  id: "post-match-read-25s",
   startSeconds: 2,
-  durationSeconds: 12,
-  downbeats: [2, 5, 8, 11],
+  durationSeconds: 25,
+  downbeats: [2, 6, 11, 19, 24],
   gain: 0.5,
   fadeMilliseconds: 34,
+  maxLeadingSilenceMilliseconds: 50,
 };
 
 function stageFakeSegment({ outputPath }) {
@@ -30,17 +31,46 @@ function stageFakeSegment({ outputPath }) {
   return outputPath;
 }
 
-test("licensed 12-second segment bakes gain and sample-accurate fades into PCM audio", () => {
+test("selectAndStageLicensedMusic rejects a library that only has the retired 12-second segment", () => {
+  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-retired-segment-"));
+  try {
+    const audio = Buffer.from("verified-audio");
+    const sourcePath = path.join(rootDir, "public", "audio", "source.mp3");
+    fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+    fs.writeFileSync(sourcePath, audio);
+    const library = {
+      version: 1,
+      tracks: [{
+        id: "retired",
+        sourcePath: "public/audio/source.mp3",
+        sha256: sha256(audio),
+        enabled: true,
+        rightsStatus: "verified",
+        safeSegments: [{ ...SAFE_SEGMENT, id: "post-match-read-12s", durationSeconds: 12 }],
+      }],
+    };
+
+    assert.equal(selectAndStageLicensedMusic({
+      rootDir,
+      library,
+      stageLicensedMusicSegmentImpl: stageFakeSegment,
+    }), null);
+  } finally {
+    fs.rmSync(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("licensed 25-second segment bakes gain and sample-accurate fades into PCM audio", () => {
   const args = buildSegmentAudioArgs({
     sourcePath: "/music/source.mp3",
     outputPath: "/render/segment.wav",
     segment: SAFE_SEGMENT,
   });
 
-  assert.deepEqual(args.slice(0, 8), ["-y", "-loglevel", "error", "-ss", "2", "-t", "12", "-i"]);
+  assert.deepEqual(args.slice(0, 8), ["-y", "-loglevel", "error", "-ss", "2", "-t", "25", "-i"]);
   assert.equal(args.includes("/music/source.mp3"), true);
-  assert.equal(args.includes("volume=0.5,afade=t=in:st=0:d=0.034,afade=t=out:st=11.966:d=0.034"), true);
-  assert.deepEqual(args.slice(-3), ["-c:a", "pcm_s16le", "/render/segment.wav"]);
+  assert.equal(args.includes("volume=0.5,afade=t=in:st=0:d=0.034,afade=t=out:st=24.966:d=0.034"), true);
+  assert.deepEqual(args.slice(-7), ["-c:a", "pcm_s16le", "-ar", "48000", "-ac", "2", "/render/segment.wav"]);
 });
 
 test("licensed segment applies its calibrated audible lead trim at the source boundary", () => {
@@ -50,7 +80,7 @@ test("licensed segment applies its calibrated audible lead trim at the source bo
     segment: { ...SAFE_SEGMENT, audibleLeadTrimMilliseconds: 35 },
   });
 
-  assert.deepEqual(args.slice(3, 7), ["-ss", "2.035", "-t", "12"]);
+  assert.deepEqual(args.slice(3, 7), ["-ss", "2.035", "-t", "25"]);
 });
 
 test("staged segment cache key changes when the calibrated segment changes", () => {
@@ -88,13 +118,13 @@ test("staged segment cache key changes when the calibrated segment changes", () 
   }
 });
 
-test("selected music uses the baked 12-second WAV without a second frame fade", () => {
+test("selected music uses the baked 25-second WAV without a second frame fade", () => {
   const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-baked-music-"));
   try {
     const sourcePath = path.join(rootDir, "public", "audio", "source.wav");
     fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
     execFileSync("ffmpeg", [
-      "-y", "-loglevel", "error", "-f", "lavfi", "-i", "sine=frequency=440:duration=14",
+      "-y", "-loglevel", "error", "-f", "lavfi", "-i", "sine=frequency=440:duration=28",
       "-c:a", "pcm_s16le", sourcePath,
     ]);
     const library = {
@@ -198,13 +228,13 @@ test("selectAndStageLicensedMusic selects a verified tracked public asset", () =
     assert.match(selected.bgmFile, /^render-assets\/audio\/[a-f0-9]{16}-[a-f0-9]{8}-post-match-read\.wav$/);
     assert.equal(selected.audioPlan.sourceStartSeconds, 0);
     assert.equal(selected.audioPlan.preprocessed, true);
-    assert.deepEqual(selected.audioPlan.cutFrames, [0, 54, 150, 270, 360]);
+    assert.deepEqual(selected.audioPlan.cutFrames, [0, 120, 270, 510, 660, 750]);
   } finally {
     fs.rmSync(rootDir, { recursive: true, force: true });
   }
 });
 
-test("selectAndStageLicensedMusic skips verified tracks without a valid 12-second segment", () => {
+test("selectAndStageLicensedMusic skips verified tracks without a valid 25-second segment", () => {
   const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-segmented-music-"));
   try {
     const invalidAudio = Buffer.from("verified-but-unsegmented");
@@ -229,12 +259,13 @@ test("selectAndStageLicensedMusic skips verified tracks without a valid 12-secon
           enabled: true,
           rightsStatus: "verified",
           safeSegments: [{
-            id: "post-match-read-12s",
+            id: "post-match-read-25s",
             startSeconds: 2,
-            durationSeconds: 12,
-            downbeats: [2, 5, 8, 11],
+            durationSeconds: 25,
+            downbeats: [2, 6, 11, 19, 24],
             gain: 0.5,
             fadeMilliseconds: 34,
+            maxLeadingSilenceMilliseconds: 50,
           }],
         },
       ],
@@ -249,7 +280,7 @@ test("selectAndStageLicensedMusic skips verified tracks without a valid 12-secon
 
     assert.equal(selected.trackId, "valid");
     assert.equal(selected.audioPlan.sourceStartSeconds, 0);
-    assert.equal(selected.audioPlan.durationInFrames, 360);
+    assert.equal(selected.audioPlan.durationInFrames, 750);
   } finally {
     fs.rmSync(rootDir, { recursive: true, force: true });
   }

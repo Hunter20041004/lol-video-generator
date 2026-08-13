@@ -465,7 +465,7 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
     ? selectLicensedMusicImpl({ rootDir: process.cwd() })
     : null;
   if (isPostMatchRead && (!selectedMusic?.bgmFile || !selectedMusic?.audioPlan)) {
-    throw new Error("Post Match Read requires a verified 12-second licensed music segment.");
+    throw new Error("Post Match Read requires a verified 25-second licensed music segment.");
   }
   if (selectedMusic?.bgmFile) {
     payloads.forEach(({ payload }) => {

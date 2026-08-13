@@ -1,6 +1,7 @@
 const FPS = 30;
-const DURATION_IN_FRAMES = 360;
-const DEFAULT_CUT_FRAMES = Object.freeze([0, 54, 150, 270, 360]);
+const DURATION_IN_FRAMES = 750;
+const DEFAULT_CUT_FRAMES = Object.freeze([0, 120, 270, 510, 660, 750]);
+const MAX_SNAP_FRAMES = 6;
 
 function buildPostMatchReadAudioPlan(segment = {}, trackId = "") {
   const startSeconds = Number(segment.startSeconds);
@@ -15,8 +16,7 @@ function buildPostMatchReadAudioPlan(segment = {}, trackId = "") {
     const nearest = downbeatFrames.reduce((best, frame) =>
       Math.abs(frame - target) < Math.abs(best - target) ? frame : best,
     Number.POSITIVE_INFINITY);
-    if (!Number.isFinite(nearest) || Math.abs(nearest - target) > 6) return target;
-    if (index === DEFAULT_CUT_FRAMES.length - 2 && DURATION_IN_FRAMES - nearest < 30) return target;
+    if (!Number.isFinite(nearest) || Math.abs(nearest - target) > MAX_SNAP_FRAMES) return target;
     return nearest;
   });
   return {
@@ -33,5 +33,6 @@ module.exports = {
   FPS,
   DURATION_IN_FRAMES,
   DEFAULT_CUT_FRAMES,
+  MAX_SNAP_FRAMES,
   buildPostMatchReadAudioPlan,
 };

@@ -23,7 +23,7 @@ function buildSegmentAudioArgs({ sourcePath, outputPath, segment }) {
     "-t", String(duration),
     "-i", sourcePath,
     "-af", `volume=${gain},afade=t=in:st=0:d=${fadeSeconds},afade=t=out:st=${fadeOutStart}:d=${fadeSeconds}`,
-    "-c:a", "pcm_s16le",
+    "-c:a", "pcm_s16le", "-ar", "48000", "-ac", "2",
     outputPath,
   ];
 }
@@ -68,11 +68,14 @@ function readEligibleTracks(rootDir, library) {
       const duration = Number(segment?.durationSeconds);
       const gain = Number(segment?.gain);
       const downbeats = Array.isArray(segment?.downbeats) ? segment.downbeats.map(Number) : [];
-      return segment?.id === "post-match-read-12s"
+      return segment?.id === "post-match-read-25s"
         && Number.isFinite(start)
         && Number.isFinite(duration)
-        && duration >= 12
+        && duration >= 25
         && Number.isFinite(gain)
+        && gain > 0
+        && Number(segment.fadeMilliseconds) >= 30
+        && Number(segment.maxLeadingSilenceMilliseconds) <= 50
         && downbeats.length > 0
         && downbeats.every(Number.isFinite)
         && downbeats.some((beat) => beat >= start && beat <= start + duration);
