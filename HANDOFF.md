@@ -11,6 +11,9 @@
 - 最後 1.5 秒的 source clock 固定於 frame 705；H.264 解碼後 frame 705／749 因有損壓縮不是 byte-identical，但 SSIM `1.000000`、PSNR `105.277454 dB`，視覺上無可辨識變化。不得把 decoded MD5 當有損影片的靜止判準。
 - Canary 前後正式資料封條逐字相同：主內容 DB SHA-256 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`；主 repo／隔離 worktree 的 queue 與 daily runs 均 `MISSING`；publish packages 0。沒有建立社群工作或正式發布紀錄。
 - Task 11 聚焦測試 21/21 與 Next production build 通過；Task 12 canary 測試 4/4 通過。尚待 Task 13 全套 coverage、audit、QA render、main 重跑與 GitHub checks。
+- Task 13 分支 CI parity：`npm ci`、`npm run tdd:doctor`、`npm run test:coverage`、`npx next build`、`npm audit --audit-level=high`、`npm run qa:render` 全通過；coverage 562 tests、558 pass、4 個明確外部 contract skip、0 fail，line 94.28%、branch 80.42%、function 96.10%，Remotion QA 6/6 stills 成功。
+- 真實邊界：Data Dragon square／splash／Smite／map、三首授權音樂 25 秒 WAV、Ruler portrait identity／SHA／dimensions 全通過。Leaguepedia Cargo 在最後複驗時回傳 rate-limit，cooldown until `2026-08-13T22:58:40.868Z`；保留為外部限制，不以 mock 宣稱 live contract 通過。
+- Next 16.3.0 production build 成功但有 3 個 `playerPortraitManifest.js` dynamic filesystem tracing warnings；可能增加 server bundle，尚未造成 build 或 runtime 失敗，列為下一輪輕量化候選，不在本輪安全／視覺修復中冒險改動。
 
 - 2026-08-13 使用者已核可下一版「賽後判讀」25 秒視覺：主方案為 Broadcast Hero 對位／MVP＋Tactical Transmission 戰局分析；英雄身份使用官方方形頭像，splash 僅作氣氛，MVP 直接使用已授權選手照片，中央線與 dashboard 同版型不再使用。
 - 核可節奏為 `0–4 秒結果 Hook → 4–9 秒對位 → 9–17 秒遊戲過程 → 17–22 秒數據 MVP 候選 → 22–25 秒最後判讀`，最後 1.5 秒完全靜止；GEN 2–0 HLE 為第一支不發布 canary 範例。
