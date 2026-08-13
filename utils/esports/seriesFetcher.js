@@ -11,7 +11,9 @@ function getTeams(match = {}) {
 }
 
 function seriesKey(match = {}) {
-  const [teamA, teamB] = getTeams(match);
+  const [teamA, teamB] = getTeams(match)
+    .map((team) => String(team || "").trim())
+    .sort((left, right) => left.localeCompare(right));
   return [
     match.matchId || match.MatchId || match.seriesId || "",
     match.tournament || match.Tournament || "",

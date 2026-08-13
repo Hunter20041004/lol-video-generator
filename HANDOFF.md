@@ -4,6 +4,11 @@
 
 ## 本輪狀態
 
+- 2026-08-12 以最新 Leaguepedia LCK 資料完成一次不發布的 Player Radar 全流程演練；HLE Challengers 對 HANJIN BRION Challengers 的三局已正確合併為 2-1，而不是因主客隊順序交換被拆成兩個候選。
+- 系列分組修正遵守 TDD：新增反轉隊伍順序的回歸測試，先確認 `2 !== 1` 的紅燈，再將分組鍵的隊名正規化排序，目標測試 5/5 通過。
+- 新 canary 為 `public/renders/render_1786580383001.mp4`：中文版、H.264／AAC、1080×1920、30fps、16.62 秒、3,062,072 bytes，自動選用已授權 `licensed-bgm-3`；發布佇列與 daily runs 仍為 0。
+- 算圖後已檢查第一幀、7 秒與 13 秒畫面：首幀顯示 Jackal 對 Dinai 的 DPM +86，中段保留 GPM／KDA 證據，結尾分開呈現對位差與 Pyeonsik MVP；截圖為 `.screenshots/player-radar-fresh-first.png`、`.screenshots/player-radar-fresh-mid.png`、`.screenshots/player-radar-fresh-proof.png`。
+- 前次 Aphelios 演練留下的 6 支無引用 runtime MP4 已依既有「歷史影片歸零」決策精確移除；目前 `public/renders/` 只保留這次的新 canary，Git tracked `public/demo/meta-tier-ranking.mp4` 未動。
 - 本輪 9 個實作提交已完成 AI latency、filesystem confinement、Actions runtime、本機字型、Player Radar 開場、死碼清理、Remotion 依賴瘦身與發布錯誤邊界測試。
 - AI 模型透過 `utils/genaiClient.js` 單次呼叫，預設 timeout 30,000ms，可設定範圍 1,000–60,000ms；逾時仍交給既有 deterministic fallback。
 - repository-hosted Outfit／Cinzel 已同時供 Next 與 Remotion 使用；Remotion 改用 CSS `@font-face`，避免長片持有未清除的 `delayRender` handle。
@@ -44,8 +49,10 @@
 
 ## 驗證證據
 
-- 2026-08-12 CI parity：`npm ci`、`npm run tdd:doctor`、`npm run test:coverage`、`npx next build`、`npm audit --audit-level=high` 全通過。
-- 覆蓋率：500 tests、498 pass、2 個外部 LoLalytics contract skip、0 fail；line 94.28%、branch 80.02%、function 96.37%。
+- 最新 Player Radar 資料驗證：Leaguepedia snapshot `scan-2026-08-12-b509a93dc3` 為 1 個完整候選、3 局、10 位選手、5 組位置對位；series score `2-1`，建議 MVP 為 Pyeonsik。
+- 最新 Player Radar 媒體驗證：影片 SHA-256 `3c5eabbd1279b78c95cc39b1d6752ab38eff0dab8940c2f48025a3a01363d28c`；前 10 秒平均音量 -32.6 dB、峰值 -17.4 dB；內容 DB SHA-256 維持 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`。
+- 2026-08-12 最新 CI parity：`npm ci`、`npm run tdd:doctor`、`npm run test:coverage`、`npx next build`、`npm audit --audit-level=high` 全通過。
+- 覆蓋率：501 tests、499 pass、2 個外部 LoLalytics contract skip、0 fail；line 94.28%、branch 80.04%、function 96.38%；`seriesFetcher.js` line 100%。
 - Production build：26 routes；`Dynamic filesystem access causes tracing` 計數 0。
 - Remotion dependency canary：乾淨安裝後辨識 8 種 composition；`npm run qa:render` 的 6 種 still 全成功。
 - Player Radar 完整 canary：`/tmp/player-radar-canary.mp4`，H.264／AAC、1080×1920、48kHz stereo、14.72 秒、1,189,093 bytes；使用已授權 `audio/bgm1.mp3`，沒有發布。

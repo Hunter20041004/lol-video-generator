@@ -50,6 +50,30 @@ test("fetchCompletedSeriesForDate queries active tournament filters and groups g
   assert.equal(candidates.find((series) => series.league === "LPL").games.length, 1);
 });
 
+test("fetchCompletedSeriesForDate keeps reversed team order in one series", async () => {
+  const { fetchCompletedSeriesForDate } = require("../../../utils/esports/seriesFetcher");
+
+  const candidates = await fetchCompletedSeriesForDate({
+    date: "2026-06-20",
+    activeMode: { mode: "regular", tournaments: ["LCK"] },
+  }, {
+    fetchRecentMatches: async () => [
+      makeMatch("lck-g1", "LCK 2026 Summer", "T1", "GEN", "T1"),
+      makeMatch("lck-g2", "LCK 2026 Summer", "GEN", "T1", "GEN"),
+    ],
+    fetchMatchPlayers: async (gameId) => {
+      const reversed = gameId === "lck-g2";
+      const match = reversed
+        ? makeMatch(gameId, "LCK 2026 Summer", "GEN", "T1", "GEN")
+        : makeMatch(gameId, "LCK 2026 Summer", "T1", "GEN", "T1");
+      return { match, players: makePlayers(match.matchContext.teamA, match.matchContext.teamB) };
+    },
+  });
+
+  assert.equal(candidates.length, 1);
+  assert.equal(candidates[0].games.length, 2);
+});
+
 test("fetchCompletedSeriesForDate filters other dates and skips games with missing detail", async () => {
   const { fetchCompletedSeriesForDate, seriesKey } = require("../../../utils/esports/seriesFetcher");
 
