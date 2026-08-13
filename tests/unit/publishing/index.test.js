@@ -52,17 +52,47 @@ function makePlayerRadarAnalysis() {
   const loserRadarStats = buildTestRadarStats(loserRawStats);
   const edgeScore = ((statByLabel(edgeRadarStats, "DPM").normalizedScore + statByLabel(edgeRadarStats, "KP%").normalizedScore) / 2)
     - ((statByLabel(loserRadarStats, "DPM").normalizedScore + statByLabel(loserRadarStats, "KP%").normalizedScore) / 2);
-  const storyboard = [
-    { text: "這個系列賽，中路差距有多誇張？", tag: "HOOK", durationInFrames: 54 },
-    { text: "不是小贏，是整個系列賽的斷層。", tag: "MATCHUP_EDGE", durationInFrames: 96 },
-    { text: "但真正把優勢變成傷害的，在下路。", tag: "PLAYER_PROOF", durationInFrames: 120 },
-    { text: "打野拉開局勢，下路把優勢變成勝利。", tag: "CONCLUSION_CTA", durationInFrames: 90 },
-  ];
+  const matchupSegment = {
+    role: "Mid",
+    edgeType: "winner-breakpoint",
+    edgeScore,
+    focusPlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: edgeRawStats, radarStats: edgeRadarStats },
+    edgePlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: edgeRawStats, radarStats: edgeRadarStats },
+    opponentPlayer: { name: "Chovy", team: "GEN", role: "Mid", rawStats: loserRawStats, radarStats: loserRadarStats },
+    edgeWinnerTeam: "T1",
+    reasons: [
+      { metric: "DPM", winnerValue: 720, loserValue: 360, delta: 360 },
+      { metric: "KP%", winnerValue: 0.86, loserValue: 0.48, delta: 0.38 },
+    ],
+  };
+  const proofSegment = {
+    player: { name: "Oner", team: "T1", role: "Jungle", rawStats: proofRawStats, radarStats: proofRadarStats },
+    proofReasons: [
+      { metric: "KP%", rawValue: statByLabel(proofRadarStats, "KP%").rawValue, score: statByLabel(proofRadarStats, "KP%").normalizedScore },
+      { metric: "DPM", rawValue: statByLabel(proofRadarStats, "DPM").rawValue, score: statByLabel(proofRadarStats, "DPM").normalizedScore },
+    ],
+    verdict: "Oner 有這場最清楚的 MVP 理由。",
+  };
+  const series = {
+    league: "LCK", seriesId: "series-1", teamA: "T1", teamB: "GEN",
+    winningTeam: "T1", score: "2-1", games: [{}, {}, {}], recommendedMvp: { name: "Oner" },
+    gameTeamStats: [{
+      gameNumber: 3, gameId: "series-1-game-3", winningTeam: "T1", hasEventTimestamps: false,
+      teams: [
+        { team: "GEN", isWinner: false, voidGrubs: 3, riftHeralds: 1, barons: 0, towers: 4, gold: 68000, source: "ScoreboardTeams", snapshotType: "team-final", hasEventTimestamps: false },
+        { team: "T1", isWinner: true, voidGrubs: 0, riftHeralds: 0, barons: 1, towers: 8, gold: 77000, source: "ScoreboardTeams", snapshotType: "team-final", hasEventTimestamps: false },
+      ],
+    }],
+  };
+  const { buildPostMatchReadViewModel } = require(path.join(ROOT, "utils/esports/postMatchReadBuilder.js"));
+  const postMatchRead = buildPostMatchReadViewModel({
+    series, matchupSegment, proofSegment, selection: { mvpPlayerName: "Oner" }, locale: "zh",
+  });
   return {
     dataType: "PLAYER_RADAR",
     locale: "zh",
     title: "賽後判讀",
-    matchContext: { league: "LCK", teamA: "T1", teamB: "GEN", winningTeam: "T1", seriesScore: "Game 3" },
+    matchContext: { league: "LCK", teamA: "T1", teamB: "GEN", winningTeam: "T1", seriesScore: "2-1" },
     player: {
       name: "Oner",
       team: "T1",
@@ -70,44 +100,10 @@ function makePlayerRadarAnalysis() {
       rawStats: proofRawStats,
       radarStats: proofRadarStats,
     },
-    matchupSegment: {
-      role: "Mid",
-      edgeType: "winner-breakpoint",
-      edgeScore,
-      focusPlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: edgeRawStats, radarStats: edgeRadarStats },
-      edgePlayer: { name: "Faker", team: "T1", role: "Mid", rawStats: edgeRawStats, radarStats: edgeRadarStats },
-      opponentPlayer: { name: "Chovy", team: "GEN", role: "Mid", rawStats: loserRawStats, radarStats: loserRadarStats },
-      edgeWinnerTeam: "T1",
-      reasons: [
-        { metric: "DPM", winnerValue: 720, loserValue: 360, delta: 360 },
-        { metric: "KP%", winnerValue: 0.86, loserValue: 0.48, delta: 0.38 },
-      ],
-    },
-    proofSegment: {
-      player: {
-        name: "Oner",
-        team: "T1",
-        role: "Jungle",
-        rawStats: proofRawStats,
-        radarStats: proofRadarStats,
-      },
-      proofReasons: [
-        { metric: "KP%", rawValue: statByLabel(proofRadarStats, "KP%").rawValue, score: statByLabel(proofRadarStats, "KP%").normalizedScore },
-        { metric: "DPM", rawValue: statByLabel(proofRadarStats, "DPM").rawValue, score: statByLabel(proofRadarStats, "DPM").normalizedScore },
-      ],
-      verdict: "Oner 有這場最清楚的 MVP 理由。",
-    },
-    postMatchRead: {
-      branding: { publicTitle: "賽後判讀", publicTitleEn: "POST MATCH READ" },
-      seriesContext: { league: "LCK", seriesId: "series-1", teamA: "T1", teamB: "GEN", score: "Game 3", gameCount: 3, scopeLabel: "LCK · Game 3" },
-      hook: { metric: "DPM", leftRaw: 720, rightRaw: 360, displayValue: "約 2×", comparisonType: "ratio", approximate: true, question: storyboard[0].text },
-      matchup: { claimScope: "role-local", claim: "中路差距明顯", scopeLabel: "LCK · Game 3" },
-      proof: { labelType: "data-mvp-candidate", label: "數據 MVP 候選", claim: "數據 MVP 候選: Oner" },
-      assets: {},
-      audioPlan: null,
-      storyboard,
-    },
-    storyboard,
+    matchupSegment,
+    proofSegment,
+    postMatchRead,
+    storyboard: postMatchRead.storyboard,
   };
 }
 
