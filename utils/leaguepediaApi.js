@@ -419,6 +419,54 @@ async function fetchMatchPlayers(gameId) {
   return { match, players };
 }
 
+function optionalInteger(value) {
+  if (value === null || value === undefined || String(value).trim() === '') return null;
+  const parsed = Number(String(value).replaceAll(',', ''));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeTeamRow(row = {}) {
+  return {
+    gameId: String(row.GameId || ''),
+    team: String(row.Team || ''),
+    side: String(row.Side || ''),
+    isWinner: ['1', 'true'].includes(String(row.IsWinner || '').toLowerCase()),
+    dragons: optionalInteger(row.Dragons),
+    barons: optionalInteger(row.Barons),
+    towers: optionalInteger(row.Towers),
+    gold: optionalInteger(row.Gold),
+    kills: optionalInteger(row.Kills),
+    riftHeralds: optionalInteger(row.RiftHeralds),
+    voidGrubs: optionalInteger(row.VoidGrubs),
+    source: 'ScoreboardTeams',
+    snapshotType: 'team-final',
+    hasEventTimestamps: false,
+  };
+}
+
+async function fetchMatchTeamStats(gameId) {
+  const safeGameId = String(gameId || '').replaceAll("'", "''");
+  const rows = await cargoQuery({
+    tables: 'ScoreboardTeams',
+    fields: [
+      'ScoreboardTeams.GameId',
+      'ScoreboardTeams.Team',
+      'ScoreboardTeams.Side',
+      'ScoreboardTeams.IsWinner',
+      'ScoreboardTeams.Dragons',
+      'ScoreboardTeams.Barons',
+      'ScoreboardTeams.Towers',
+      'ScoreboardTeams.Gold',
+      'ScoreboardTeams.Kills',
+      'ScoreboardTeams.RiftHeralds',
+      'ScoreboardTeams.VoidGrubs',
+    ].join(','),
+    where: `ScoreboardTeams.GameId='${safeGameId}'`,
+    limit: 2,
+  });
+  return rows.map(normalizeTeamRow);
+}
+
 /**
  * Convenience: Fetches recent matches AND their player stats in one call.
  * Use sparingly — this makes N+1 API calls (1 for matches + 1 per match).
@@ -633,12 +681,14 @@ module.exports = {
   // High-level fetchers
   fetchRecentMatches,
   fetchMatchPlayers,
+  fetchMatchTeamStats,
   fetchRecentMatchesWithPlayers,
 
   // Low-level
   cargoQuery,
   normalizeMatchRow,
   normalizePlayerRow,
+  normalizeTeamRow,
   extractLeague,
   normalizeRole,
 

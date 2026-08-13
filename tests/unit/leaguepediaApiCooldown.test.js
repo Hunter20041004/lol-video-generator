@@ -237,6 +237,83 @@ test("fetchMatchPlayers requests Leaguepedia DamageToChampions field and normali
   }
 });
 
+test("fetchMatchTeamStats requests and normalizes ScoreboardTeams final fields", async () => {
+  clearSourceCooldown("leaguepedia");
+  leaguepedia.clearSession();
+  const originalFetch = global.fetch;
+  const originalUsername = process.env.FANDOM_BOT_USERNAME;
+  const originalPassword = process.env.FANDOM_BOT_PASSWORD;
+  let requestedFields = "";
+
+  delete process.env.FANDOM_BOT_USERNAME;
+  delete process.env.FANDOM_BOT_PASSWORD;
+
+  global.fetch = async (url) => {
+    const parsed = new URL(url);
+    assert.equal(parsed.searchParams.get("tables"), "ScoreboardTeams");
+    requestedFields = parsed.searchParams.get("fields") || "";
+    return {
+      ok: true,
+      headers: { get: () => "" },
+      json: async () => ({ cargoquery: [{ title: {
+        GameId: "game-1",
+        Team: "Gen.G",
+        Side: "Blue",
+        IsWinner: "1",
+        Dragons: "3",
+        Barons: "1",
+        Towers: "8",
+        Gold: "77,031",
+        Kills: "15",
+        RiftHeralds: "0",
+        VoidGrubs: "0",
+      } }] }),
+    };
+  };
+
+  try {
+    const rows = await leaguepedia.fetchMatchTeamStats("game-1");
+    for (const field of ["Dragons", "Barons", "Towers", "Gold", "Kills", "RiftHeralds", "VoidGrubs", "GameId"]) {
+      assert.match(requestedFields, new RegExp(`ScoreboardTeams\\.${field}`));
+    }
+    assert.deepEqual(rows[0], {
+      gameId: "game-1",
+      team: "Gen.G",
+      side: "Blue",
+      isWinner: true,
+      dragons: 3,
+      barons: 1,
+      towers: 8,
+      gold: 77031,
+      kills: 15,
+      riftHeralds: 0,
+      voidGrubs: 0,
+      source: "ScoreboardTeams",
+      snapshotType: "team-final",
+      hasEventTimestamps: false,
+    });
+  } finally {
+    global.fetch = originalFetch;
+    if (originalUsername === undefined) delete process.env.FANDOM_BOT_USERNAME;
+    else process.env.FANDOM_BOT_USERNAME = originalUsername;
+    if (originalPassword === undefined) delete process.env.FANDOM_BOT_PASSWORD;
+    else process.env.FANDOM_BOT_PASSWORD = originalPassword;
+    leaguepedia.clearSession();
+    clearSourceCooldown("leaguepedia");
+  }
+});
+
+test("normalizeTeamRow preserves missing final stats as unavailable", () => {
+  const normalized = leaguepedia.normalizeTeamRow({
+    GameId: "game-missing",
+    Team: "HLE",
+    Gold: "",
+  });
+
+  assert.equal(normalized.gold, null);
+  assert.equal(normalized.voidGrubs, null);
+});
+
 test("cargoQuery stops when configured Fandom bot credentials fail instead of falling back to anonymous Cargo", async () => {
   clearSourceCooldown("leaguepedia");
   leaguepedia.clearSession();
