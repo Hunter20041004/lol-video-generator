@@ -138,6 +138,42 @@ test("buildPlayerRadarPayload emits fractional KDA evidence that passes the rend
   });
 });
 
+test("buildPlayerRadarPayload keeps the stronger normalized KDA signal ahead of a larger raw DPM delta", async () => {
+  await withTempProject(async () => {
+    const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    const series = makeSnapshot().candidates[0];
+    const jungleMatchup = series.roleMatchups.find((matchup) => matchup.role === "Jungle");
+
+    jungleMatchup.left.rawStats = {
+      ...jungleMatchup.left.rawStats,
+      kda: 13.67,
+      dpm: 421,
+      kp: 0.6,
+      gpm: 350,
+      csm: 6.42,
+    };
+    jungleMatchup.right.rawStats = {
+      ...jungleMatchup.right.rawStats,
+      kda: 0.64,
+      dpm: 335,
+      kp: 0.6,
+      gpm: 350,
+      csm: 6.42,
+    };
+
+    const payload = buildPlayerRadarPayload(series, {
+      matchupPlayerName: jungleMatchup.left.name,
+    }, "zh");
+
+    assert.equal(payload.matchupSegment.reasons[0].metric, "KDA");
+    assert.equal(payload.matchupSegment.reasons[0].winnerValue, 13.67);
+    assert.equal(payload.matchupSegment.reasons[0].loserValue, 0.64);
+    assert.equal(payload.matchupSegment.reasons[0].delta, 13.03);
+    assert.equal(payload.matchupSegment.reasons[1].metric, "DPM");
+    assert.equal(payload.matchupSegment.reasons[1].delta, 86);
+  });
+});
+
 test("playerName overrides both matchup focus and proof player", async () => {
   await withTempProject(async () => {
     const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));

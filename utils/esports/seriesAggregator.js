@@ -299,6 +299,7 @@ function aggregateSeries(gamesInput = []) {
 }
 
 module.exports = {
+  RADAR_BOUNDS,
   ROLE_ORDER,
   aggregateSeries,
   buildRadarStats,

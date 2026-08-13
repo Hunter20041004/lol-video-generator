@@ -2,6 +2,7 @@ const { readCandidateSnapshot } = require("./candidateStore");
 const { createPublishJobs: defaultCreatePublishJobs } = require("../publishing");
 const { renderVideosFromRequest: defaultRenderVideosFromRequest } = require("../render/renderService");
 const { buildRadarStats } = require("./seriesAggregator");
+const { rankMatchupReasons } = require("./playerRadarEvidenceRanker");
 
 const PLAYER_RADAR_PLATFORMS = ["instagram", "threads"];
 const MIN_AUTO_PROOF_AXES = 3;
@@ -126,15 +127,6 @@ function getRoleMatchups(series = {}) {
   }));
 }
 
-function getMetricValue(player = {}, label = "") {
-  const field = METRIC_FIELDS[label];
-  if (!field) return null;
-  const rawValue = player.rawStats?.[field];
-  if (rawValue === null || rawValue === undefined || String(rawValue).trim() === "") return null;
-  const value = Number(rawValue);
-  return Number.isFinite(value) ? value : null;
-}
-
 function getMetricDisplayValue(player = {}, label = "") {
   const field = METRIC_FIELDS[label];
   if (!field) return "";
@@ -146,22 +138,13 @@ function getMetricDisplayValue(player = {}, label = "") {
 }
 
 function buildEdgeReasons(winner = {}, loser = {}) {
-  const labels = ["KDA", "DPM", "KP%", "GPM", winner.role === "Support" ? "VPM" : "CSM"];
-  return labels
-    .map((label) => {
-      const winnerValue = getMetricValue(winner, label);
-      const loserValue = getMetricValue(loser, label);
-      if (!Number.isFinite(winnerValue) || !Number.isFinite(loserValue)) return null;
-      return {
-        metric: label,
-        winnerValue,
-        loserValue,
-        delta: round(winnerValue - loserValue, label === "DPM" || label === "GPM" ? 0 : 2),
-      };
-    })
-    .filter((reason) => reason && reason.delta > 0)
-    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
-    .slice(0, 3);
+  return rankMatchupReasons({
+    role: winner.role,
+    winner,
+    loser,
+    winnerRadarStats: sourceRadarStats(winner),
+    loserRadarStats: sourceRadarStats(loser),
+  });
 }
 
 function buildMatchupCandidate(series = {}, matchup = {}, focusPlayer = null) {
