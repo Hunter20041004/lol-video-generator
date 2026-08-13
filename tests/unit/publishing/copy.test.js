@@ -190,25 +190,26 @@ test("buildSocialCopy creates player radar captions without patch framing", () =
     locale: "zh",
     analysis: {
       dataType: "PLAYER_RADAR",
-      title: "T1 vs GEN 選手雷達",
+      title: "賽後判讀",
       matchContext: { league: "LCK", teamA: "T1", teamB: "GEN", seriesScore: "Game 3" },
       storyboard: [
-        { text: "Faker\n打出最大對位差", tag: "MATCHUP_EDGE" },
-        { text: "Oner\n關鍵人物證明", tag: "PLAYER_PROOF" },
+        { text: "這個系列賽，中路差距有多誇張？", tag: "HOOK" },
+        { text: "不是小贏，是整個系列賽的斷層。", tag: "MATCHUP_EDGE" },
       ],
-      verdict: "Oner 有這場最清楚的 MVP 理由。",
+      verdict: "數據 MVP 候選: Oner",
     },
   });
 
-  assert.equal(copy.title, "T1 vs GEN 選手雷達");
-  assert.match(copy.caption, /^T1 vs GEN 選手雷達/);
+  assert.equal(copy.title, "賽後判讀");
+  assert.match(copy.caption, /^賽後判讀/);
   assert.match(copy.caption, /賽事重點：/);
   assert.match(copy.caption, /你覺得這場關鍵人物是誰/);
   assert.equal(copy.tags.includes("LoLEsports"), true);
-  assert.equal(copy.tags.includes("選手雷達"), true);
+  assert.equal(copy.tags.includes("賽後判讀"), true);
+  assert.equal(copy.tags.includes("選手雷達"), false);
   assert.equal(copy.tags.includes("版本更新"), false);
   assert.equal(copy.tags.includes("lolpatch"), false);
-  assert.doesNotMatch(copy.caption, /這波重點|版本更新|調整打法|lolpatch/i);
+  assert.doesNotMatch(copy.caption, /選手雷達|Player Radar|這波重點|版本更新|調整打法|lolpatch/i);
 });
 
 test("buildSocialCopy localizes zh mechanism bullets instead of leaking English", () => {

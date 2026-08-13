@@ -122,6 +122,12 @@ test("buildPlayerRadarPayload auto-selects max matchup edge and MVP proof segmen
     assert.equal(payload.proofSegment.isRecommendedMvp, true);
     assert.equal(payload.proofSegment.proofReasons.length >= 2, true);
     assert.equal(payload.player.name, "T1 Jungle");
+    assert.equal(payload.title, "賽後判讀");
+    assert.equal(payload.postMatchRead.branding.publicTitle, "賽後判讀");
+    assert.deepEqual(payload.storyboard.map((scene) => scene.durationInFrames), [54, 96, 120, 90]);
+    assert.equal(payload.proofSegment.labelType, "data-mvp-candidate");
+    assert.equal(payload.postMatchRead.matchup.claimScope, "series-maximum");
+    assert.match(payload.postMatchRead.matchup.claim, /最大/);
   });
 });
 
@@ -193,31 +199,21 @@ test("playerName overrides both matchup focus and proof player", async () => {
   });
 });
 
-test("manual losing-side matchup selection uses the selected player in visible storyboard copy", async () => {
+test("manual losing-side matchup selection stays role-local in the post-match read", async () => {
   await withTempProject(async () => {
     const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
     const series = makeSnapshot().candidates[0];
 
     const payload = buildPlayerRadarPayload(series, { playerName: "GEN Mid" }, "en");
-    const matchupScene = payload.storyboard.find((scene) => scene.tag === "MATCHUP_EDGE");
     const zhPayload = buildPlayerRadarPayload(series, { playerName: "GEN Mid" }, "zh");
-    const zhMatchupScene = zhPayload.storyboard.find((scene) => scene.tag === "MATCHUP_EDGE");
 
     assert.equal(payload.matchupSegment.focusPlayer.name, "GEN Mid");
     assert.equal(payload.matchupSegment.edgePlayer.name, "T1 Mid");
-    assert.match(matchupScene.text, /GEN Mid/);
-    assert.doesNotMatch(matchupScene.text, /T1 Mid/);
-    assert.doesNotMatch(matchupScene.text, /created the matchup gap/);
-    assert.match(zhMatchupScene.text, /GEN Mid/);
-    assert.doesNotMatch(zhMatchupScene.text, /打出最大對位差/);
-    assert.doesNotMatch(
-      payload.storyboard.find((scene) => scene.tag === "CONCLUSION_CTA").text,
-      /One player, two cases/
-    );
-    assert.doesNotMatch(
-      zhPayload.storyboard.find((scene) => scene.tag === "CONCLUSION_CTA").text,
-      /同一人雙重證明/
-    );
+    assert.equal(payload.postMatchRead.matchup.focusPlayer.name, "GEN Mid");
+    assert.equal(payload.postMatchRead.matchup.claimScope, "role-local");
+    assert.doesNotMatch(payload.postMatchRead.matchup.claim, /biggest/i);
+    assert.equal(zhPayload.postMatchRead.matchup.focusPlayer.name, "GEN Mid");
+    assert.doesNotMatch(zhPayload.postMatchRead.matchup.claim, /最大/);
   });
 });
 
@@ -238,7 +234,7 @@ test("mvpPlayerName and matchupPlayerName can override separate segments", async
   });
 });
 
-test("split overrides treat edge player and proof player as one case even with losing-side focus", async () => {
+test("split overrides preserve distinct matchup focus and proof identity", async () => {
   await withTempProject(async () => {
     const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
     const series = makeSnapshot().candidates[0];
@@ -251,10 +247,9 @@ test("split overrides treat edge player and proof player as one case even with l
     assert.equal(payload.matchupSegment.focusPlayer.name, "GEN Mid");
     assert.equal(payload.matchupSegment.edgePlayer.name, "T1 Mid");
     assert.equal(payload.proofSegment.player.name, "T1 Mid");
-    assert.match(
-      payload.storyboard.find((scene) => scene.tag === "CONCLUSION_CTA").text,
-      /同一人雙重證明/
-    );
+    assert.equal(payload.postMatchRead.matchup.focusPlayer.name, "GEN Mid");
+    assert.equal(payload.postMatchRead.proof.player.name, "T1 Mid");
+    assert.equal(payload.postMatchRead.matchup.claimScope, "role-local");
   });
 });
 
@@ -342,11 +337,12 @@ test("runPlayerRadarFromSnapshot renders one dual-read video per locale and queu
     assert.deepEqual(queued[0].platforms, ["instagram", "threads"]);
     assert.equal(queued[0].analysis.locale, "zh");
     assert.equal(queued[0].analysis.localizedPayloads.en.locale, "en");
-    assert.match(queued[0].analysis.storyboard[0].text, /T1 Mid/);
-    assert.match(queued[0].analysis.storyboard[0].text, /T1 Jungle/);
-    assert.match(queued[0].analysis.storyboard[1].text, /DPM|KDA|KP%|GPM|CSM|VPM/);
-    assert.equal(queued[0].analysis.localizedPayloads.en.storyboard[0].text.startsWith("Creator read"), true);
-    assert.match(queued[0].analysis.localizedPayloads.en.storyboard[1].text, /wins through/);
+    assert.equal(queued[0].analysis.title, "賽後判讀");
+    assert.match(queued[0].analysis.storyboard[0].text, /中路差距/);
+    assert.equal(queued[0].analysis.postMatchRead.matchup.edgePlayer.name, "T1 Mid");
+    assert.equal(queued[0].analysis.postMatchRead.proof.player.name, "T1 Jungle");
+    assert.equal(queued[0].analysis.localizedPayloads.en.title, "POST MATCH READ");
+    assert.match(queued[0].analysis.localizedPayloads.en.storyboard[0].text, /mid gap/i);
     assert.equal(result.publish.jobs.length, 4);
   });
 });
@@ -415,7 +411,7 @@ test("player radar falls back to radar score, videos array render results, and t
     assert.equal(englishPayload.matchContext.teamB, "GEN");
     assert.equal(englishPayload.proofSegment.player.name, "T1 Top");
     assert.equal(englishPayload.proofSegment.proofType, "key-player");
-    assert.match(englishPayload.verdict, /key-player case/);
+    assert.match(englishPayload.verdict, /KEY PLAYER/);
 
     const result = await runPlayerRadarFromSnapshot({
       scanId: "scan-radar",

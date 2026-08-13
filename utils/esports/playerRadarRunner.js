@@ -3,6 +3,7 @@ const { createPublishJobs: defaultCreatePublishJobs } = require("../publishing")
 const { renderVideosFromRequest: defaultRenderVideosFromRequest } = require("../render/renderService");
 const { buildRadarStats } = require("./seriesAggregator");
 const { rankMatchupReasons } = require("./playerRadarEvidenceRanker");
+const { buildPostMatchReadViewModel } = require("./postMatchReadBuilder");
 
 const PLAYER_RADAR_PLATFORMS = ["instagram", "threads"];
 const MIN_AUTO_PROOF_AXES = 3;
@@ -234,14 +235,6 @@ function buildProofReasons(player = {}) {
     .slice(0, 3);
 }
 
-function formatStoryboardDelta(reason = {}) {
-  const value = Number(reason.delta);
-  if (!Number.isFinite(value)) return "";
-  if (reason.metric === "KP%") return `+${Math.round(value * 100)}pp`;
-  if (reason.metric === "DPM" || reason.metric === "GPM") return `+${Math.round(value)}`;
-  return `+${Number.isInteger(value) ? value : Math.round(value * 10) / 10}`;
-}
-
 function selectProofSegment(series = {}, proofPlayerName = "", locale = "zh") {
   const requested = String(proofPlayerName || "").trim();
   const player = requested ? findPlayer(series, requested) : selectPlayer(series);
@@ -264,32 +257,6 @@ function selectProofSegment(series = {}, proofPlayerName = "", locale = "zh") {
   };
 }
 
-function buildPlayerRadarStoryboard(payload = {}, locale = "zh") {
-  const matchupName = payload.matchupSegment?.focusPlayer?.name || payload.matchupSegment?.edgePlayer?.name || "對位焦點";
-  const edgeName = payload.matchupSegment?.edgePlayer?.name || "";
-  const proofName = payload.proofSegment?.player?.name || "關鍵人物";
-  const focusOwnsEdge = normalizePlayerName(matchupName) === normalizePlayerName(edgeName);
-  const samePlayer = normalizePlayerName(edgeName) === normalizePlayerName(proofName);
-  const topReason = Array.isArray(payload.matchupSegment?.reasons) ? payload.matchupSegment.reasons[0] : null;
-  const metricLabel = topReason?.metric || (locale === "en" ? "top metric" : "核心數據");
-  const deltaLabel = formatStoryboardDelta(topReason);
-  const edgeLine = [metricLabel, deltaLabel].filter(Boolean).join(" ");
-  if (locale === "en") {
-    return [
-      { tag: "HOOK", text: samePlayer ? `Creator read\n${proofName} owns gap + MVP` : `Creator read\n${edgeName || matchupName} gap, ${proofName} case`, durationInFrames: 90 },
-      { tag: "MATCHUP_EDGE", text: focusOwnsEdge ? `${matchupName}\nwins through ${edgeLine}` : `${matchupName}\nwhere the matchup swung`, durationInFrames: 126 },
-      { tag: "PLAYER_PROOF", text: `${proofName}\nMVP proof: top 3 stats`, durationInFrames: 126 },
-      { tag: "CONCLUSION_CTA", text: samePlayer ? "One player, two cases\ncomment your read" : "Gap and MVP split\ncomment your read", durationInFrames: 90 },
-    ];
-  }
-  return [
-    { tag: "HOOK", text: samePlayer ? `${proofName}\n同時拿下差距 + MVP` : `${edgeName || matchupName} 對位差\n${proofName} 關鍵人物`, durationInFrames: 90 },
-    { tag: "MATCHUP_EDGE", text: focusOwnsEdge ? `${matchupName}\n贏在 ${edgeLine}` : `${matchupName}\n看這路輸在哪`, durationInFrames: 126 },
-    { tag: "PLAYER_PROOF", text: `${proofName}\nMVP 證明看前三項`, durationInFrames: 126 },
-    { tag: "CONCLUSION_CTA", text: samePlayer ? "同一人雙重證明\n你同意嗎" : "對位差和關鍵人物\n你怎麼看", durationInFrames: 90 },
-  ];
-}
-
 function normalizePayloadSelection(selectionOrPlayer = {}) {
   if (selectionOrPlayer?.name) return { playerName: selectionOrPlayer.name };
   return selectionOrPlayer || {};
@@ -301,7 +268,15 @@ function buildPlayerRadarPayload(series = {}, selectionOrPlayer = {}, locale = "
   const proofName = selection.mvpPlayerName || selection.playerName || "";
   const matchupSegment = selectMatchupSegment(series, matchupName);
   const proofSegment = selectProofSegment(series, proofName, locale);
-  const teams = `${series.teamA || series.teams?.[0] || ""} vs ${series.teamB || series.teams?.[1] || ""}`;
+  const postMatchRead = buildPostMatchReadViewModel({
+    series,
+    matchupSegment,
+    proofSegment,
+    selection,
+    locale,
+  });
+  proofSegment.labelType = postMatchRead.proof.labelType;
+  proofSegment.label = postMatchRead.proof.label;
   const payload = {
     dataType: "PLAYER_RADAR",
     locale,
@@ -313,18 +288,19 @@ function buildPlayerRadarPayload(series = {}, selectionOrPlayer = {}, locale = "
       winningTeam: series.winningTeam || "",
       seriesScore: series.seriesScore || series.score || "",
     },
-    title: locale === "en" ? `${teams} Player Radar` : `${teams} 選手雷達`,
+    title: postMatchRead.branding.publicTitle,
     matchupSegment,
     proofSegment,
     player: proofSegment.player,
     radarStats: proofSegment.player.radarStats || [],
     highlight: proofSegment.proofReasons[0]?.metric || "",
     weakness: matchupSegment.reasons.at(-1)?.metric || "",
-    verdict: proofSegment.verdict,
+    verdict: postMatchRead.proof.claim,
+    postMatchRead,
   };
   return {
     ...payload,
-    storyboard: buildPlayerRadarStoryboard(payload, locale),
+    storyboard: postMatchRead.storyboard,
   };
 }
 

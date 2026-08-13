@@ -9,7 +9,7 @@ const DATA_TYPE_LABEL = {
   SYSTEM_UPDATE: { zh: "系統改動", en: "System Update" },
   ITEM_UPDATE: { zh: "裝備改動", en: "Item Update" },
   RUNE_UPDATE: { zh: "符文改動", en: "Rune Update" },
-  PLAYER_RADAR: { zh: "選手數據", en: "Player Radar" },
+  PLAYER_RADAR: { zh: "賽後判讀", en: "Post Match Read" },
   ESPORTS_H2H_RADAR: { zh: "賽事對位雷達", en: "Matchup Radar" },
   ESPORTS_MATCH_RECAP: { zh: "賽事戰報", en: "Match Recap" },
   META_OFFMETA_PICK: { zh: "Meta Factory 黑科技", en: "Meta Factory Off-Meta" },
@@ -33,8 +33,8 @@ const DATA_TYPE_TAGS = {
     en: ["#MatchRecap", "#LoLEsports", "#MSI2026"],
   },
   PLAYER_RADAR: {
-    zh: ["#LoLEsports", "#選手雷達", "#賽事分析"],
-    en: ["#LoLEsports", "#PlayerRadar", "#EsportsAnalysis"],
+    zh: ["#LoLEsports", "#賽後判讀", "#賽事分析"],
+    en: ["#LoLEsports", "#PostMatchRead", "#EsportsAnalysis"],
   },
   META_OFFMETA_PICK: {
     zh: ["#MetaFactory", "#黑科技", "#LoLMeta"],
@@ -48,12 +48,12 @@ const DATA_TYPE_TAGS = {
 
 const PLAYER_RADAR_PLATFORM_TAGS = {
   instagram: {
-    zh: ["#英雄聯盟", "#LoLEsports", "#選手雷達", "#shorts", "#reels"],
-    en: ["#leagueoflegends", "#LoLEsports", "#PlayerRadar", "#reels", "#shorts"],
+    zh: ["#英雄聯盟", "#LoLEsports", "#賽後判讀", "#shorts", "#reels"],
+    en: ["#leagueoflegends", "#LoLEsports", "#PostMatchRead", "#reels", "#shorts"],
   },
   threads: {
-    zh: ["#英雄聯盟", "#LoLEsports", "#選手雷達"],
-    en: ["#LeagueOfLegends", "#LoLEsports", "#PlayerRadar"],
+    zh: ["#英雄聯盟", "#LoLEsports", "#賽後判讀"],
+    en: ["#LeagueOfLegends", "#LoLEsports", "#PostMatchRead"],
   },
 };
 
@@ -317,11 +317,6 @@ function inferTitle(data = {}, locale = "zh") {
   if (type === "PLAYER_RADAR") {
     const explicitTitle = stripEnglishFallback(data.title || data.headline || "", lang);
     if (explicitTitle) return explicitTitle;
-    const context = data.matchContext || {};
-    const matchup = [context.teamA, context.teamB].filter(Boolean).join(" vs ");
-    if (matchup) {
-      return lang === "zh" ? `${matchup} 選手雷達` : `${matchup} Player Radar`;
-    }
     return typeLabel;
   }
   if (type === "META_OFFMETA_PICK" || type === "META_TIER_RANKING") {

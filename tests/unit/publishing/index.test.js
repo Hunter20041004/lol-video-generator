@@ -52,9 +52,16 @@ function makePlayerRadarAnalysis() {
   const loserRadarStats = buildTestRadarStats(loserRawStats);
   const edgeScore = ((statByLabel(edgeRadarStats, "DPM").normalizedScore + statByLabel(edgeRadarStats, "KP%").normalizedScore) / 2)
     - ((statByLabel(loserRadarStats, "DPM").normalizedScore + statByLabel(loserRadarStats, "KP%").normalizedScore) / 2);
+  const storyboard = [
+    { text: "這個系列賽，中路差距有多誇張？", tag: "HOOK", durationInFrames: 54 },
+    { text: "不是小贏，是整個系列賽的斷層。", tag: "MATCHUP_EDGE", durationInFrames: 96 },
+    { text: "但真正把優勢變成傷害的，在下路。", tag: "PLAYER_PROOF", durationInFrames: 120 },
+    { text: "打野拉開局勢，下路把優勢變成勝利。", tag: "CONCLUSION_CTA", durationInFrames: 90 },
+  ];
   return {
     dataType: "PLAYER_RADAR",
-    title: "T1 vs GEN 選手雷達",
+    locale: "zh",
+    title: "賽後判讀",
     matchContext: { league: "LCK", teamA: "T1", teamB: "GEN", winningTeam: "T1", seriesScore: "Game 3" },
     player: {
       name: "Oner",
@@ -90,10 +97,17 @@ function makePlayerRadarAnalysis() {
       ],
       verdict: "Oner 有這場最清楚的 MVP 理由。",
     },
-    storyboard: [
-      { text: "Faker\n打出最大對位差", tag: "MATCHUP_EDGE" },
-      { text: "Oner\n關鍵人物證明", tag: "PLAYER_PROOF" },
-    ],
+    postMatchRead: {
+      branding: { publicTitle: "賽後判讀", publicTitleEn: "POST MATCH READ" },
+      seriesContext: { league: "LCK", seriesId: "series-1", teamA: "T1", teamB: "GEN", score: "Game 3", gameCount: 3, scopeLabel: "LCK · Game 3" },
+      hook: { metric: "DPM", leftRaw: 720, rightRaw: 360, displayValue: "約 2×", comparisonType: "ratio", approximate: true, question: storyboard[0].text },
+      matchup: { claimScope: "role-local", claim: "中路差距明顯", scopeLabel: "LCK · Game 3" },
+      proof: { labelType: "data-mvp-candidate", label: "數據 MVP 候選", claim: "數據 MVP 候選: Oner" },
+      assets: {},
+      audioPlan: null,
+      storyboard,
+    },
+    storyboard,
   };
 }
 
@@ -132,16 +146,18 @@ test("createPublishJobs queues player radar with esports social copy", async () 
     assert.equal(result.success, true);
     assert.equal(result.jobs.length, 1);
     const [job] = result.jobs;
-    assert.equal(job.copy.title, "T1 vs GEN 選手雷達");
+    assert.equal(job.copy.title, "賽後判讀");
     assert.match(job.copy.caption, /賽事重點：/);
     assert.match(job.copy.caption, /你覺得這場關鍵人物是誰/);
     assert.equal(job.copy.tags.includes("LoLEsports"), true);
-    assert.equal(job.copy.tags.includes("選手雷達"), true);
+    assert.equal(job.copy.tags.includes("賽後判讀"), true);
+    assert.equal(job.copy.tags.includes("選手雷達"), false);
     assert.equal(job.copy.tags.includes("版本更新"), false);
     assert.doesNotMatch(job.copy.caption, /這波重點|版本更新|調整打法|lolpatch/i);
 
     const manifest = JSON.parse(fs.readFileSync(job.package.manifestPath, "utf8"));
-    assert.match(manifest.copy.caption, /T1 vs GEN 選手雷達/);
+    assert.match(manifest.copy.caption, /賽後判讀/);
+    assert.doesNotMatch(manifest.copy.caption, /選手雷達|Player Radar/i);
     assert.doesNotMatch(manifest.copy.caption, /版本更新|lolpatch/i);
   });
 });

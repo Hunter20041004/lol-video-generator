@@ -1,4 +1,5 @@
 const { buildRadarStats } = require("./seriesAggregator");
+const { POST_MATCH_READ_STORYBOARD } = require("./postMatchReadBuilder");
 
 function hasValue(value) {
   if (value === null || value === undefined) return false;
@@ -405,6 +406,32 @@ function assertSinglePlayerRadarEvidence(payload = {}) {
   }
   if (!hasCompletePlayerIdentity(payload.player) || !samePlayer(payload.player, proofSegment.player)) {
     throw new Error("Player Radar top-level player must match proof player.");
+  }
+  if (!isPlainPayloadObject(payload.postMatchRead)) {
+    throw new Error("Player Radar postMatchRead model is required.");
+  }
+  const storyboard = payload.postMatchRead.storyboard;
+  const expectedTags = POST_MATCH_READ_STORYBOARD.map((scene) => scene.tag);
+  if (!Array.isArray(storyboard)
+    || storyboard.length !== expectedTags.length
+    || storyboard.some((scene, index) => scene?.tag !== expectedTags[index])) {
+    throw new Error("Player Radar postMatchRead storyboard must use the fixed scene order.");
+  }
+  const totalFrames = storyboard.reduce((sum, scene) => sum + Number(scene.durationInFrames), 0);
+  if (!storyboard.every((scene) => Number.isFinite(Number(scene.durationInFrames))) || totalFrames !== 360) {
+    throw new Error("Player Radar postMatchRead storyboard must total 360 frames.");
+  }
+  const hook = payload.postMatchRead.hook || {};
+  if (hook.comparisonType === "ratio" && !(toFiniteNumber(hook.rightRaw) > 0)) {
+    throw new Error("Player Radar ratio hook needs a positive denominator.");
+  }
+  if (payload.locale === "zh" && hook.approximate === true && !String(hook.displayValue || "").includes("約")) {
+    throw new Error("Player Radar approximate Chinese ratio hook must include 約.");
+  }
+  const proofModel = payload.postMatchRead.proof || {};
+  const proofCopy = `${proofModel.label || ""} ${proofModel.claim || ""}`;
+  if (proofModel.labelType !== "official-mvp" && /官方\s*MVP|OFFICIAL\s*MVP/i.test(proofCopy)) {
+    throw new Error("Player Radar non-official proof cannot use official MVP copy.");
   }
 
   return payload;

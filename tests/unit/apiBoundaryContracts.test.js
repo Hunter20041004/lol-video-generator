@@ -42,6 +42,12 @@ function makeValidPlayerRadarAnalysis(overrides = {}) {
   const loserRadarStats = buildTestRadarStats(loserRawStats);
   const edgeScore = ((statByLabel(edgeRadarStats, "DPM").normalizedScore + statByLabel(edgeRadarStats, "KP%").normalizedScore) / 2)
     - ((statByLabel(loserRadarStats, "DPM").normalizedScore + statByLabel(loserRadarStats, "KP%").normalizedScore) / 2);
+  const storyboard = [
+    { tag: "HOOK", text: "這個系列賽，中路差距有多誇張？", durationInFrames: 54 },
+    { tag: "MATCHUP_EDGE", text: "不是小贏，是整個系列賽的斷層。", durationInFrames: 96 },
+    { tag: "PLAYER_PROOF", text: "但真正把優勢變成傷害的，在下路。", durationInFrames: 120 },
+    { tag: "CONCLUSION_CTA", text: "打野拉開局勢，下路把優勢變成勝利。", durationInFrames: 90 },
+  ];
   return {
     dataType: "PLAYER_RADAR",
     locale: "zh",
@@ -79,9 +85,102 @@ function makeValidPlayerRadarAnalysis(overrides = {}) {
         { metric: "DPM", rawValue: statByLabel(proofRadarStats, "DPM").rawValue, score: statByLabel(proofRadarStats, "DPM").normalizedScore },
       ],
     },
+    postMatchRead: {
+      branding: { publicTitle: "賽後判讀", publicTitleEn: "POST MATCH READ" },
+      seriesContext: { league: "LCK", seriesId: "series-1", teamA: "GEN", teamB: "T1", score: "Game 3", gameCount: 3, scopeLabel: "LCK · Game 3" },
+      hook: { metric: "DPM", leftRaw: 720, rightRaw: 360, displayValue: "約 2×", comparisonType: "ratio", approximate: true, question: "這個系列賽，中路差距有多誇張？" },
+      matchup: { claimScope: "role-local", claim: "中路差距明顯", scopeLabel: "LCK · Game 3" },
+      proof: { labelType: "key-player", label: "關鍵人物", claim: "關鍵人物: GEN Mid" },
+      assets: {},
+      audioPlan: null,
+      storyboard,
+    },
+    storyboard,
     ...overrides,
   };
 }
+
+test("player radar evidence requires the fixed post-match read model", () => {
+  const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
+
+  assert.throws(
+    () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({ postMatchRead: null })),
+    /Player Radar postMatchRead model is required/
+  );
+});
+
+test("player radar evidence requires the fixed four-scene storyboard order", () => {
+  const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
+  const base = makeValidPlayerRadarAnalysis();
+  const wrongOrder = [base.postMatchRead.storyboard[1], base.postMatchRead.storyboard[0], ...base.postMatchRead.storyboard.slice(2)];
+
+  assert.throws(
+    () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
+      postMatchRead: { ...base.postMatchRead, storyboard: wrongOrder },
+    })),
+    /Player Radar postMatchRead storyboard must use the fixed scene order/
+  );
+});
+
+test("player radar evidence requires a 360-frame post-match read", () => {
+  const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
+  const base = makeValidPlayerRadarAnalysis();
+  const tooLong = base.postMatchRead.storyboard.map((scene, index) => index === 0
+    ? { ...scene, durationInFrames: 55 }
+    : scene);
+
+  assert.throws(
+    () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
+      postMatchRead: { ...base.postMatchRead, storyboard: tooLong },
+    })),
+    /Player Radar postMatchRead storyboard must total 360 frames/
+  );
+});
+
+test("player radar evidence rejects ratio hooks with a zero denominator", () => {
+  const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
+  const base = makeValidPlayerRadarAnalysis();
+
+  assert.throws(
+    () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
+      postMatchRead: {
+        ...base.postMatchRead,
+        hook: { ...base.postMatchRead.hook, comparisonType: "ratio", rightRaw: 0, displayValue: "約 720×" },
+      },
+    })),
+    /Player Radar ratio hook needs a positive denominator/
+  );
+});
+
+test("player radar evidence requires an approximation marker for Chinese ratio hooks", () => {
+  const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
+  const base = makeValidPlayerRadarAnalysis();
+
+  assert.throws(
+    () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
+      postMatchRead: {
+        ...base.postMatchRead,
+        hook: { ...base.postMatchRead.hook, approximate: true, displayValue: "2×" },
+      },
+    })),
+    /Player Radar approximate Chinese ratio hook must include 約/
+  );
+});
+
+test("player radar evidence rejects official MVP copy without official source status", () => {
+  const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
+  const base = makeValidPlayerRadarAnalysis();
+
+  assert.throws(
+    () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
+      postMatchRead: {
+        ...base.postMatchRead,
+        proof: { ...base.postMatchRead.proof, labelType: "data-mvp-candidate", label: "官方 MVP" },
+      },
+    })),
+    /Player Radar non-official proof cannot use official MVP copy/
+  );
+});
 
 test("analyze API guard rejects removed dataTypes before invoking analysis dependencies", () => {
   const { validateAnalyzeRequest } = require(path.join(ROOT, "utils/apiGuards.js"));
