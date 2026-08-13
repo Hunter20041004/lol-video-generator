@@ -4,6 +4,11 @@
 
 ## 本輪狀態
 
+- 2026-08-13 依使用者核可將 25 秒賽後判讀的 0–4 秒結果幕由 Ryze／Orianna 英雄頭像改為 GEN／HLE 隊徽；4 秒後對位幕仍保留官方英雄方形頭像，其他四幕排版與節奏未改。
+- 新增 `config/esports-team-crests.json` 與 `utils/render/teamCrestManifest.js`：render 前核對 team／season、PNG、SHA-256、尺寸與 `public/team-crests/` 路徑；Remotion props 只帶本機路徑與必要尺寸，不帶遠端 URL。官方／來源與商標限制記錄於 `THIRD_PARTY_ASSETS.md`。
+- Inline TDD 抓到並修正隊徽未進 `staticFile()` 導致真實 canary 404；新隊徽 resolver 的 Turbopack warnings 已由 2 降為 0，production build 只剩原有 3 個 `playerPortraitManifest.js` tracing warnings。
+- 最終不發布 canary：`public/renders/render_1786662935714.mp4`（ignored runtime），SHA-256 `406d375c8e0be2815e4006cd5de2eb961dafe65693b7b344a250e32f489d80fc`，7,541,739 bytes；H.264／AAC、1080×1920、30fps、25.045333 秒、-17.1 LUFS、true peak -8.2 dBFS、leading silence 49.3333ms，publish jobs 0、queue 0、publish packages 0。
+- 最終影片抽幀：`.screenshots/team-crests-canary-final/3.8s.png`、`3.8s-mobile.png`、`4.2s.png`；確認首幕雙隊徽、手機辨識與下一幕英雄臉均正確。工具網站兩輪桌面／手機圖位於 `.screenshots/team-crests-tool-round2/`，375px scrollWidth=375、console 0 error／0 warning。
 - 2026-08-13 完成 25 秒五拍成品：`結果 → 中路差距 → 第一局物件轉塔 → Ruler 數據 MVP 候選 → 最終判讀`；四個視覺空間、英雄方形臉、已驗證 Ruler 真人照、repo-hosted 中英字體與 25 秒授權音樂均已接上正式 render path。
 - 最終 preview-only canary：`public/renders/render_1786660561234.mp4`（ignored runtime），SHA-256 `9abd2e610a383df0442f384ef7f729e2b684b50c00b097ef7cd86e5e172f3242`，選曲 `licensed-bgm-1`，publish jobs 0。
 - 媒體實測：H.264／AAC、1080×1920、30fps、25.045333 秒、7,691,334 bytes、48kHz stereo、-17.1 LUFS、true peak -8.2 dBFS、leading silence 49.3333ms；全部通過 25 秒媒體閘門。

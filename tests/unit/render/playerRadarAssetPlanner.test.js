@@ -10,7 +10,7 @@ const {
 
 function makeViewModel(edgeChampion = "Xin Zhao") {
   return {
-    seriesContext: { season: "2026" },
+    seriesContext: { season: "2026", teamA: "GEN", teamB: "HLE" },
     matchup: {
       edgePlayer: { name: "JackeyLove", championPlayed: edgeChampion },
       opponentPlayer: { name: "Elk", championPlayed: "Vi" },
@@ -20,6 +20,37 @@ function makeViewModel(edgeChampion = "Xin Zhao") {
     },
   };
 }
+
+test("resolvePlayerRadarAssets resolves both series teams as verified crests", async () => {
+  const resolvedTeams = [];
+  const resolved = await resolvePlayerRadarAssets(makeViewModel(), {
+    cacheRemoteImageUrlImpl: async () => "/render-assets/official.png",
+    resolvePlayerPortraitImpl: makePortrait,
+    resolveTeamCrestImpl: (identity) => {
+      resolvedTeams.push(identity);
+      return { team: identity.team, publicPath: `/team-crests/${identity.team.toLowerCase()}.png` };
+    },
+  });
+
+  assert.deepEqual(resolvedTeams, [
+    { team: "GEN", season: "2026" },
+    { team: "HLE", season: "2026" },
+  ]);
+  assert.equal(resolved.teams.teamA.publicPath, "/team-crests/gen.png");
+  assert.equal(resolved.teams.teamB.publicPath, "/team-crests/hle.png");
+});
+
+test("resolvePlayerRadarAssets uses the repository team crest manifest by default", async () => {
+  const resolved = await resolvePlayerRadarAssets(makeViewModel(), {
+    cacheRemoteImageUrlImpl: async () => "/render-assets/official.png",
+    resolvePlayerPortraitImpl: makePortrait,
+  });
+
+  assert.equal(resolved.teams.teamA.publicPath, "/team-crests/gen.png");
+  assert.equal(resolved.teams.teamB.publicPath, "/team-crests/hle.png");
+  assert.match(resolved.teams.teamA.sha256, /^[a-f0-9]{64}$/);
+  assert.match(resolved.teams.teamB.sha256, /^[a-f0-9]{64}$/);
+});
 
 const makePortrait = () => ({
   publicName: "Ruler",

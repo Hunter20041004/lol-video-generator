@@ -128,6 +128,10 @@ const mockPlayerRadarData = {
       ],
     },
     assets: {
+      teams: {
+        teamA: { team: "GEN", publicPath: "/team-crests/gen.png", width: 864, height: 864 },
+        teamB: { team: "HLE", publicPath: "/team-crests/hle.png", width: 1000, height: 500 },
+      },
       matchup: {
         edge: { championName: "Ryze", squareSrc: "https://ddragon.leagueoflegends.com/cdn/16.9.1/img/champion/Ryze.png", atmosphereSrc: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ryze_0.jpg", fallbackState: "full" },
         opponent: { championName: "Orianna", squareSrc: "https://ddragon.leagueoflegends.com/cdn/16.9.1/img/champion/Orianna.png", atmosphereSrc: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Orianna_0.jpg", fallbackState: "full" },

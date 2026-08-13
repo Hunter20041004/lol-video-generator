@@ -9,3 +9,9 @@ test("resolveRenderAssetSrc bundles repository player portraits as Remotion stat
   assert.match(source, /render-assets\|player-portraits/);
   assert.match(source, /return staticFile\(value\.replace/);
 });
+
+test("resolveRenderAssetSrc bundles repository team crests as Remotion static files", () => {
+  const source = fs.readFileSync(path.resolve(__dirname, "../../../src/video-system/renderAssetSrc.js"), "utf8");
+
+  assert.match(source, /team-crests/);
+});

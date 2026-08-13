@@ -20,6 +20,15 @@ The project owner confirmed on 2026-08-13 that player portraits may be used in g
 | --- | --- | --- | --- | --- | --- |
 | Ruler | Gen.G / 2026 | `public/player-portraits/gen-ruler-2026.webp` | [Leaguepedia-hosted image](https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/e/e3/GEN_Ruler_2026_Split_1.png/revision/latest?cb=20260122171312) | 693×549 WebP | `9b10b93cc8368c90c82dd1381151931e6f857a4beb6a34e46469ea6aee9d558d` |
 
+## Bundled team crests
+
+Team crests are used only for editorial team identification in generated match-analysis videos. Team names and marks remain the property of their respective owners; the repository's ISC license does not grant independent reuse rights. The HLE high-resolution rendering was visually cross-checked against the emblem documented on HLE's official website.
+
+| Team | Season | Repository file | Official source | Dimensions / format | SHA-256 |
+| --- | --- | --- | --- | --- | --- |
+| Gen.G | 2026 | `public/team-crests/gen.png` | [Gen.G official website asset](https://geng.gg/cdn/shop/files/practicum_website_asset_5.png?v=1768196264&width=1000) | 864×864 PNG | `46c54c21bc348179479fa9983f7cd6aeb1199f8a6194f9298c3fca5b64c532f0` |
+| Hanwha Life Esports | 2026 | `public/team-crests/hle.png` | [PandaScore-hosted team asset](https://cdn-api.pandascore.co/images/team/image/2883/hanwha-life-esports-1s04vbu0.png), center-cropped · [official emblem reference](https://hle.kr/) | 1000×500 PNG | `3c1a0a675b314a772c8529618cfe564db9ed44f5d883f6e45c4cd6b7c67a4352` |
+
 ## Repository-hosted Google Fonts
 
 The following variable font files are redistributed under the SIL Open Font License, Version 1.1. The complete license and both project copyright notices are preserved in `public/fonts/OFL.txt`.

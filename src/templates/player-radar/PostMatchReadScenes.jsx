@@ -33,6 +33,25 @@ const Face = ({ asset, size, dim = false }) => asset?.squareSrc ? (
   </div>
 ) : null;
 
+const TeamCrest = ({ asset, team, dim = false }) => asset?.publicPath ? (
+  <div style={{ width: 330, display: "grid", justifyItems: "center", gap: 24 }}>
+    <div style={{ width: 270, height: 220, display: "grid", placeItems: "center" }}>
+      <Img
+        src={assetSrc(asset.publicPath)}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          filter: dim
+            ? "saturate(.84) brightness(.9)"
+            : "drop-shadow(0 16px 30px rgba(207,173,103,.2))",
+        }}
+      />
+    </div>
+    <b style={{ font: `900 ${dim ? 54 : 66}px ${NUMBER_FONT}`, color: dim ? COLORS.muted : COLORS.paper }}>{team}</b>
+  </div>
+) : null;
+
 const Atmosphere = ({ asset, side = "center", opacity = 0.55 }) => asset?.atmosphereSrc ? (
   <Img src={assetSrc(asset.atmosphereSrc)} style={{
     position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
@@ -44,6 +63,7 @@ export const MatchupBroadcastScene = ({ model, localFrame, reducedMotion, phase 
   const matchup = model.matchup || {};
   const result = model.resultHook || {};
   const assets = model.assets?.matchup || {};
+  const teamAssets = model.assets?.teams || {};
   const score = result.scoreParts || { left: "2", separator: "–", right: "0" };
   const resultPhase = phase === "result";
   return (
@@ -60,9 +80,9 @@ export const MatchupBroadcastScene = ({ model, localFrame, reducedMotion, phase 
             <span style={{ fontSize: SCORE_SEPARATOR_SIZE, color: COLORS.gold, margin: "0 30px" }}>{score.separator}</span>
             <span style={{ fontSize: SCORE_DIGIT_SIZE }}>{score.right}</span>
           </div>
-          <div style={{ ...enterStyle(localFrame, 16, 12, reducedMotion), display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center", marginTop: 115 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 26 }}><Face asset={assets.edge} size={PRIMARY_FACE} /><b style={{ font: `900 66px ${NUMBER_FONT}` }}>{matchup.edgePlayer?.team || model.seriesContext?.teamA}</b></div>
-            <div style={{ display: "flex", alignItems: "center", gap: 26 }}><b style={{ font: `900 54px ${NUMBER_FONT}`, color: COLORS.muted }}>{matchup.opponentPlayer?.team || model.seriesContext?.teamB}</b><Face asset={assets.opponent} size={SECONDARY_FACE} dim /></div>
+          <div style={{ ...enterStyle(localFrame, 16, 12, reducedMotion), display: "flex", width: "100%", justifyContent: "space-between", alignItems: "start", marginTop: 115 }}>
+            <TeamCrest asset={teamAssets.teamA} team={matchup.edgePlayer?.team || model.seriesContext?.teamA} />
+            <TeamCrest asset={teamAssets.teamB} team={matchup.opponentPlayer?.team || model.seriesContext?.teamB} dim />
           </div>
           <div style={{ font: `800 24px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 4, marginTop: 90 }}>LCK REGULAR SEASON · SERIES RESULT</div>
         </div>

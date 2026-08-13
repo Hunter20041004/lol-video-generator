@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "crests": [
+    {
+      "team": "GEN",
+      "teamAliases": ["Gen.G", "Gen.G Esports"],
+      "season": "2026",
+      "sourceUrl": "https://geng.gg/cdn/shop/files/practicum_website_asset_5.png?v=1768196264&width=1000",
+      "sourcePage": "https://geng.gg/",
+      "licenseNote": "Official team website asset used for editorial team identification; Gen.G trademarks remain the property of Gen.G.",
+      "repositoryPath": "public/team-crests/gen.png",
+      "sha256": "46c54c21bc348179479fa9983f7cd6aeb1199f8a6194f9298c3fca5b64c532f0",
+      "width": 864,
+      "height": 864,
+      "verifiedAt": "2026-08-13"
+    },
+    {
+      "team": "HLE",
+      "teamAliases": ["Hanwha Life Esports", "Hanwha Life"],
+      "season": "2026",
+      "sourceUrl": "https://cdn-api.pandascore.co/images/team/image/2883/hanwha-life-esports-1s04vbu0.png",
+      "sourcePage": "https://hle.kr/",
+      "licenseNote": "PandaScore-hosted transparent team identity asset, center-cropped without altering the emblem and cross-checked against the official HLE emblem; trademark rights remain with Hanwha Life Esports.",
+      "repositoryPath": "public/team-crests/hle.png",
+      "sha256": "3c1a0a675b314a772c8529618cfe564db9ed44f5d883f6e45c4cd6b7c67a4352",
+      "width": 1000,
+      "height": 500,
+      "verifiedAt": "2026-08-13"
+    }
+  ]
+}

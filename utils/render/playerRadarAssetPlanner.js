@@ -5,6 +5,7 @@ const {
   normalizeChampionId,
 } = require("./remoteAssetCache");
 const { resolvePlayerPortrait } = require("./playerPortraitManifest");
+const { resolveTeamCrest } = require("./teamCrestManifest");
 
 const championSplashUrl = (id) =>
   `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`;
@@ -24,6 +25,7 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
   cacheRemoteImageUrlImpl = cacheRemoteImageUrl,
   cacheRemoteImageUrlOptions = {},
   resolvePlayerPortraitImpl = resolvePlayerPortrait,
+  resolveTeamCrestImpl = resolveTeamCrest,
   rootDir = process.cwd(),
   version = DDRAGON_RENDER_VERSION,
 } = {}) {
@@ -31,6 +33,9 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
   const edgePlayer = viewModel.matchup?.edgePlayer || {};
   const opponentPlayer = viewModel.matchup?.opponentPlayer || {};
   const proofPlayer = viewModel.proof?.player || {};
+  const season = viewModel.seriesContext?.season || "2026";
+  const teamA = viewModel.seriesContext?.teamA;
+  const teamB = viewModel.seriesContext?.teamB;
   const heroNames = [edgePlayer.championPlayed, opponentPlayer.championPlayed];
   const heroIds = heroNames.map(normalizeChampionId);
   const proofNames = (proofPlayer.champions || []).slice(0, 3);
@@ -64,6 +69,21 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
   const proofSquares = supporting.slice(0, proofIds.length);
   const smiteSrc = supporting[proofIds.length];
   const mapSrc = supporting[proofIds.length + 1];
+  const renderTeamCrest = (identity) => {
+    const crest = resolveTeamCrestImpl(identity, { rootDir });
+    return {
+      team: crest.team,
+      season: crest.season,
+      sha256: crest.sha256,
+      width: crest.width,
+      height: crest.height,
+      publicPath: crest.publicPath,
+    };
+  };
+  const teams = resolveTeamCrestImpl ? {
+    teamA: renderTeamCrest({ team: teamA, season }),
+    teamB: renderTeamCrest({ team: teamB, season }),
+  } : undefined;
 
   const buildHero = (championName, splashSrc, squareSrc) => {
     if (!usableAsset(squareSrc)) {
@@ -83,6 +103,7 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
   };
 
   return {
+    teams,
     matchup: {
       edge: buildHero(heroNames[0], edgeSplash, edgeSquare),
       opponent: buildHero(heroNames[1], opponentSplash, opponentSquare),

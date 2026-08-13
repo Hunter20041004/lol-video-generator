@@ -226,6 +226,17 @@ test("post-match read result hook exposes the score on the opening frame", () =>
   assert.match(scenes, /enterStyle\(localFrame, -1, 12, reducedMotion\)/);
 });
 
+test("post-match read result hook identifies teams with crests instead of champion faces", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+  const resultBranch = scenes.match(/\{resultPhase \? \(([\s\S]*?)\) : \(/)?.[1] || "";
+  const teamCrest = scenes.match(/const TeamCrest[\s\S]*?\) : null;/)?.[0] || "";
+
+  assert.match(resultBranch, /<TeamCrest asset=\{teamAssets\.teamA\}/);
+  assert.match(resultBranch, /<TeamCrest asset=\{teamAssets\.teamB\}/);
+  assert.doesNotMatch(resultBranch, /<Face\b/);
+  assert.doesNotMatch(teamCrest, /grayscale/);
+});
+
 test("Remotion root player radar preview uses the approved GEN HLE post-match read", () => {
   const rootSource = fs.readFileSync(path.join(ROOT, "src/Root.jsx"), "utf8");
   const playerRadarBlock = rootSource.match(/const mockPlayerRadarData = \{[\s\S]*?\n\};\n\nconst mockEsportsH2HRadarData = \{/);
@@ -241,6 +252,8 @@ test("Remotion root player radar preview uses the approved GEN HLE post-match re
   assert.match(source, /Orianna/);
   assert.match(source, /Caitlyn/);
   assert.match(source, /Seraphine/);
+  assert.match(source, /\/team-crests\/gen\.png/);
+  assert.match(source, /\/team-crests\/hle\.png/);
   assert.match(source, /750|durationInFrames: 240/);
   assert.match(source, /postMatchRead:/);
   assert.match(source, /數據 MVP 候選/);
