@@ -1,12 +1,13 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-13 由 Codex 更新。最新工作只新增設計規格與忽略本機 brainstorm artifacts；沒有修改影片實作、runtime 資料或執行任何社群發布。
+> 2026-08-13 由 Codex 更新。最新工作完成設計規格審核與 implementation plan；沒有修改影片實作、runtime 資料或執行任何社群發布。
 
 ## 本輪狀態
 
 - 2026-08-13 完成 Player Radar 的產品與視覺重設決策：對外改名為「賽後判讀／POST MATCH READ」，受眾為一般 LoL 玩家，第一版採音樂＋動態文字、1080×1920、30fps、目標 12 秒。
 - 使用者逐段核可 LoL 原生英雄敘事、四幕 `約 21× → 打野對位 → 806 DPM → 賽事判讀`、三首授權音樂節拍規劃、資料誠實規則、錯誤降級、驗證閘門與垂直 TDD。
-- 正式設計規格為 `docs/superpowers/specs/2026-08-13-post-match-read-lol-native-design.md`；目前只到設計 review gate，尚未修改 `Template_PlayerRadar.jsx`、runner、曲庫或發布流程。
+- 正式設計規格 `docs/superpowers/specs/2026-08-13-post-match-read-lol-native-design.md` 已由使用者通過；逐步實作計畫為 `docs/superpowers/plans/2026-08-13-post-match-read-lol-native.md`，指定 inline TDD、不得使用子代理。
+- 目前只完成規格與計畫文件，尚未修改 `Template_PlayerRadar.jsx`、runner、曲庫或發布流程；下一階段從 normalized evidence ranker 的紅燈測試開始。
 - 視覺 brainstorm 與瀏覽器驗證 artifacts 位於 `.superpowers/`、`.screenshots/`，皆為本機忽略項目；正式規格不依賴這些暫存檔才能理解。
 
 - 2026-08-12 以最新 Leaguepedia LCK 資料完成一次不發布的 Player Radar 全流程演練；HLE Challengers 對 HANJIN BRION Challengers 的三局已正確合併為 2-1，而不是因主客隊順序交換被拆成兩個候選。
