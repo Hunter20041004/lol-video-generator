@@ -4,6 +4,11 @@
 
 ## 本輪狀態
 
+- 2026-08-13 使用者已核可下一版「賽後判讀」25 秒視覺：主方案為 Broadcast Hero 對位／MVP＋Tactical Transmission 戰局分析；英雄身份使用官方方形頭像，splash 僅作氣氛，MVP 直接使用已授權選手照片，中央線與 dashboard 同版型不再使用。
+- 核可節奏為 `0–4 秒結果 Hook → 4–9 秒對位 → 9–17 秒遊戲過程 → 17–22 秒數據 MVP 候選 → 22–25 秒最後判讀`，最後 1.5 秒完全靜止；GEN 2–0 HLE 為第一支不發布 canary 範例。
+- 視覺最後一項修正將大比分拆成獨立 `2`、`–`、`0`，縮小分隔號並保留明確 clear space；其他四幕排版由使用者確認保留。
+- 新書面規格為 `docs/superpowers/specs/2026-08-13-post-match-read-25s-game-flow-design.md`，目前等待使用者做書面確認；尚未修改正式影片程式或產生新 canary。
+
 - 2026-08-13 已將對外 Player Radar 全面重做為「賽後判讀／POST MATCH READ」：保留內部 `PLAYER_RADAR`／`PlayerRadarVideo` 相容識別，觀眾端不再出現舊名稱或 dashboard 視覺。
 - 新模板固定 360 frames／12 秒，使用同一英雄主視覺、持續 Hextech 主線與四幕 `約 21× → Jackal 13.7 vs Dinai 0.64 KDA → Pyeonsik 806 DPM → 最終判讀`；最後 1 秒完全靜止。
 - 對位理由改用 normalized gap＋角色固定優先序排序，不再拿不同單位 raw delta 比大小；只有五路完整且自動選擇時才能聲稱最大差距。
