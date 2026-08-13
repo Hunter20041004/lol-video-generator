@@ -24,6 +24,32 @@ async function withTempProject(fn) {
   }
 }
 
+function makeRenderablePlayerRadarPayload() {
+  const { buildPlayerRadarPayload } = require(path.join(ROOT, "utils/esports/playerRadarRunner"));
+  const makePlayer = (team, name, kda, dpm, kp, gpm, csm) => ({
+    name,
+    team,
+    role: "Mid",
+    champions: [team === "T1" ? "Xin Zhao" : "Vi", "Lucian", "Varus"],
+    rawStats: { role: "Mid", kda, dpm, kp, gpm, csm },
+  });
+  const edge = makePlayer("T1", "Faker", 8, 720, 0.82, 480, 9.2);
+  const opponent = makePlayer("GEN", "Chovy", 2, 380, 0.48, 340, 7.1);
+  return buildPlayerRadarPayload({
+    seriesId: "t1-gen",
+    league: "LCK",
+    teamA: "T1",
+    teamB: "GEN",
+    teams: ["T1", "GEN"],
+    winningTeam: "T1",
+    seriesScore: "2-0",
+    score: "2-0",
+    players: [edge, opponent],
+    roleMatchups: [{ role: "Mid", left: edge, right: opponent }],
+    recommendedMvp: { name: "Faker" },
+  }, {}, "zh");
+}
+
 test("renderVideosFromRequest renders bilingual payloads without HTTP self-fetch", async () => {
   await withTempProject(async (dir) => {
     const commands = [];
@@ -215,6 +241,30 @@ test("renderOne rejects malformed player radar before render artifacts", async (
     process.chdir(originalCwd);
     fs.rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("renderOne rejects unavailable official player art before Remotion props are written", async () => {
+  await withTempProject(async (dir) => {
+    const commands = [];
+
+    await assert.rejects(
+      () => renderOne(makeRenderablePlayerRadarPayload(), {
+        timestamp: 1001,
+        locale: "zh",
+        resolvePlayerRadarAssetsImpl: async () => {
+          throw new Error("Post Match Read official champion art unavailable for Xin Zhao: splash and square both failed.");
+        },
+        execRenderImpl: async (command) => {
+          commands.push(command);
+          return null;
+        },
+      }),
+      /Post Match Read official champion art unavailable/
+    );
+
+    assert.deepEqual(commands, []);
+    assert.equal(fs.existsSync(path.join(dir, "public", "renders", "props_1001.json")), false);
+  });
 });
 
 test("localizeRemoteImageAssets caches remote render images before Remotion runs", async () => {

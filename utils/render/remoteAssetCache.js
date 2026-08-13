@@ -154,6 +154,7 @@ async function localizeRemoteImageAssets(value, options = {}) {
 }
 
 module.exports = {
+  DDRAGON_RENDER_VERSION,
   RENDER_ASSET_FALLBACK_PUBLIC_PATH,
   addExplicitChampionAssets,
   cacheRemoteImageUrl,

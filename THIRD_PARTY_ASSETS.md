@@ -22,3 +22,13 @@ The following variable font files are redistributed under the SIL Open Font Lice
 | `public/fonts/Cinzel-Variable.woff2` | [Google Fonts Cinzel v26](https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt79mT7PkRXMw.woff2) | `ef95296c778719c3d658a8284d65078100450948851b9114485ada01d9d3d3f8` |
 
 Outfit is used by both the web workbench and Remotion videos. Cinzel is used by the web workbench's display headings and controls. Their original copyrights and OFL terms remain with their respective project authors; the repository's ISC license does not replace those terms.
+
+### Noto Serif TC Post Match Read subset
+
+`public/fonts/NotoSerifTC-PostMatchRead-700.woff2` is a weight-700 subset of Noto Serif TC built from Google Fonts commit `73fc2ff52147e34a74804b500cf89ca219eac55d`. It is redistributed under the SIL Open Font License, Version 1.1; the separate license text is preserved at `public/fonts/OFL-NotoSerifTC.txt`.
+
+| File | Source SHA-256 | Output SHA-256 |
+| --- | --- | --- |
+| `public/fonts/NotoSerifTC-PostMatchRead-700.woff2` | `0077e18f57c6908f4a000969880940bdb0dad057c0e8d98b49dc364c3d1b09c6` | `22cfa6a3c60cb2b314d451958213a0a65ce9f0af4d4aa3c28796937be725c830` |
+
+The reproducible build script is `scripts/buildPostMatchReadFont.sh`; its exact glyph inventory is `config/post-match-read-font-glyphs.txt`.

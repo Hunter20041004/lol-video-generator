@@ -8,6 +8,7 @@ const { getChampionEntry, getChampionTWName, getItemEntry, getRuneEntry } = requ
 const { splitDenseSkillScenes } = require("../patchStoryboard");
 const { selectAndStageLicensedMusic } = require("./licensedMusicLibrary");
 const { localizeRemoteImageAssets } = require("./remoteAssetCache");
+const { resolvePlayerRadarAssets } = require("./playerRadarAssetPlanner");
 
 const DATA_TYPE_TO_COMPOSITION = {
   PATCH: "LeaguePatchVideo",
@@ -374,12 +375,20 @@ async function renderOne(rawProps, {
   suffix,
   execRenderImpl = execRender,
   assetFetchImpl,
+  resolvePlayerRadarAssetsImpl = resolvePlayerRadarAssets,
 } = {}) {
   assertPlayerRadarEvidence(rawProps);
   const rendersDir = path.join(process.cwd(), "public", "renders");
   fs.mkdirSync(rendersDir, { recursive: true });
 
-  const props = await localizeRemoteImageAssets(await prepareProps(rawProps), {
+  let preparedProps = await prepareProps(rawProps);
+  assertPlayerRadarEvidence(preparedProps);
+  if (preparedProps.dataType === "PLAYER_RADAR") {
+    preparedProps.postMatchRead.assets = await resolvePlayerRadarAssetsImpl(preparedProps.postMatchRead, {
+      cacheRemoteImageUrlOptions: { fetchImpl: assetFetchImpl },
+    });
+  }
+  const props = await localizeRemoteImageAssets(preparedProps, {
     fetchImpl: assetFetchImpl,
   });
   const outputFileName = suffix ? `render_${timestamp}_${suffix}.mp4` : `render_${timestamp}.mp4`;

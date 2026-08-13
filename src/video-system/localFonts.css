@@ -5,3 +5,11 @@
   font-weight: 300 600;
   font-display: block;
 }
+
+@font-face {
+  font-family: "Noto Serif TC Post Match Read";
+  src: url("/public/fonts/NotoSerifTC-PostMatchRead-700.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+}
