@@ -12,6 +12,14 @@ Authorization was confirmed by the project owner on 2026-08-11 to use the follow
 
 These audio files are third-party material. Their original copyrights and license terms remain with their respective rights holders, and the repository's ISC license does not grant any additional right to reuse them outside the authorized project context.
 
+## Bundled player portraits
+
+The project owner confirmed on 2026-08-13 that player portraits may be used in generated videos and redistributed in this GitHub repository. This confirmation does not imply official LCK authorization or grant reuse rights outside the authorized project context.
+
+| Player | Team / season | Repository file | Source | Dimensions / format | SHA-256 |
+| --- | --- | --- | --- | --- | --- |
+| Ruler | Gen.G / 2026 | `public/player-portraits/gen-ruler-2026.webp` | [Leaguepedia-hosted image](https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/e/e3/GEN_Ruler_2026_Split_1.png/revision/latest?cb=20260122171312) | 693×549 WebP | `9b10b93cc8368c90c82dd1381151931e6f857a4beb6a34e46469ea6aee9d558d` |
+
 ## Repository-hosted Google Fonts
 
 The following variable font files are redistributed under the SIL Open Font License, Version 1.1. The complete license and both project copyright notices are preserved in `public/fonts/OFL.txt`.
