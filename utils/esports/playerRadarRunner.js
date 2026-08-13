@@ -324,6 +324,7 @@ async function runPlayerRadarFromSnapshot(options = {}, deps = {}) {
     playerName: options.playerName,
     matchupPlayerName: options.matchupPlayerName,
     mvpPlayerName: options.mvpPlayerName,
+    snapshotId: snapshot.scanId,
   };
   const languages = normalizeLanguages(options.languages);
   const renderVideosFromRequest = deps.renderVideosFromRequest || defaultRenderVideosFromRequest;

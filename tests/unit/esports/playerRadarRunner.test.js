@@ -96,6 +96,17 @@ function makeSnapshot() {
       winningTeam: "T1",
       seriesScore: "2-0",
       score: "2-0",
+      games: 2,
+      gameTeamStats: [{
+        gameNumber: 1,
+        gameId: "series-1-game-1",
+        winningTeam: "T1",
+        hasEventTimestamps: false,
+        teams: [
+          { team: "T1", isWinner: true, gold: 77031, towers: 8, barons: 1, voidGrubs: 0, riftHeralds: 0, source: "ScoreboardTeams", snapshotType: "team-final", hasEventTimestamps: false },
+          { team: "GEN", isWinner: false, gold: 68114, towers: 4, barons: 0, voidGrubs: 3, riftHeralds: 1, source: "ScoreboardTeams", snapshotType: "team-final", hasEventTimestamps: false },
+        ],
+      }],
       players,
       roleMatchups,
       recommendedMvp: { name: "T1 Jungle", team: "T1", role: "Jungle", score: 84 },
@@ -125,10 +136,10 @@ test("buildPlayerRadarPayload auto-selects max matchup edge and MVP proof segmen
     assert.equal(payload.player.name, "T1 Jungle");
     assert.equal(payload.title, "賽後判讀");
     assert.equal(payload.postMatchRead.branding.publicTitle, "賽後判讀");
-    assert.deepEqual(payload.storyboard.map((scene) => scene.durationInFrames), [54, 96, 120, 90]);
+    assert.deepEqual(payload.storyboard.map((scene) => scene.durationInFrames), [120, 150, 240, 150, 90]);
     assert.equal(payload.proofSegment.labelType, "data-mvp-candidate");
     assert.equal(payload.postMatchRead.matchup.claimScope, "series-maximum");
-    assert.match(payload.postMatchRead.matchup.claim, /最大/);
+    assert.match(payload.postMatchRead.matchup.scopeClaim, /最大/);
   });
 });
 
@@ -328,10 +339,11 @@ test("runPlayerRadarFromSnapshot renders one dual-read video per locale and queu
     assert.equal(result.proofSegment.player.name, "T1 Jungle");
     assert.deepEqual(renderedPayloads.map((payload) => payload.locale), ["zh", "en"]);
     assert.deepEqual(renderedPayloads[0].storyboard.map((scene) => scene.tag), [
-      "HOOK",
+      "RESULT_HOOK",
       "MATCHUP_EDGE",
+      "GAME_FLOW",
       "PLAYER_PROOF",
-      "CONCLUSION_CTA",
+      "FINAL_READ",
     ]);
     assert.equal(renderedPayloads[0].renderLanguages[0], "zh");
     assert.equal(renderedPayloads[1].renderLanguages[0], "en");
@@ -381,6 +393,7 @@ test("preview mode renders and validates without invoking publishing", async () 
     assert.equal(renderCalls, 1);
     assert.equal(validateCalls, 1);
     assert.equal(publishCalls, 0);
+    assert.equal(result.payloads[0].postMatchRead.seriesContext.snapshotId, "scan-radar");
     assert.deepEqual(result.publish, {
       success: true,
       action: "none",

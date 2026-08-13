@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const {
+  assertNoPreciseEventNarrative,
   buildRatioHook,
   buildPostMatchReadViewModel,
 } = require("../../../utils/esports/postMatchReadBuilder");
@@ -34,7 +35,7 @@ function makeInput() {
       edgePlayer,
       focusPlayer: edgePlayer,
       opponentPlayer,
-      reasons: [{ metric: "KDA", winnerValue: 13.67, loserValue: 0.64 }],
+      reasons: [{ metric: "KDA", winnerValue: 13.67, loserValue: 0.64, delta: 13.03 }],
     },
     proofSegment: {
       player: proofPlayer,
@@ -44,6 +45,113 @@ function makeInput() {
     locale: "zh",
   };
 }
+
+test("post-match read storyboard is exactly five beats and 750 frames", () => {
+  const viewModel = buildPostMatchReadViewModel(makeInput());
+
+  assert.deepEqual(viewModel.storyboard.map(({ tag, durationInFrames }) => [tag, durationInFrames]), [
+    ["RESULT_HOOK", 120],
+    ["MATCHUP_EDGE", 150],
+    ["GAME_FLOW", 240],
+    ["PLAYER_PROOF", 150],
+    ["FINAL_READ", 90],
+  ]);
+  assert.equal(viewModel.storyboard.reduce((sum, scene) => sum + scene.durationInFrames, 0), 750);
+});
+
+test("Mid matchup copy is role-aware and exposes its primary evidence", () => {
+  const input = makeInput();
+  const edgePlayer = { name: "Chovy", team: "GEN", role: "Mid" };
+  const opponentPlayer = { name: "Zeka", team: "HLE", role: "Mid" };
+  input.matchupSegment = {
+    role: "Mid",
+    edgePlayer,
+    focusPlayer: edgePlayer,
+    opponentPlayer,
+    reasons: [
+      { metric: "GPM", winnerValue: 460, loserValue: 388, delta: 72 },
+      { metric: "DPM", winnerValue: 768, loserValue: 649, delta: 119 },
+    ],
+  };
+
+  const model = buildPostMatchReadViewModel(input);
+
+  assert.equal(model.matchup.role, "Mid");
+  assert.equal(model.matchup.primaryEvidence.displayValue, "+72 GPM");
+  assert.equal(model.matchup.claim, "不是一波打贏。是每分鐘都在擴大差距。");
+  assert.doesNotMatch(JSON.stringify(model), /打野拉開|下路把優勢/);
+});
+
+test("game flow is derived from two ScoreboardTeams final records", () => {
+  const input = makeInput();
+  input.series.teamA = "GEN";
+  input.series.teamB = "HLE";
+  input.series.winningTeam = "GEN";
+  input.series.gameTeamStats = [{
+    gameNumber: 1,
+    gameId: "gen-hle-g1",
+    winningTeam: "GEN",
+    hasEventTimestamps: false,
+    teams: [
+      { team: "HLE", voidGrubs: 3, riftHeralds: 1, barons: 0, towers: 4, gold: 68114, source: "ScoreboardTeams", snapshotType: "team-final" },
+      { team: "GEN", voidGrubs: 0, riftHeralds: 0, barons: 1, towers: 8, gold: 77031, source: "ScoreboardTeams", snapshotType: "team-final" },
+    ],
+  }];
+
+  const model = buildPostMatchReadViewModel(input);
+
+  assert.deepEqual(model.gameFlow, {
+    gameNumber: 1,
+    gameId: "gen-hle-g1",
+    earlyResourceTeam: "HLE",
+    finalMapTeam: "GEN",
+    earlyResources: { voidGrubs: 3, riftHeralds: 1, displayValue: "3＋1" },
+    conversion: { barons: 1, towers: 8, displayValue: "1 → 8" },
+    goldDelta: 8917,
+    towerScore: "8–4",
+    teamFinals: input.series.gameTeamStats[0].teams,
+    analysisClaim: "HLE 拿到前期資源，GEN 最後拿走地圖。",
+    conclusion: "物件本身不是勝點，物件之後換到幾座塔才是。",
+    claimBasis: {
+      source: "ScoreboardTeams",
+      snapshotType: "team-final",
+      fields: ["VoidGrubs", "RiftHeralds", "Barons", "Towers", "Gold"],
+      hasEventTimestamps: false,
+    },
+  });
+});
+
+test("team-final narratives reject precise event time and route claims", () => {
+  assert.throws(
+    () => assertNoPreciseEventNarrative("18:00 巴龍團後 → 上路推進"),
+    /event timestamp or precise path/i,
+  );
+});
+
+test("result hook splits the score and final read only recaps displayed evidence", () => {
+  const input = makeInput();
+  input.series.teamA = "GEN";
+  input.series.teamB = "HLE";
+  input.series.winningTeam = "GEN";
+  input.matchupSegment.reasons[0] = {
+    metric: "GPM", winnerValue: 460, loserValue: 388, delta: 72,
+  };
+  input.proofSegment.player = {
+    name: "Ruler",
+    team: "GEN",
+    role: "Adc",
+    rawStats: { role: "Adc", csm: 9.88, gpm: 473, dpm: 739 },
+  };
+
+  const model = buildPostMatchReadViewModel(input);
+
+  assert.deepEqual(model.resultHook.scoreParts, { left: "2", separator: "–", right: "0" });
+  assert.equal(model.finalRead.conclusion, "GEN 的勝點不是搶得多，而是把每次領先換成塔與輸出。");
+  assert.deepEqual(model.finalRead.recapReferences, [
+    { source: "matchup", metric: "GPM", displayValue: "+72 GPM" },
+    { source: "proof", metric: "CSM", displayValue: "9.88 CSM" },
+  ]);
+});
 
 test("incomplete role coverage cannot claim the selected matchup is the series maximum", () => {
   const viewModel = buildPostMatchReadViewModel(makeInput());
