@@ -31,12 +31,15 @@ The following variable font files are redistributed under the SIL Open Font Lice
 
 Outfit is used by both the web workbench and Remotion videos. Cinzel is used by the web workbench's display headings and controls. Their original copyrights and OFL terms remain with their respective project authors; the repository's ISC license does not replace those terms.
 
-### Noto Serif TC Post Match Read subset
+### Post Match Read font subsets
 
-`public/fonts/NotoSerifTC-PostMatchRead-700.woff2` is a weight-700 subset of Noto Serif TC built from Google Fonts commit `73fc2ff52147e34a74804b500cf89ca219eac55d`. It is redistributed under the SIL Open Font License, Version 1.1; the separate license text is preserved at `public/fonts/OFL-NotoSerifTC.txt`.
+The Post Match Read video uses Barlow Condensed for condensed Latin display type and Noto Sans TC for Traditional Chinese. All four weights are built from Google Fonts commit `73fc2ff52147e34a74804b500cf89ca219eac55d` and redistributed under the SIL Open Font License, Version 1.1. The license texts are preserved at `public/fonts/OFL-BarlowCondensed.txt` and `public/fonts/OFL-NotoSansTC.txt`.
 
 | File | Source SHA-256 | Output SHA-256 |
 | --- | --- | --- |
-| `public/fonts/NotoSerifTC-PostMatchRead-700.woff2` | `0077e18f57c6908f4a000969880940bdb0dad057c0e8d98b49dc364c3d1b09c6` | `22cfa6a3c60cb2b314d451958213a0a65ce9f0af4d4aa3c28796937be725c830` |
+| `public/fonts/BarlowCondensed-PostMatchRead-800.woff2` | `724c9c25952d5f4a2d87185d9767aa006144c5f0d944dc05bf7d5d603551c260` | `cc607f6a6463f1176204fbd7102e81b599dc12a12664307d2c8f5aea462e230b` |
+| `public/fonts/BarlowCondensed-PostMatchRead-900.woff2` | `e74b750df582c608f35db467b711b2b60d2217618e85e60b72b42dfd00446cab` | `f7afeadbb7b336eef95b35884c824a00bf5e0261869239c8f8ad5f0f41ef233f` |
+| `public/fonts/NotoSansTC-PostMatchRead-700.woff2` | `864727d210d54f2537bbe23b3a839436c3992af72de9322af5270897246bd44f` | `e84e5f7e4134b90dbc281d43d2a75a80251d82a8868e238728d4f2a7b1c58f81` |
+| `public/fonts/NotoSansTC-PostMatchRead-900.woff2` | `864727d210d54f2537bbe23b3a839436c3992af72de9322af5270897246bd44f` | `2e4b1cee33fe3bd60e4c231c30e019947eebb71dd702d7a53f74fec25c026b18` |
 
 The reproducible build script is `scripts/buildPostMatchReadFont.sh`; its exact glyph inventory is `config/post-match-read-font-glyphs.txt`.

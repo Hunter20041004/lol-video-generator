@@ -7,9 +7,33 @@
 }
 
 @font-face {
-  font-family: "Noto Serif TC Post Match Read";
-  src: url("/public/fonts/NotoSerifTC-PostMatchRead-700.woff2") format("woff2");
+  font-family: "Barlow Condensed Post Match Read";
+  src: url("/public/fonts/BarlowCondensed-PostMatchRead-800.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 800;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Barlow Condensed Post Match Read";
+  src: url("/public/fonts/BarlowCondensed-PostMatchRead-900.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Noto Sans TC Post Match Read";
+  src: url("/public/fonts/NotoSansTC-PostMatchRead-700.woff2") format("woff2");
   font-style: normal;
   font-weight: 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Noto Sans TC Post Match Read";
+  src: url("/public/fonts/NotoSansTC-PostMatchRead-900.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 900;
   font-display: block;
 }
