@@ -73,6 +73,24 @@ test("aggregateSeries computes BO3 player KDA, per-minute stats, weighted KP, an
   assert.equal(series.completeness.hasFiveRoleMatchups, true);
 });
 
+test("aggregateSeries preserves numbered per-game team-final evidence", () => {
+  const { aggregateSeries } = require("../../../utils/esports/seriesAggregator");
+  const games = makeTwoGameSeries();
+  games[0].teamFinalStats = [
+    { gameId: "game-1", team: "T1", towers: 8, snapshotType: "team-final" },
+    { gameId: "game-1", team: "GEN", towers: 4, snapshotType: "team-final" },
+  ];
+
+  const series = aggregateSeries(games);
+
+  assert.equal(series.gameTeamStats.length, 2);
+  assert.equal(series.gameTeamStats[0].gameNumber, 1);
+  assert.equal(series.gameTeamStats[0].gameId, "game-1");
+  assert.equal(series.gameTeamStats[0].teams[0].snapshotType, "team-final");
+  assert.equal(series.gameTeamStats[0].hasEventTimestamps, false);
+  assert.deepEqual(series.gameTeamStats[1].teams, []);
+});
+
 test("aggregateSeries rejects empty input and normalizes role aliases", () => {
   const { aggregateSeries, normalizeRole } = require("../../../utils/esports/seriesAggregator");
 

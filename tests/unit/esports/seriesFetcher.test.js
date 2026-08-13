@@ -42,12 +42,37 @@ test("fetchCompletedSeriesForDate queries active tournament filters and groups g
         : makeMatch(gameId, "LCK 2026 Summer", "T1", "GEN", "T1");
       return { match, players: makePlayers(match.matchContext.teamA, match.matchContext.teamB) };
     },
+    fetchMatchTeamStats: async () => [],
   });
 
   assert.deepEqual(tournaments, ["LCK", "LPL"]);
   assert.equal(candidates.length, 2);
   assert.equal(candidates.find((series) => series.league === "LCK").games.length, 2);
   assert.equal(candidates.find((series) => series.league === "LPL").games.length, 1);
+});
+
+test("fetchCompletedSeriesForDate stores ScoreboardTeams rows on their game", async () => {
+  const { fetchCompletedSeriesForDate } = require("../../../utils/esports/seriesFetcher");
+
+  const candidates = await fetchCompletedSeriesForDate({
+    date: "2026-06-20",
+    activeMode: { mode: "regular", tournaments: ["LCK"] },
+  }, {
+    fetchRecentMatches: async () => [makeMatch("lck-g1", "LCK 2026 Summer", "GEN", "HLE", "GEN")],
+    fetchMatchPlayers: async () => ({
+      match: makeMatch("lck-g1", "LCK 2026 Summer", "GEN", "HLE", "GEN"),
+      players: makePlayers("GEN", "HLE"),
+    }),
+    fetchMatchTeamStats: async () => [
+      { gameId: "lck-g1", team: "GEN", towers: 8, gold: 77031 },
+      { gameId: "lck-g1", team: "HLE", towers: 4, gold: 68114 },
+    ],
+  });
+
+  assert.deepEqual(candidates[0].games[0].teamFinalStats, [
+    { gameId: "lck-g1", team: "GEN", towers: 8, gold: 77031 },
+    { gameId: "lck-g1", team: "HLE", towers: 4, gold: 68114 },
+  ]);
 });
 
 test("fetchCompletedSeriesForDate keeps reversed team order in one series", async () => {
@@ -68,6 +93,7 @@ test("fetchCompletedSeriesForDate keeps reversed team order in one series", asyn
         : makeMatch(gameId, "LCK 2026 Summer", "T1", "GEN", "T1");
       return { match, players: makePlayers(match.matchContext.teamA, match.matchContext.teamB) };
     },
+    fetchMatchTeamStats: async () => [],
   });
 
   assert.equal(candidates.length, 1);
@@ -91,6 +117,7 @@ test("fetchCompletedSeriesForDate filters other dates and skips games with missi
       const match = makeMatch(gameId, "MSI 2026", "T1", "BLG", "T1");
       return { match, players: makePlayers("T1", "BLG") };
     },
+    fetchMatchTeamStats: async () => [],
   });
 
   assert.equal(candidates.length, 1);

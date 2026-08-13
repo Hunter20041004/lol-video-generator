@@ -38,6 +38,7 @@ function normalizeGame(detail = {}) {
     gamelengthStr: match.gamelengthStr || match.Gamelength || "",
     gamelengthMin: match.gamelengthMin,
     players: Array.isArray(detail.players) ? detail.players : [],
+    teamFinalStats: Array.isArray(detail.teamFinalStats) ? detail.teamFinalStats : [],
   };
 }
 
@@ -46,6 +47,7 @@ async function fetchCompletedSeriesForDate(options = {}, deps = {}) {
   const tournaments = options.activeMode?.tournaments || [];
   const fetchRecentMatches = deps.fetchRecentMatches || leaguepedia.fetchRecentMatches;
   const fetchMatchPlayers = deps.fetchMatchPlayers || leaguepedia.fetchMatchPlayers;
+  const fetchMatchTeamStats = deps.fetchMatchTeamStats || leaguepedia.fetchMatchTeamStats;
   const groups = new Map();
 
   for (const tournament of tournaments) {
@@ -53,9 +55,11 @@ async function fetchCompletedSeriesForDate(options = {}, deps = {}) {
     for (const match of matches) {
       const matchDate = normalizeDate(match.dateUtc || match.DateTime_UTC || match.date);
       if (matchDate && date && matchDate !== date) continue;
-      const detail = await fetchMatchPlayers(match.gameId || match.GameId || match.uniqueGame);
+      const gameId = match.gameId || match.GameId || match.uniqueGame;
+      const detail = await fetchMatchPlayers(gameId);
       if (!detail) continue;
-      const game = normalizeGame(detail);
+      const teamFinalStats = await fetchMatchTeamStats(gameId);
+      const game = normalizeGame({ ...detail, teamFinalStats });
       const key = seriesKey(game);
       if (!groups.has(key)) {
         groups.set(key, {

@@ -276,6 +276,16 @@ function aggregateSeries(gamesInput = []) {
     .filter((matchup) => !matchup.left || !matchup.right)
     .map((matchup) => matchup.role);
 
+  const gameTeamStats = games.map((game, index) => ({
+    gameNumber: index + 1,
+    gameId: game.gameId || game.GameId || "",
+    winningTeam: game.winTeam || game.WinTeam || "",
+    hasEventTimestamps: false,
+    teams: Array.isArray(game.teamFinalStats)
+      ? game.teamFinalStats.map((team) => ({ ...team }))
+      : [],
+  }));
+
   return {
     seriesId,
     date: first.date || first.dateUtc || first.DateTime_UTC || "",
@@ -287,6 +297,7 @@ function aggregateSeries(gamesInput = []) {
     winningTeam: Object.entries(score).sort((a, b) => b[1] - a[1])[0]?.[0] || first.winTeam || "",
     score: teams.length >= 2 ? `${score[teams[0]] || 0}-${score[teams[1]] || 0}` : "",
     games: games.length,
+    gameTeamStats,
     players,
     roleMatchups,
     teamStats,
