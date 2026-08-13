@@ -220,6 +220,12 @@ test("post-match read template uses five beats across four distinct visual space
   assert.match(entry, /const frame = freezePostMatchReadFrame\(rawFrame\)/);
 });
 
+test("post-match read result hook exposes the score on the opening frame", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+
+  assert.match(scenes, /enterStyle\(localFrame, -1, 12, reducedMotion\)/);
+});
+
 test("Remotion root player radar preview uses the approved GEN HLE post-match read", () => {
   const rootSource = fs.readFileSync(path.join(ROOT, "src/Root.jsx"), "utf8");
   const playerRadarBlock = rootSource.match(/const mockPlayerRadarData = \{[\s\S]*?\n\};\n\nconst mockEsportsH2HRadarData = \{/);

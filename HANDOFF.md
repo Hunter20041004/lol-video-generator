@@ -1,8 +1,16 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-13 由 Codex 更新。25 秒「賽後判讀／POST MATCH READ」規格與 inline TDD 施工圖已核可；目前尚未修改 12 秒正式程式或產生 25 秒 canary。
+> 2026-08-13 由 Codex 更新。25 秒「賽後判讀／POST MATCH READ」已完成 inline TDD 實作與 GEN／HLE preview-only canary；等待全套 CI parity、main 整合與 GitHub checks。
 
 ## 本輪狀態
+
+- 2026-08-13 完成 25 秒五拍成品：`結果 → 中路差距 → 第一局物件轉塔 → Ruler 數據 MVP 候選 → 最終判讀`；四個視覺空間、英雄方形臉、已驗證 Ruler 真人照、repo-hosted 中英字體與 25 秒授權音樂均已接上正式 render path。
+- 最終 preview-only canary：`public/renders/render_1786660561234.mp4`（ignored runtime），SHA-256 `9abd2e610a383df0442f384ef7f729e2b684b50c00b097ef7cd86e5e172f3242`，選曲 `licensed-bgm-1`，publish jobs 0。
+- 媒體實測：H.264／AAC、1080×1920、30fps、25.045333 秒、7,691,334 bytes、48kHz stereo、-17.1 LUFS、true peak -8.2 dBFS、leading silence 49.3333ms；全部通過 25 秒媒體閘門。
+- Canary 第一輪發現首幀只有標頭與背景，已用 TDD 讓 `2-0` 從首幀低對比淡入；第二輪截圖位於 `.screenshots/post-match-read-25s-round2/`，包含 0.0／3.8／4.2／8.8／9.2／16.8／17.2／21.8／22.2／23.5／24.9 秒及各自 375×667 預覽。
+- 最後 1.5 秒的 source clock 固定於 frame 705；H.264 解碼後 frame 705／749 因有損壓縮不是 byte-identical，但 SSIM `1.000000`、PSNR `105.277454 dB`，視覺上無可辨識變化。不得把 decoded MD5 當有損影片的靜止判準。
+- Canary 前後正式資料封條逐字相同：主內容 DB SHA-256 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`；主 repo／隔離 worktree 的 queue 與 daily runs 均 `MISSING`；publish packages 0。沒有建立社群工作或正式發布紀錄。
+- Task 11 聚焦測試 21/21 與 Next production build 通過；Task 12 canary 測試 4/4 通過。尚待 Task 13 全套 coverage、audit、QA render、main 重跑與 GitHub checks。
 
 - 2026-08-13 使用者已核可下一版「賽後判讀」25 秒視覺：主方案為 Broadcast Hero 對位／MVP＋Tactical Transmission 戰局分析；英雄身份使用官方方形頭像，splash 僅作氣氛，MVP 直接使用已授權選手照片，中央線與 dashboard 同版型不再使用。
 - 核可節奏為 `0–4 秒結果 Hook → 4–9 秒對位 → 9–17 秒遊戲過程 → 17–22 秒數據 MVP 候選 → 22–25 秒最後判讀`，最後 1.5 秒完全靜止；GEN 2–0 HLE 為第一支不發布 canary 範例。

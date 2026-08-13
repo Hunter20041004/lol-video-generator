@@ -55,7 +55,7 @@ export const MatchupBroadcastScene = ({ model, localFrame, reducedMotion, phase 
       </div>
       {resultPhase ? (
         <div style={{ position: "absolute", inset: "245px 60px 120px", display: "grid", alignContent: "center", justifyItems: "center" }}>
-          <div style={{ ...enterStyle(localFrame, 4, 12, reducedMotion), display: "flex", alignItems: "baseline", fontFamily: NUMBER_FONT, fontWeight: 900, lineHeight: .75, fontVariantNumeric: "tabular-nums" }}>
+          <div style={{ ...enterStyle(localFrame, -1, 12, reducedMotion), display: "flex", alignItems: "baseline", fontFamily: NUMBER_FONT, fontWeight: 900, lineHeight: .75, fontVariantNumeric: "tabular-nums" }}>
             <span style={{ fontSize: SCORE_DIGIT_SIZE }}>{score.left}</span>
             <span style={{ fontSize: SCORE_SEPARATOR_SIZE, color: COLORS.gold, margin: "0 30px" }}>{score.separator}</span>
             <span style={{ fontSize: SCORE_DIGIT_SIZE }}>{score.right}</span>

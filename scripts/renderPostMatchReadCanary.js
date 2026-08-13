@@ -1,13 +1,12 @@
 #!/usr/bin/env node
-const fs = require("node:fs");
 const path = require("node:path");
-const { execFileSync } = require("node:child_process");
 const { runPlayerRadarFromSnapshot } = require("../utils/esports/playerRadarRunner");
 const { renderVideosFromRequest } = require("../utils/render/renderService");
 const { selectAndStageLicensedMusic } = require("../utils/render/licensedMusicLibrary");
+const genHleSnapshot = require("../tests/fixtures/esports/genHlePostMatchReadCanary");
 
-const SCAN_ID = "scan-2026-08-12-b509a93dc3";
-const SERIES_ID = "LCK CL 2026 Rounds 3-4::2026-08-12::HANJIN BRION Challengers::Hanwha Life Esports Challengers";
+const SCAN_ID = "canary-gen-hle-2026";
+const SERIES_ID = "LCK-2026-GEN-HLE-2-0";
 
 function buildCanaryOptions(args = []) {
   const unsafe = args.some((arg) => /publish|queue|production/i.test(String(arg)));
@@ -16,27 +15,16 @@ function buildCanaryOptions(args = []) {
   return {
     scanId: SCAN_ID,
     seriesId: SERIES_ID,
-    matchupPlayerName: "Jackal (Lee Su-min)",
-    mvpPlayerName: "Pyeonsik",
+    matchupPlayerName: "Chovy",
+    mvpPlayerName: "Ruler",
     mode: "preview",
     languages: ["zh"],
   };
 }
 
-function getPrimaryRepoRoot() {
-  const commonDir = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], {
-    cwd: process.cwd(),
-    encoding: "utf8",
-  }).trim();
-  return path.dirname(commonDir);
-}
-
-function readFrozenCandidateSnapshot(scanId, { primaryRepoRoot = getPrimaryRepoRoot() } = {}) {
-  const storePath = path.join(primaryRepoRoot, ".data", "esports-candidate-scans.json");
-  const store = JSON.parse(fs.readFileSync(storePath, "utf8"));
-  const snapshot = (store.scans || []).find((entry) => entry.scanId === scanId);
-  if (!snapshot) throw new Error(`Candidate scan not found: ${scanId}`);
-  return snapshot;
+function readFrozenCandidateSnapshot(scanId) {
+  if (scanId !== SCAN_ID) throw new Error(`Frozen canary scan not found: ${scanId}`);
+  return genHleSnapshot;
 }
 
 async function runCanary(options = buildCanaryOptions(), deps = {}) {
@@ -79,7 +67,6 @@ if (require.main === module) {
 
 module.exports = {
   buildCanaryOptions,
-  getPrimaryRepoRoot,
   readFrozenCandidateSnapshot,
   runCanary,
 };
