@@ -403,6 +403,39 @@ test("preview mode renders and validates without invoking publishing", async () 
   });
 });
 
+for (const runOptions of [
+  { mode: "test", expectedReason: "test" },
+  { mode: "dry-run", expectedReason: "dry-run" },
+  { mode: "production", dryRun: true, expectedReason: "dry-run" },
+]) {
+  test(`${runOptions.expectedReason} mode validates media but never writes to the publish queue`, async () => {
+    await withTempProject(async () => {
+      const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+      writeCandidateSnapshot(makeSnapshot());
+      const { runPlayerRadarFromSnapshot } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+      let publishCalls = 0;
+
+      const result = await runPlayerRadarFromSnapshot({
+        scanId: "scan-radar",
+        seriesId: "series-1",
+        languages: ["zh"],
+        ...runOptions,
+      }, {
+        renderVideosFromRequest: async () => ({ videoUrl: "/renders/non-production.mp4", fileName: "non-production.mp4" }),
+        validatePostMatchReadRender: async () => ({ passed: true, reasons: [], media: { duration: 25 } }),
+        createPublishJobs: async () => {
+          publishCalls += 1;
+          return { success: true, jobs: [] };
+        },
+      });
+
+      assert.equal(publishCalls, 0);
+      assert.deepEqual(result.publish.jobs, []);
+      assert.equal(result.publish.reason, runOptions.expectedReason);
+    });
+  });
+}
+
 test("failed media validation preserves the render but blocks production publishing", async () => {
   await withTempProject(async () => {
     const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));

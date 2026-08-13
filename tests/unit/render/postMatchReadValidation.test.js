@@ -7,14 +7,14 @@ const {
   validatePostMatchReadMediaReport,
 } = require("../../../utils/render/postMatchReadValidation");
 
-test("validatePostMatchReadMediaReport accepts only the approved 12-second vertical media contract", () => {
+test("validatePostMatchReadMediaReport accepts only the approved 25-second vertical media contract", () => {
   const valid = validatePostMatchReadMediaReport({
     videoCodec: "h264",
     audioCodec: "aac",
     width: 1080,
     height: 1920,
     fps: 30,
-    duration: 12,
+    duration: 25.04,
     integratedLufs: -17,
     truePeakDbfs: -1.2,
     leadingSilenceMilliseconds: 49,
@@ -34,7 +34,10 @@ test("validatePostMatchReadMediaReport accepts only the approved 12-second verti
   assert.deepEqual(valid, { passed: true, reasons: [], media: valid.media });
   assert.equal(invalid.passed, false);
   assert.equal(invalid.reasons.length, 8);
-  assert.match(invalid.reasons.join("; "), /H\.264|AAC|1080×1920|30fps|12\.0 seconds|-18 to -16 LUFS|true peak|leading silence/);
+  assert.match(invalid.reasons.join("; "), /H\.264|AAC|1080×1920|30fps|25\.0 seconds|-18 to -16 LUFS|true peak|leading silence/);
+  const oldTwelveSeconds = validatePostMatchReadMediaReport({ ...valid.media, duration: 12.053 });
+  assert.equal(oldTwelveSeconds.passed, false);
+  assert.match(oldTwelveSeconds.reasons.join(" "), /25\.0 seconds/);
 });
 
 test("validatePostMatchReadRender probes only a file under public renders without a shell", async () => {
@@ -44,7 +47,7 @@ test("validatePostMatchReadRender probes only a file under public renders withou
     if (command === "ffprobe") {
       return {
         stdout: JSON.stringify({
-          format: { duration: "12.000" },
+          format: { duration: "25.000" },
           streams: [
             { codec_type: "video", codec_name: "h264", width: 1080, height: 1920, r_frame_rate: "30/1" },
             { codec_type: "audio", codec_name: "aac" },

@@ -3,6 +3,8 @@ const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
 
 const execFileAsync = promisify(execFile);
+const EXPECTED_DURATION_SECONDS = 25;
+const DURATION_TOLERANCE_SECONDS = 0.08;
 
 function parseRate(value = "") {
   const [numerator, denominator = "1"] = String(value).split("/").map(Number);
@@ -81,7 +83,10 @@ function validatePostMatchReadMediaReport(media = {}) {
   if (media.audioCodec !== "aac") reasons.push("audio codec must be AAC");
   if (Number(media.width) !== 1080 || Number(media.height) !== 1920) reasons.push("video size must be 1080×1920");
   if (!Number.isFinite(Number(media.fps)) || Math.abs(Number(media.fps) - 30) > 0.01) reasons.push("frame rate must be 30fps");
-  if (!Number.isFinite(Number(media.duration)) || Math.abs(Number(media.duration) - 12) > 0.08) reasons.push("duration must be 12.0 seconds");
+  if (!Number.isFinite(Number(media.duration))
+    || Math.abs(Number(media.duration) - EXPECTED_DURATION_SECONDS) > DURATION_TOLERANCE_SECONDS) {
+    reasons.push("duration must be 25.0 seconds");
+  }
   if (!Number.isFinite(Number(media.integratedLufs)) || Number(media.integratedLufs) < -18 || Number(media.integratedLufs) > -16) {
     reasons.push("integrated loudness must be -18 to -16 LUFS");
   }
@@ -97,6 +102,8 @@ async function validatePostMatchReadRender(video, options = {}) {
 }
 
 module.exports = {
+  EXPECTED_DURATION_SECONDS,
+  DURATION_TOLERANCE_SECONDS,
   inspectPostMatchReadMedia,
   validatePostMatchReadMediaReport,
   validatePostMatchReadRender,
