@@ -18,7 +18,8 @@
 - 媒體閘門已自動檢查開頭低音量時間；最終成品報告為 `leadingSilenceMilliseconds: 49.0625`，超過 50ms 會在建立 production jobs 前失敗。
 - 分支驗收：`npm ci`、`npm run tdd:doctor`、`npm run test:coverage`、`npx next build`、`npm audit --audit-level=high`、`npm run qa:render` 與 Data Dragon 真實 contract 全通過；coverage 537 tests、534 pass、3 skip、0 fail，line 94.26%、branch 80.34%、function 96.09%。
 - `main` 首次 push 的 CodeQL 已通過，但 CI run `31739533436` 揭露 GitHub Ubuntu runner 沒有 FFmpeg，造成 3 個真實授權音檔契約測試與 1 個烘製音訊測試以 `ENOENT` 失敗；不是影片行為或安全套件回歸。
-- CI workflow 已用 TDD 加入 `apt-get update` 與安裝 `ffmpeg`，保留三首 tracked 授權音樂的真檔起音／響度／峰值驗證，不把契約測試降級為 skip；待新的 GitHub CI run 作最終遠端驗收。
+- CI workflow 已用 TDD 加入 `apt-get update` 與安裝 `ffmpeg`，保留三首 tracked 授權音樂的真檔起音／響度／峰值驗證，不把契約測試降級為 skip；修正後 CI run `31739974145` 與 CodeQL run `31739973577` 均成功。
+- 修正後 GitHub API 雙重分頁校準：Dependabot open 以 `per_page=1` 與 `per_page=100` 均為 0，18 筆全為 fixed；open PR 兩種分頁均為 0，Code Scanning open alerts 為 0。
 - Repo 沒有正式 deployment target，因此本輪 push 後只驗證 GitHub source checks，不建立新站。
 
 - 2026-08-13 完成 Player Radar 的產品與視覺重設決策：對外改名為「賽後判讀／POST MATCH READ」，受眾為一般 LoL 玩家，第一版採音樂＋動態文字、1080×1920、30fps、目標 12 秒。
