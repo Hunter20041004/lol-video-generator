@@ -288,6 +288,75 @@ function localizedPayloadEntries(payload = {}) {
   });
 }
 
+function validateGameFlowEvidence(gameFlow) {
+  if (!isPlainPayloadObject(gameFlow)) {
+    throw new Error("Player Radar game flow needs complete team-final evidence.");
+  }
+  const teamFinals = Array.isArray(gameFlow.teamFinals) ? gameFlow.teamFinals : [];
+  const claimBasis = gameFlow.claimBasis || {};
+  if (teamFinals.length !== 2
+    || claimBasis.source !== "ScoreboardTeams"
+    || claimBasis.snapshotType !== "team-final"
+    || claimBasis.hasEventTimestamps !== false
+    || teamFinals.some((team) => team.source !== "ScoreboardTeams"
+      || team.snapshotType !== "team-final"
+      || team.hasEventTimestamps !== false)) {
+    throw new Error("Player Radar game flow needs two ScoreboardTeams team-final snapshots without event timestamps.");
+  }
+
+  const finalTeam = teamFinals.find((team) => String(team.team) === String(gameFlow.finalMapTeam));
+  const opponent = teamFinals.find((team) => String(team.team) !== String(gameFlow.finalMapTeam));
+  const earlyTeam = teamFinals.find((team) => String(team.team) === String(gameFlow.earlyResourceTeam));
+  if (!finalTeam || !opponent || !earlyTeam || finalTeam.isWinner !== true) {
+    throw new Error("Player Radar game flow final map team must match the team-final winner.");
+  }
+
+  const expectedGoldDelta = toFiniteNumber(finalTeam.gold) - toFiniteNumber(opponent.gold);
+  if (!Number.isFinite(expectedGoldDelta) || !sameNumber(gameFlow.goldDelta, expectedGoldDelta)) {
+    throw new Error("Player Radar game flow gold delta must match team-final evidence.");
+  }
+  const expectedTowerScore = `${toFiniteNumber(finalTeam.towers)}–${toFiniteNumber(opponent.towers)}`;
+  if (!Number.isFinite(toFiniteNumber(finalTeam.towers))
+    || !Number.isFinite(toFiniteNumber(opponent.towers))
+    || String(gameFlow.towerScore) !== expectedTowerScore) {
+    throw new Error("Player Radar game flow tower score must match team-final evidence.");
+  }
+  if (!sameNumber(gameFlow.conversion?.barons, finalTeam.barons)
+    || !sameNumber(gameFlow.conversion?.towers, finalTeam.towers)) {
+    throw new Error("Player Radar game flow conversion must match team-final evidence.");
+  }
+  if (!sameNumber(gameFlow.earlyResources?.voidGrubs, earlyTeam.voidGrubs)
+    || !sameNumber(gameFlow.earlyResources?.riftHeralds, earlyTeam.riftHeralds)) {
+    throw new Error("Player Radar game flow early resources must match team-final evidence.");
+  }
+}
+
+function validateFinalReadEvidence(postMatchRead, proofSegment) {
+  const references = postMatchRead.finalRead?.recapReferences;
+  const matchupReference = Array.isArray(references)
+    ? references.find((reference) => reference?.source === "matchup")
+    : null;
+  const proofReference = Array.isArray(references)
+    ? references.find((reference) => reference?.source === "proof")
+    : null;
+  const primaryEvidence = postMatchRead.matchup?.primaryEvidence;
+  const matchupMatches = references?.length === 2
+    && matchupReference
+    && primaryEvidence
+    && matchupReference.metric === primaryEvidence.metric
+    && sameDisplayValue(matchupReference.displayValue, primaryEvidence.displayValue);
+  const proofMatches = proofReference
+    && metricField(proofReference.metric)
+    && rawMetricValue(proofSegment.player, proofReference.metric) !== null
+    && sameDisplayValue(
+      proofReference.displayValue,
+      `${displayMetricValue(proofSegment.player, proofReference.metric)} ${proofReference.metric}`
+    );
+  if (!matchupMatches || !proofMatches) {
+    throw new Error("Player Radar final read recap must match matchup and proof evidence.");
+  }
+}
+
 function assertSinglePlayerRadarEvidence(payload = {}) {
   const matchupSegment = payload.matchupSegment;
   if (!matchupSegment || typeof matchupSegment !== "object") {
@@ -418,9 +487,12 @@ function assertSinglePlayerRadarEvidence(payload = {}) {
     throw new Error("Player Radar postMatchRead storyboard must use the fixed scene order.");
   }
   const totalFrames = storyboard.reduce((sum, scene) => sum + Number(scene.durationInFrames), 0);
-  if (!storyboard.every((scene) => Number.isFinite(Number(scene.durationInFrames))) || totalFrames !== 360) {
-    throw new Error("Player Radar postMatchRead storyboard must total 360 frames.");
+  if (!storyboard.every((scene) => Number.isInteger(Number(scene.durationInFrames)) && Number(scene.durationInFrames) > 0)
+    || totalFrames !== 750) {
+    throw new Error("Player Radar postMatchRead storyboard must total 750 frames.");
   }
+  validateGameFlowEvidence(payload.postMatchRead.gameFlow);
+  validateFinalReadEvidence(payload.postMatchRead, proofSegment);
   const hook = payload.postMatchRead.hook || {};
   if (hook.comparisonType === "ratio" && !(toFiniteNumber(hook.rightRaw) > 0)) {
     throw new Error("Player Radar ratio hook needs a positive denominator.");

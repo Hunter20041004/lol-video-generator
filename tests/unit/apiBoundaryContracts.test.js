@@ -43,15 +43,16 @@ function makeValidPlayerRadarAnalysis(overrides = {}) {
   const edgeScore = ((statByLabel(edgeRadarStats, "DPM").normalizedScore + statByLabel(edgeRadarStats, "KP%").normalizedScore) / 2)
     - ((statByLabel(loserRadarStats, "DPM").normalizedScore + statByLabel(loserRadarStats, "KP%").normalizedScore) / 2);
   const storyboard = [
-    { tag: "HOOK", text: "這個系列賽，中路差距有多誇張？", durationInFrames: 54 },
-    { tag: "MATCHUP_EDGE", text: "不是小贏，是整個系列賽的斷層。", durationInFrames: 96 },
-    { tag: "PLAYER_PROOF", text: "但真正把優勢變成傷害的，在下路。", durationInFrames: 120 },
-    { tag: "CONCLUSION_CTA", text: "打野拉開局勢，下路把優勢變成勝利。", durationInFrames: 90 },
+    { tag: "RESULT_HOOK", text: "GEN 2-0 T1", durationInFrames: 120 },
+    { tag: "MATCHUP_EDGE", text: "中路對位差距是系列賽最大斷層。", durationInFrames: 150 },
+    { tag: "GAME_FLOW", text: "T1 先拿巢蟲，GEN 靠 8-4 防禦塔把優勢轉成勝利。", durationInFrames: 240 },
+    { tag: "PLAYER_PROOF", text: "關鍵人物 GEN Mid，720 DPM。", durationInFrames: 150 },
+    { tag: "FINAL_READ", text: "對位差距與傷害輸出共同完成收尾。", durationInFrames: 90 },
   ];
   return {
     dataType: "PLAYER_RADAR",
     locale: "zh",
-    matchContext: { league: "LCK", teamA: "GEN", teamB: "T1", winningTeam: "GEN", seriesScore: "Game 3" },
+    matchContext: { league: "LCK", teamA: "GEN", teamB: "T1", winningTeam: "GEN", seriesScore: "2-0" },
     player: {
       name: "GEN Mid",
       team: "GEN",
@@ -87,10 +88,41 @@ function makeValidPlayerRadarAnalysis(overrides = {}) {
     },
     postMatchRead: {
       branding: { publicTitle: "賽後判讀", publicTitleEn: "POST MATCH READ" },
-      seriesContext: { league: "LCK", seriesId: "series-1", teamA: "GEN", teamB: "T1", score: "Game 3", gameCount: 3, scopeLabel: "LCK · Game 3" },
+      seriesContext: { league: "LCK", seriesId: "series-1", teamA: "GEN", teamB: "T1", score: "2-0", gameCount: 2, scopeLabel: "LCK · 2-0" },
       hook: { metric: "DPM", leftRaw: 720, rightRaw: 360, displayValue: "約 2×", comparisonType: "ratio", approximate: true, question: "這個系列賽，中路差距有多誇張？" },
-      matchup: { claimScope: "role-local", claim: "中路差距明顯", scopeLabel: "LCK · Game 3" },
+      resultHook: { score: "2-0", scoreParts: ["2", "0"], resultClaim: "GEN 以 2-0 擊敗 T1", displayOrder: ["GEN", "2-0", "T1"] },
+      matchup: {
+        claimScope: "series-maximum",
+        scopeClaim: "系列賽最大對位差距",
+        claim: "中路對位是 GEN 取勝的重要突破口。",
+        scopeLabel: "LCK · 2-0",
+        primaryEvidence: { metric: "DPM", winnerValue: 720, loserValue: 360, delta: 360, displayValue: "+360 DPM" },
+      },
+      gameFlow: {
+        gameNumber: 1,
+        gameId: "series-1-game-1",
+        earlyResourceTeam: "T1",
+        finalMapTeam: "GEN",
+        earlyResources: { voidGrubs: 3, riftHeralds: 1 },
+        conversion: { barons: 1, towers: 8 },
+        goldDelta: 8917,
+        towerScore: "8–4",
+        teamFinals: [
+          { team: "GEN", isWinner: true, gold: 77031, towers: 8, barons: 1, voidGrubs: 0, riftHeralds: 0, source: "ScoreboardTeams", snapshotType: "team-final", hasEventTimestamps: false },
+          { team: "T1", isWinner: false, gold: 68114, towers: 4, barons: 0, voidGrubs: 3, riftHeralds: 1, source: "ScoreboardTeams", snapshotType: "team-final", hasEventTimestamps: false },
+        ],
+        analysisClaim: "T1 先拿 3 隻巢蟲與 1 隻預示者，GEN 最後靠 1 條巴龍與 8-4 防禦塔完成轉換。",
+        conclusion: "前期資源領先不等於最終地圖控制。",
+        claimBasis: { source: "ScoreboardTeams", snapshotType: "team-final", hasEventTimestamps: false },
+      },
       proof: { labelType: "key-player", label: "關鍵人物", claim: "關鍵人物: GEN Mid" },
+      finalRead: {
+        conclusion: "中路對位差距與 GEN Mid 的傷害輸出共同完成收尾。",
+        recapReferences: [
+          { source: "matchup", metric: "DPM", displayValue: "+360 DPM" },
+          { source: "proof", metric: "DPM", displayValue: "720 DPM" },
+        ],
+      },
       assets: {},
       audioPlan: null,
       storyboard,
@@ -109,7 +141,7 @@ test("player radar evidence requires the fixed post-match read model", () => {
   );
 });
 
-test("player radar evidence requires the fixed four-scene storyboard order", () => {
+test("player radar evidence requires the fixed five-scene storyboard order", () => {
   const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
   const base = makeValidPlayerRadarAnalysis();
   const wrongOrder = [base.postMatchRead.storyboard[1], base.postMatchRead.storyboard[0], ...base.postMatchRead.storyboard.slice(2)];
@@ -122,18 +154,51 @@ test("player radar evidence requires the fixed four-scene storyboard order", () 
   );
 });
 
-test("player radar evidence requires a 360-frame post-match read", () => {
+test("player radar evidence requires a 750-frame post-match read", () => {
   const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
   const base = makeValidPlayerRadarAnalysis();
   const tooLong = base.postMatchRead.storyboard.map((scene, index) => index === 0
-    ? { ...scene, durationInFrames: 55 }
+    ? { ...scene, durationInFrames: 121 }
     : scene);
 
   assert.throws(
     () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
       postMatchRead: { ...base.postMatchRead, storyboard: tooLong },
     })),
-    /Player Radar postMatchRead storyboard must total 360 frames/
+    /Player Radar postMatchRead storyboard must total 750 frames/
+  );
+});
+
+test("player radar evidence rejects game-flow totals that do not match team-final evidence", () => {
+  const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
+  const base = makeValidPlayerRadarAnalysis();
+
+  assert.throws(
+    () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
+      postMatchRead: {
+        ...base.postMatchRead,
+        gameFlow: { ...base.postMatchRead.gameFlow, goldDelta: 9000 },
+      },
+    })),
+    /Player Radar game flow gold delta must match team-final evidence/
+  );
+});
+
+test("player radar evidence rejects final recaps that are not backed by matchup and proof stats", () => {
+  const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
+  const base = makeValidPlayerRadarAnalysis();
+  const forgedReferences = base.postMatchRead.finalRead.recapReferences.map((reference, index) => index === 1
+    ? { ...reference, metric: "KDA", displayValue: "+99 KDA" }
+    : reference);
+
+  assert.throws(
+    () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
+      postMatchRead: {
+        ...base.postMatchRead,
+        finalRead: { ...base.postMatchRead.finalRead, recapReferences: forgedReferences },
+      },
+    })),
+    /Player Radar final read recap must match matchup and proof evidence/
   );
 });
 
