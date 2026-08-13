@@ -44,6 +44,17 @@ function makeRenderablePlayerRadarPayload() {
     winningTeam: "T1",
     seriesScore: "2-0",
     score: "2-0",
+    season: "2026",
+    gameTeamStats: [{
+      gameNumber: 1,
+      gameId: "t1-gen-game-1",
+      winningTeam: "T1",
+      hasEventTimestamps: false,
+      teams: [
+        { team: "T1", isWinner: true, gold: 77031, towers: 8, barons: 1, voidGrubs: 0, riftHeralds: 0, source: "ScoreboardTeams", snapshotType: "team-final", hasEventTimestamps: false },
+        { team: "GEN", isWinner: false, gold: 68114, towers: 4, barons: 0, voidGrubs: 3, riftHeralds: 1, source: "ScoreboardTeams", snapshotType: "team-final", hasEventTimestamps: false },
+      ],
+    }],
     players: [edge, opponent],
     roleMatchups: [{ role: "Mid", left: edge, right: opponent }],
     recommendedMvp: { name: "Faker" },
@@ -267,6 +278,31 @@ test("renderOne rejects unavailable official player art before Remotion props ar
   });
 });
 
+test("renderOne rejects unresolved remote URLs in post-match read assets", async () => {
+  await withTempProject(async (dir) => {
+    const commands = [];
+
+    await assert.rejects(
+      () => renderOne(makeRenderablePlayerRadarPayload(), {
+        timestamp: 1003,
+        locale: "zh",
+        resolvePlayerRadarAssetsImpl: async () => ({
+          matchup: {},
+          proof: { playerPortrait: { publicPath: "https://example.com/portrait" } },
+        }),
+        execRenderImpl: async (...command) => {
+          commands.push(command);
+          return null;
+        },
+      }),
+      /Post Match Read render assets must use local verified paths/
+    );
+
+    assert.deepEqual(commands, []);
+    assert.equal(fs.existsSync(path.join(dir, "public", "renders", "props_1003.json")), false);
+  });
+});
+
 test("renderVideosFromRequest blocks a silent post-match read before Remotion starts", async () => {
   await withTempProject(async () => {
     const commands = [];
@@ -297,6 +333,13 @@ test("renderVideosFromRequest attaches one licensed audio plan to root and post-
       fadeFrames: 2,
     };
     const renderedPlans = [];
+    const localAssets = {
+      matchup: {
+        edge: { squareSrc: "/render-assets/edge.png", atmosphereSrc: null },
+        opponent: { squareSrc: "/render-assets/opponent.png", atmosphereSrc: null },
+      },
+      proof: { playerPortrait: { publicName: "Faker", publicPath: "/player-portraits/faker.webp" } },
+    };
 
     await renderVideosFromRequest(makeRenderablePlayerRadarPayload(), {
       timestamp: 1002,
@@ -305,16 +348,19 @@ test("renderVideosFromRequest attaches one licensed audio plan to root and post-
         bgmFile: "audio/licensed-test-segment.mp3",
         audioPlan,
       }),
+      resolvePlayerRadarAssetsImpl: async () => localAssets,
       assetFetchImpl: async () => ({ ok: true, arrayBuffer: async () => Buffer.alloc(2048, 1) }),
       execRenderImpl: async (_command, args) => {
         const propsArg = args.find((arg) => arg.startsWith("--props="));
         const props = JSON.parse(fs.readFileSync(propsArg.slice("--props=".length), "utf8")).data;
-        renderedPlans.push({ root: props.audioPlan, nested: props.postMatchRead.audioPlan });
+        renderedPlans.push({ root: props.audioPlan, nested: props.postMatchRead.audioPlan, assets: props.postMatchRead.assets });
         return null;
       },
     });
 
-    assert.deepEqual(renderedPlans, [{ root: audioPlan, nested: audioPlan }]);
+    assert.deepEqual(renderedPlans, [{ root: audioPlan, nested: audioPlan, assets: localAssets }]);
+    assert.equal(renderedPlans[0].assets.proof.playerPortrait.publicPath, "/player-portraits/faker.webp");
+    assert.doesNotMatch(JSON.stringify(renderedPlans[0].assets), /https?:\/\//);
   });
 });
 

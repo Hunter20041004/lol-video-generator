@@ -4,6 +4,7 @@ const {
   cacheRemoteImageUrl,
   normalizeChampionId,
 } = require("./remoteAssetCache");
+const { resolvePlayerPortrait } = require("./playerPortraitManifest");
 
 const championSplashUrl = (id) =>
   `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`;
@@ -22,6 +23,8 @@ function usableAsset(path = "") {
 async function resolvePlayerRadarAssets(viewModel = {}, {
   cacheRemoteImageUrlImpl = cacheRemoteImageUrl,
   cacheRemoteImageUrlOptions = {},
+  resolvePlayerPortraitImpl = resolvePlayerPortrait,
+  rootDir = process.cwd(),
   version = DDRAGON_RENDER_VERSION,
 } = {}) {
   const cache = (url) => cacheRemoteImageUrlImpl(url, cacheRemoteImageUrlOptions);
@@ -32,6 +35,22 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
   const heroIds = heroNames.map(normalizeChampionId);
   const proofNames = (proofPlayer.champions || []).slice(0, 3);
   const proofIds = proofNames.map(normalizeChampionId);
+  const resolvedPortrait = resolvePlayerPortraitImpl({
+    playerId: proofPlayer.playerId,
+    publicName: proofPlayer.name,
+    team: proofPlayer.team,
+    season: viewModel.seriesContext?.season || "2026",
+  }, { rootDir });
+  const playerPortrait = {
+    playerId: resolvedPortrait.playerId,
+    publicName: resolvedPortrait.publicName,
+    team: resolvedPortrait.team,
+    season: resolvedPortrait.season,
+    sha256: resolvedPortrait.sha256,
+    width: resolvedPortrait.width,
+    height: resolvedPortrait.height,
+    publicPath: resolvedPortrait.publicPath,
+  };
 
   const [edgeSplash, edgeSquare, opponentSplash, opponentSquare, ...supporting] = await Promise.all([
     cache(championSplashUrl(heroIds[0])),
@@ -47,15 +66,20 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
   const mapSrc = supporting[proofIds.length + 1];
 
   const buildHero = (championName, splashSrc, squareSrc) => {
-    if (!usableAsset(splashSrc) && !usableAsset(squareSrc)) {
-      throw new Error(`Post Match Read official champion art unavailable for ${championName}: splash and square both failed.`);
+    if (!usableAsset(squareSrc)) {
+      throw new Error(`Post Match Read official champion square unavailable for ${championName}.`);
     }
     if (!usableAsset(splashSrc) && !usableAsset(mapSrc)) {
       throw new Error(`Post Match Read official map unavailable for ${championName} square fallback.`);
     }
-    return usableAsset(splashSrc)
-      ? { championName, mode: "splash", src: splashSrc, squareSrc: usableAsset(squareSrc) ? squareSrc : null }
-      : { championName, mode: "square-map", src: squareSrc, mapSrc };
+    const atmosphereSrc = usableAsset(splashSrc) ? splashSrc : null;
+    return {
+      championName,
+      squareSrc,
+      atmosphereSrc,
+      fallbackState: atmosphereSrc ? "full" : "square-map",
+      mapSrc: atmosphereSrc ? null : mapSrc,
+    };
   };
 
   return {
@@ -68,6 +92,7 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
         championName,
         src: usableAsset(proofSquares[index]) ? proofSquares[index] : null,
       })),
+      playerPortrait,
     },
     smiteSrc: usableAsset(smiteSrc) ? smiteSrc : null,
     mapSrc: usableAsset(mapSrc) ? mapSrc : null,

@@ -391,6 +391,15 @@ async function renderOne(rawProps, {
   const props = await localizeRemoteImageAssets(preparedProps, {
     fetchImpl: assetFetchImpl,
   });
+  const containsRemoteUrl = (value) => {
+    if (typeof value === "string") return /^https?:\/\//i.test(value);
+    if (Array.isArray(value)) return value.some(containsRemoteUrl);
+    if (value && typeof value === "object") return Object.values(value).some(containsRemoteUrl);
+    return false;
+  };
+  if (props.dataType === "PLAYER_RADAR" && containsRemoteUrl(props.postMatchRead?.assets)) {
+    throw new Error("Post Match Read render assets must use local verified paths.");
+  }
   const outputFileName = suffix ? `render_${timestamp}_${suffix}.mp4` : `render_${timestamp}.mp4`;
   const outputPath = path.join(rendersDir, outputFileName);
   const propsFilePath = path.join(rendersDir, `props_${timestamp}${suffix ? `_${suffix}` : ""}.json`);
@@ -477,6 +486,7 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
       suffix: languages.length > 1 ? lang : "",
       execRenderImpl: options.execRenderImpl,
       assetFetchImpl: options.assetFetchImpl,
+      resolvePlayerRadarAssetsImpl: options.resolvePlayerRadarAssetsImpl,
     }));
   }
 
