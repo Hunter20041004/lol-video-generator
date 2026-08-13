@@ -1,13 +1,15 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-13 由 Codex 更新。已完成「賽後判讀／POST MATCH READ」實作與不發布 canary 驗收；正式 queue、daily runs、publish packages 與社群平台均未寫入。
+> 2026-08-13 由 Codex 更新。25 秒「賽後判讀／POST MATCH READ」規格與 inline TDD 施工圖已核可；目前尚未修改 12 秒正式程式或產生 25 秒 canary。
 
 ## 本輪狀態
 
 - 2026-08-13 使用者已核可下一版「賽後判讀」25 秒視覺：主方案為 Broadcast Hero 對位／MVP＋Tactical Transmission 戰局分析；英雄身份使用官方方形頭像，splash 僅作氣氛，MVP 直接使用已授權選手照片，中央線與 dashboard 同版型不再使用。
 - 核可節奏為 `0–4 秒結果 Hook → 4–9 秒對位 → 9–17 秒遊戲過程 → 17–22 秒數據 MVP 候選 → 22–25 秒最後判讀`，最後 1.5 秒完全靜止；GEN 2–0 HLE 為第一支不發布 canary 範例。
 - 視覺最後一項修正將大比分拆成獨立 `2`、`–`、`0`，縮小分隔號並保留明確 clear space；其他四幕排版由使用者確認保留。
-- 新書面規格為 `docs/superpowers/specs/2026-08-13-post-match-read-25s-game-flow-design.md`，目前等待使用者做書面確認；尚未修改正式影片程式或產生新 canary。
+- 新書面規格 `docs/superpowers/specs/2026-08-13-post-match-read-25s-game-flow-design.md` 已由使用者於 2026-08-13 明確回覆「規格通過」。
+- 逐步施工圖為 `docs/superpowers/plans/2026-08-13-post-match-read-25s-game-flow.md`：共 14 個 inline TDD tasks，依序處理 ScoreboardTeams、故事模型／證據鏈、選手照片、英雄方形臉、字體、25 秒授權音樂、媒體／佇列隔離、動效、四個視覺空間、GEN 2–0 HLE canary 與 GitHub 收尾；明確禁止子代理。
+- 目前只修改核可文件與交接狀態；12 秒正式影片程式、runtime queue、daily runs、publish packages 與社群狀態均未修改。下一步是依施工圖用 `executing-plans` inline 執行 Task 0–13。
 
 - 2026-08-13 已將對外 Player Radar 全面重做為「賽後判讀／POST MATCH READ」：保留內部 `PLAYER_RADAR`／`PlayerRadarVideo` 相容識別，觀眾端不再出現舊名稱或 dashboard 視覺。
 - 新模板固定 360 frames／12 秒，使用同一英雄主視覺、持續 Hextech 主線與四幕 `約 21× → Jackal 13.7 vs Dinai 0.64 KDA → Pyeonsik 806 DPM → 最終判讀`；最後 1 秒完全靜止。
