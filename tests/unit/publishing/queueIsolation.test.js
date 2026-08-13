@@ -7,9 +7,18 @@ const path = require("node:path");
 const ROOT = path.resolve(__dirname, "../../..");
 const QUEUE_MODULE = path.join(ROOT, "utils/publishing/queueStore.js");
 const PUBLISHING_MODULE = path.join(ROOT, "utils/publishing/index.js");
+const RUN_STORE_MODULE = path.join(ROOT, "utils/esports/runStore.js");
+const CANDIDATE_STORE_MODULE = path.join(ROOT, "utils/esports/candidateStore.js");
+const PLAYER_RADAR_RUNNER_MODULE = path.join(ROOT, "utils/esports/playerRadarRunner.js");
 
 function clearPublishingModules() {
-  ["utils/publishing/index.js", "utils/publishing/queueStore.js"].forEach((file) => {
+  [
+    "utils/publishing/index.js",
+    "utils/publishing/queueStore.js",
+    "utils/esports/runStore.js",
+    "utils/esports/candidateStore.js",
+    "utils/esports/playerRadarRunner.js",
+  ].forEach((file) => {
     delete require.cache[path.join(ROOT, file)];
   });
 }
@@ -37,6 +46,75 @@ test("queue storage follows the active project after the module was loaded elsew
     process.chdir(originalCwd);
     clearPublishingModules();
     fs.rmSync(loadedFrom, { recursive: true, force: true });
+    fs.rmSync(activeProject, { recursive: true, force: true });
+  }
+});
+
+test("preview player radar leaves every publishing store absent", async () => {
+  const originalCwd = process.cwd();
+  const activeProject = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-preview-isolation-"));
+  try {
+    process.chdir(activeProject);
+    clearPublishingModules();
+    require(QUEUE_MODULE);
+    require(RUN_STORE_MODULE);
+    require(PUBLISHING_MODULE);
+    for (const forbidden of [
+      ".data/publish-queue.json",
+      ".data/esports-daily-runs.json",
+      "public/publish-packages",
+    ]) {
+      assert.equal(fs.existsSync(path.join(activeProject, forbidden)), false, `module load: ${forbidden}`);
+    }
+
+    const edge = {
+      name: "Faker", team: "T1", role: "Mid", champions: ["Azir"],
+      rawStats: { role: "Mid", kda: 8, dpm: 720, kp: 0.82, gpm: 480, csm: 9.2 },
+    };
+    const opponent = {
+      name: "Chovy", team: "GEN", role: "Mid", champions: ["Orianna"],
+      rawStats: { role: "Mid", kda: 2, dpm: 380, kp: 0.48, gpm: 340, csm: 7.1 },
+    };
+    const { writeCandidateSnapshot } = require(CANDIDATE_STORE_MODULE);
+    writeCandidateSnapshot({
+      scanId: "preview-scan",
+      candidates: [{
+        seriesId: "preview-series",
+        league: "LCK",
+        teamA: "T1",
+        teamB: "GEN",
+        teams: ["T1", "GEN"],
+        winningTeam: "T1",
+        seriesScore: "2-0",
+        players: [edge, opponent],
+        roleMatchups: [{ role: "Mid", left: edge, right: opponent }],
+        recommendedMvp: { name: "Faker" },
+      }],
+    });
+    const { runPlayerRadarFromSnapshot } = require(PLAYER_RADAR_RUNNER_MODULE);
+    await runPlayerRadarFromSnapshot({
+      scanId: "preview-scan",
+      seriesId: "preview-series",
+      mode: "preview",
+      languages: ["zh"],
+    }, {
+      renderVideosFromRequest: async () => ({ videoUrl: "/renders/preview.mp4", fileName: "preview.mp4" }),
+      validatePostMatchReadRender: async () => ({ passed: true, reasons: [], media: {} }),
+      createPublishJobs: async () => {
+        throw new Error("preview must not publish");
+      },
+    });
+
+    for (const forbidden of [
+      ".data/publish-queue.json",
+      ".data/esports-daily-runs.json",
+      "public/publish-packages",
+    ]) {
+      assert.equal(fs.existsSync(path.join(activeProject, forbidden)), false, forbidden);
+    }
+  } finally {
+    process.chdir(originalCwd);
+    clearPublishingModules();
     fs.rmSync(activeProject, { recursive: true, force: true });
   }
 });

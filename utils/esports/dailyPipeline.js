@@ -132,7 +132,7 @@ async function runDailyEsportsPipeline(options = {}, deps = {}) {
     status: dryRun ? "DRY_RUN_COMPLETE" : publishJobs.length > 0 ? "PUBLISHED" : "READY",
   };
 
-  upsertRun(run);
+  if (!dryRun) upsertRun(run);
   return run;
 }
 

@@ -112,13 +112,19 @@ test("prepareSeries aggregates raw games before applying candidate priority", ()
 
 test("runDailyEsportsPipeline dry run renders four test videos per selected series without queueing official publish jobs", async () => {
   const { runDailyEsportsPipeline } = require("../../../utils/esports/dailyPipeline");
+  let persistentRunWrites = 0;
+  const deps = makeFakeDeps();
+  deps.upsertRun = () => {
+    persistentRunWrites += 1;
+  };
 
-  const result = await runDailyEsportsPipeline({ dryRun: true, date: "2026-06-20", activeMode: "regular" }, makeFakeDeps());
+  const result = await runDailyEsportsPipeline({ dryRun: true, date: "2026-06-20", activeMode: "regular" }, deps);
 
   assert.equal(result.selected.length, 1);
   assert.equal(result.outputs[0].videos.length, 4);
   assert.equal(result.outputs[0].gate.passed, true);
   assert.equal(result.publishJobs.length, 0);
+  assert.equal(persistentRunWrites, 0);
 });
 
 test("runDailyEsportsPipeline queues publish jobs when not dry run and skips already published series", async () => {

@@ -4,6 +4,7 @@ const { renderVideosFromRequest: defaultRenderVideosFromRequest } = require("../
 const { buildRadarStats } = require("./seriesAggregator");
 const { rankMatchupReasons } = require("./playerRadarEvidenceRanker");
 const { buildPostMatchReadViewModel } = require("./postMatchReadBuilder");
+const { validatePostMatchReadRender: defaultValidatePostMatchReadRender } = require("../render/postMatchReadValidation");
 
 const PLAYER_RADAR_PLATFORMS = ["instagram", "threads"];
 const MIN_AUTO_PROOF_AXES = 3;
@@ -19,6 +20,15 @@ const METRIC_FIELDS = {
 function normalizeLanguages(languages = ["zh", "en"]) {
   const values = Array.isArray(languages) && languages.length > 0 ? languages : ["zh", "en"];
   return [...new Set(values.map((language) => String(language || "zh").toLowerCase().startsWith("en") ? "en" : "zh"))];
+}
+
+function resolvePlayerRadarRunMode(options = {}) {
+  if (options.dryRun === true) return "dry-run";
+  const mode = String(options.mode || "production").trim().toLowerCase();
+  if (!["production", "preview", "dry-run", "test"].includes(mode)) {
+    throw new Error(`Unsupported Player Radar run mode: ${mode}`);
+  }
+  return mode;
 }
 
 function number(value, fallback = 0) {
@@ -317,8 +327,11 @@ async function runPlayerRadarFromSnapshot(options = {}, deps = {}) {
   const languages = normalizeLanguages(options.languages);
   const renderVideosFromRequest = deps.renderVideosFromRequest || defaultRenderVideosFromRequest;
   const createPublishJobs = deps.createPublishJobs || defaultCreatePublishJobs;
+  const validatePostMatchReadRender = deps.validatePostMatchReadRender || defaultValidatePostMatchReadRender;
+  const mode = resolvePlayerRadarRunMode(options);
   const videos = [];
   const payloads = [];
+  const validationReports = [];
 
   for (const locale of languages) {
     const payload = buildPlayerRadarPayload(series, selection, locale);
@@ -332,21 +345,29 @@ async function runPlayerRadarFromSnapshot(options = {}, deps = {}) {
       videoUrl: render.videoUrl,
       fileName: render.fileName,
     };
-    videos.push({ ...video, type: "player-radar", locale });
+    const localizedVideo = { ...video, type: "player-radar", locale };
+    videos.push(localizedVideo);
+    const validation = await validatePostMatchReadRender(localizedVideo);
+    validationReports.push(validation);
+    if (!validation?.passed) {
+      throw new Error(`Post Match Read validation failed: ${(validation?.reasons || ["unknown media error"]).join("; ")}`);
+    }
   }
 
-  const publish = await createPublishJobs({
-    videos,
-    platforms: PLAYER_RADAR_PLATFORMS,
-    action: "queue",
-    analysis: payloads[0]
-      ? {
-        ...payloads[0],
-        localizedPayloads: Object.fromEntries(payloads.map((payload) => [payload.locale, payload])),
-      }
-      : { dataType: "PLAYER_RADAR" },
-    scheduledAt: options.scheduledAt,
-  });
+  const publish = mode === "production"
+    ? await createPublishJobs({
+      videos,
+      platforms: PLAYER_RADAR_PLATFORMS,
+      action: "queue",
+      analysis: payloads[0]
+        ? {
+          ...payloads[0],
+          localizedPayloads: Object.fromEntries(payloads.map((payload) => [payload.locale, payload])),
+        }
+        : { dataType: "PLAYER_RADAR" },
+      scheduledAt: options.scheduledAt,
+    })
+    : { success: true, action: "none", jobs: [], reason: mode };
 
   return {
     success: true,
@@ -356,8 +377,10 @@ async function runPlayerRadarFromSnapshot(options = {}, deps = {}) {
     matchupSegment: payloads[0]?.matchupSegment || null,
     proofSegment: payloads[0]?.proofSegment || null,
     languages,
+    mode,
     payloads,
     videos,
+    validationReports,
     publish,
   };
 }
@@ -365,6 +388,7 @@ async function runPlayerRadarFromSnapshot(options = {}, deps = {}) {
 module.exports = {
   PLAYER_RADAR_PLATFORMS,
   normalizeLanguages,
+  resolvePlayerRadarRunMode,
   selectPlayer,
   selectMatchupSegment,
   selectProofSegment,

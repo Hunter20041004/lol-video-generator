@@ -239,3 +239,22 @@ test("candidate store recovers malformed snapshots and replaces duplicate scanId
     assert.equal(readStore().scans.length, 1);
   });
 });
+
+test("candidate store resolves its data path from the operation-time cwd", async () => {
+  await withTempProject(async (rootDir) => {
+    const projectA = path.join(rootDir, "project-a");
+    const projectB = path.join(rootDir, "project-b");
+    fs.mkdirSync(projectA, { recursive: true });
+    fs.mkdirSync(projectB, { recursive: true });
+    process.chdir(projectA);
+    clearCandidateModules();
+    const { writeCandidateSnapshot, readCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+
+    process.chdir(projectB);
+    writeCandidateSnapshot({ scanId: "operation-cwd", candidates: [] });
+
+    assert.equal(fs.existsSync(path.join(projectA, ".data", "esports-candidate-scans.json")), false);
+    assert.equal(readCandidateSnapshot("operation-cwd").scanId, "operation-cwd");
+    assert.equal(fs.existsSync(path.join(projectB, ".data", "esports-candidate-scans.json")), true);
+  });
+});

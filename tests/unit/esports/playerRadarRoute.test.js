@@ -55,7 +55,7 @@ test("player radar route returns 400 for evidence validation failures", async ()
   assert.equal(body.code, "ESPORTS_PIPELINE_ERROR");
   assert.equal(body.status, 400);
   assert.equal(body.recoverable, false);
-  assert.equal(body.userMessage, "選手雷達產生失敗。");
+  assert.equal(body.userMessage, "賽後判讀產生失敗。");
   assert.equal(body.error, "Player Radar matchup segment needs at least 2 verifiable reasons for Mid.");
 });
 
@@ -72,7 +72,7 @@ test("player radar route returns 400 for semantic evidence validation failures",
   assert.equal(body.code, "ESPORTS_PIPELINE_ERROR");
   assert.equal(body.status, 400);
   assert.equal(body.recoverable, false);
-  assert.equal(body.userMessage, "選手雷達產生失敗。");
+  assert.equal(body.userMessage, "賽後判讀產生失敗。");
   assert.equal(body.error, "Player Radar matchup segment contains inconsistent displayed deltas.");
 });
 
@@ -89,6 +89,24 @@ test("player radar route returns 400 for all player radar validation messages", 
   assert.equal(body.code, "ESPORTS_PIPELINE_ERROR");
   assert.equal(body.status, 400);
   assert.equal(body.recoverable, false);
-  assert.equal(body.userMessage, "選手雷達產生失敗。");
+  assert.equal(body.userMessage, "賽後判讀產生失敗。");
   assert.equal(body.error, "Player Radar matchup segment players must be one opposing pair.");
+});
+
+test("player radar route returns 400 for post-match read media and asset failures", async () => {
+  for (const message of [
+    "Post Match Read validation failed: audio loudness -25 LUFS",
+    "Post Match Read official champion art unavailable for Xin Zhao: splash and square both failed.",
+    "Post Match Read requires a verified 12-second licensed music segment.",
+  ]) {
+    const POST = loadPostRouteWithRunner(async () => {
+      throw new Error(message);
+    });
+    const response = await POST({ json: async () => ({ seriesId: "series-1" }) });
+    const body = await response.json();
+
+    assert.equal(response.status, 400, message);
+    assert.equal(body.userMessage, "賽後判讀產生失敗。", message);
+    assert.equal(body.error, message);
+  }
 });

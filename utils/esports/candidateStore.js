@@ -1,9 +1,15 @@
 const fs = require("fs");
 const path = require("path");
 
-const DATA_DIR = path.join(process.cwd(), ".data");
-const STORE_PATH = path.join(DATA_DIR, "esports-candidate-scans.json");
 const DEFAULT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+function getDataDir(cwd = process.cwd()) {
+  return path.join(cwd, ".data");
+}
+
+function getStorePath(cwd = process.cwd()) {
+  return path.join(getDataDir(cwd), "esports-candidate-scans.json");
+}
 
 function nowDate(now = () => new Date()) {
   const value = now();
@@ -11,14 +17,15 @@ function nowDate(now = () => new Date()) {
 }
 
 function ensureDataDir() {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(getDataDir(), { recursive: true });
 }
 
 function readStore() {
   ensureDataDir();
-  if (!fs.existsSync(STORE_PATH)) return { version: 1, scans: [] };
+  const storePath = getStorePath();
+  if (!fs.existsSync(storePath)) return { version: 1, scans: [] };
   try {
-    const parsed = JSON.parse(fs.readFileSync(STORE_PATH, "utf8"));
+    const parsed = JSON.parse(fs.readFileSync(storePath, "utf8"));
     return {
       version: 1,
       scans: Array.isArray(parsed.scans) ? parsed.scans : [],
@@ -30,7 +37,7 @@ function readStore() {
 
 function writeStore(store) {
   ensureDataDir();
-  fs.writeFileSync(STORE_PATH, JSON.stringify({
+  fs.writeFileSync(getStorePath(), JSON.stringify({
     version: 1,
     scans: Array.isArray(store.scans) ? store.scans : [],
   }, null, 2), "utf8");
@@ -65,12 +72,19 @@ function readCandidateSnapshot(scanId, options = {}) {
   return scan;
 }
 
-module.exports = {
-  DATA_DIR,
-  STORE_PATH,
+const candidateStore = {
   DEFAULT_MAX_AGE_MS,
+  getDataDir,
+  getStorePath,
   readStore,
   writeStore,
   writeCandidateSnapshot,
   readCandidateSnapshot,
 };
+
+Object.defineProperties(candidateStore, {
+  DATA_DIR: { enumerable: true, get: () => getDataDir() },
+  STORE_PATH: { enumerable: true, get: () => getStorePath() },
+});
+
+module.exports = candidateStore;

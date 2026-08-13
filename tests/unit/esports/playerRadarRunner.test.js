@@ -30,6 +30,7 @@ async function withTempProject(fn) {
 }
 
 const ROLES = ["Top", "Jungle", "Mid", "Adc", "Support"];
+const passMediaValidation = async () => ({ passed: true, reasons: [], media: {} });
 
 function makePlayer(team, role, name, values = {}) {
   const isSupport = role === "Support";
@@ -310,6 +311,7 @@ test("runPlayerRadarFromSnapshot renders one dual-read video per locale and queu
       seriesId: "series-1",
       languages: ["zh", "en"],
     }, {
+      validatePostMatchReadRender: passMediaValidation,
       renderVideosFromRequest: async (payload) => {
         renderedPayloads.push(payload);
         return { videoUrl: `/renders/${payload.locale}-player-radar.mp4`, fileName: `${payload.locale}.mp4` };
@@ -347,6 +349,75 @@ test("runPlayerRadarFromSnapshot renders one dual-read video per locale and queu
   });
 });
 
+test("preview mode renders and validates without invoking publishing", async () => {
+  await withTempProject(async () => {
+    const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    writeCandidateSnapshot(makeSnapshot());
+    const { runPlayerRadarFromSnapshot } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    let renderCalls = 0;
+    let validateCalls = 0;
+    let publishCalls = 0;
+
+    const result = await runPlayerRadarFromSnapshot({
+      scanId: "scan-radar",
+      seriesId: "series-1",
+      languages: ["zh"],
+      mode: "preview",
+    }, {
+      renderVideosFromRequest: async () => {
+        renderCalls += 1;
+        return { videoUrl: "/renders/preview.mp4", fileName: "preview.mp4" };
+      },
+      validatePostMatchReadRender: async () => {
+        validateCalls += 1;
+        return { passed: true, reasons: [], media: {} };
+      },
+      createPublishJobs: async () => {
+        publishCalls += 1;
+        return { success: true, jobs: [] };
+      },
+    });
+
+    assert.equal(renderCalls, 1);
+    assert.equal(validateCalls, 1);
+    assert.equal(publishCalls, 0);
+    assert.deepEqual(result.publish, {
+      success: true,
+      action: "none",
+      jobs: [],
+      reason: "preview",
+    });
+  });
+});
+
+test("failed media validation preserves the render but blocks production publishing", async () => {
+  await withTempProject(async () => {
+    const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    writeCandidateSnapshot(makeSnapshot());
+    const { runPlayerRadarFromSnapshot } = require(path.join(ROOT, "utils/esports/playerRadarRunner.js"));
+    let publishCalls = 0;
+
+    await assert.rejects(
+      () => runPlayerRadarFromSnapshot({
+        scanId: "scan-radar",
+        seriesId: "series-1",
+        languages: ["zh"],
+        mode: "production",
+      }, {
+        renderVideosFromRequest: async () => ({ videoUrl: "/renders/failed-validation.mp4", fileName: "failed-validation.mp4" }),
+        validatePostMatchReadRender: async () => ({ passed: false, reasons: ["audio loudness -25 LUFS"], media: {} }),
+        createPublishJobs: async () => {
+          publishCalls += 1;
+          return { success: true, jobs: [] };
+        },
+      }),
+      /Post Match Read validation failed: audio loudness -25 LUFS/
+    );
+
+    assert.equal(publishCalls, 0);
+  });
+});
+
 test("runPlayerRadarFromSnapshot can render a manually selected player without rescanning", async () => {
   await withTempProject(async () => {
     const { writeCandidateSnapshot } = require(path.join(ROOT, "utils/esports/candidateStore.js"));
@@ -359,6 +430,7 @@ test("runPlayerRadarFromSnapshot can render a manually selected player without r
       playerName: "GEN Support",
       languages: ["zh"],
     }, {
+      validatePostMatchReadRender: passMediaValidation,
       renderVideosFromRequest: async (payload) => ({ videoUrl: `/renders/${payload.player.name}-${payload.locale}.mp4`, fileName: `${payload.locale}.mp4` }),
       createPublishJobs: async (payload) => ({ success: true, jobs: payload.videos.map((video) => ({ platform: "instagram", locale: video.locale })) }),
     });
@@ -418,6 +490,7 @@ test("player radar falls back to radar score, videos array render results, and t
       seriesId: "series-1",
       languages: ["en"],
     }, {
+      validatePostMatchReadRender: passMediaValidation,
       renderVideosFromRequest: async () => ({
         videos: [{ locale: "en", videoUrl: "/renders/radar-en.mp4", fileName: "radar-en.mp4" }],
       }),
@@ -488,6 +561,7 @@ test("player radar payloads handle empty stats and stale MVP names", async () =>
       seriesId: "series-1",
       languages: ["zh"],
     }, {
+      validatePostMatchReadRender: passMediaValidation,
       renderVideosFromRequest: async (payload) => ({ videoUrl: `/renders/${payload.locale}.mp4`, fileName: `${payload.locale}.mp4` }),
       createPublishJobs: async () => ({ success: true, jobs: [] }),
     });
