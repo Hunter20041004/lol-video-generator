@@ -17,7 +17,9 @@
 - Canary 前後正式資料封條逐字相同：內容 DB SHA-256 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`；publish queue 與 daily runs 均 `MISSING`；publish packages 0。沒有建立社群貼文。
 - 媒體閘門已自動檢查開頭低音量時間；最終成品報告為 `leadingSilenceMilliseconds: 49.0625`，超過 50ms 會在建立 production jobs 前失敗。
 - 分支驗收：`npm ci`、`npm run tdd:doctor`、`npm run test:coverage`、`npx next build`、`npm audit --audit-level=high`、`npm run qa:render` 與 Data Dragon 真實 contract 全通過；coverage 537 tests、534 pass、3 skip、0 fail，line 94.26%、branch 80.34%、function 96.09%。
-- 下一步只剩提交本輪 canary／音訊修正、fast-forward 合併 main、在 main 重跑全套、push 並等 GitHub CI／CodeQL；repo 沒有正式 deployment target，不建立新站。
+- `main` 首次 push 的 CodeQL 已通過，但 CI run `31739533436` 揭露 GitHub Ubuntu runner 沒有 FFmpeg，造成 3 個真實授權音檔契約測試與 1 個烘製音訊測試以 `ENOENT` 失敗；不是影片行為或安全套件回歸。
+- CI workflow 已用 TDD 加入 `apt-get update` 與安裝 `ffmpeg`，保留三首 tracked 授權音樂的真檔起音／響度／峰值驗證，不把契約測試降級為 skip；待新的 GitHub CI run 作最終遠端驗收。
+- Repo 沒有正式 deployment target，因此本輪 push 後只驗證 GitHub source checks，不建立新站。
 
 - 2026-08-13 完成 Player Radar 的產品與視覺重設決策：對外改名為「賽後判讀／POST MATCH READ」，受眾為一般 LoL 玩家，第一版採音樂＋動態文字、1080×1920、30fps、目標 12 秒。
 - 使用者逐段核可 LoL 原生英雄敘事、四幕 `約 21× → 打野對位 → 806 DPM → 賽事判讀`、三首授權音樂節拍規劃、資料誠實規則、錯誤降級、驗證閘門與垂直 TDD。

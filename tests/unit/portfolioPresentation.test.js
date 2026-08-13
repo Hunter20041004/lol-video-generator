@@ -12,6 +12,8 @@ const { parse } = require("yaml");
 
 const ROOT = path.resolve(__dirname, "../..");
 const REQUIRED_CI_COMMANDS = [
+  "sudo apt-get update",
+  "sudo apt-get install -y ffmpeg",
   "npm ci",
   "npm run tdd:doctor",
   "npm run test:coverage",
