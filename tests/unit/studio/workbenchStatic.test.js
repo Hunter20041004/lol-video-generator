@@ -41,3 +41,14 @@ test('version workflow uses one selected item and preview-first content factory 
   assert.match(workflow, /itemIds:\s*\[selectedItem\.id\]/);
   assert.doesNotMatch(workflow, /selectedItemIds|選取全部|一鍵發布/);
 });
+
+test('advanced tools keeps meta, insights, and publish queue out of the primary workflows', () => {
+  const shell = read('app/components/studio/StudioShell.jsx');
+  const tools = read('app/components/studio/AdvancedTools.jsx');
+
+  assert.match(shell, /<AdvancedTools/);
+  assert.match(tools, /\/api\/meta-factory\/scan/);
+  assert.match(tools, /\/api\/meta-factory\/render/);
+  assert.match(tools, /\/api\/insights/);
+  assert.match(tools, /\/api\/publish/);
+});

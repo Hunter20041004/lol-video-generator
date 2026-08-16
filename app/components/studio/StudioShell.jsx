@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sheet";
 import { EsportsWorkflow } from "./EsportsWorkflow";
 import { VersionWorkflow } from "./VersionWorkflow";
+import { AdvancedTools } from "./AdvancedTools";
 
 export function StudioShell({ portfolioReadOnly, portfolioDemoState }) {
   const [activeWorkflow, setActiveWorkflow] = useState("esports");
@@ -39,10 +40,7 @@ export function StudioShell({ portfolioReadOnly, portfolioDemoState }) {
                 Meta、洞察、發布佇列與工程資訊會保留在這裡，不干擾日常產片。
               </SheetDescription>
             </SheetHeader>
-            <div className="studio-advanced-placeholder">
-              {portfolioReadOnly ? "作品集唯讀模式" : "工具將在後續切片接回既有功能"}
-              {portfolioDemoState ? " · Demo data ready" : ""}
-            </div>
+            <AdvancedTools portfolioReadOnly={portfolioReadOnly} />
           </SheetContent>
         </Sheet>
       </header>
