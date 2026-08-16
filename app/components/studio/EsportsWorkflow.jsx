@@ -47,6 +47,22 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
     [scan, seriesId]
   );
 
+  function changeDate(event) {
+    setDate(event.target.value);
+    setScan(null);
+    setSeriesId("");
+    setPreview(null);
+    setPublishResult(null);
+    setError("");
+  }
+
+  function changeSeries(nextSeriesId) {
+    setSeriesId(nextSeriesId);
+    setPreview(null);
+    setPublishResult(null);
+    setError("");
+  }
+
   async function scanCandidates() {
     setBusyAction("scan");
     setError("");
@@ -134,7 +150,7 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
             id="esports-date"
             type="date"
             value={date}
-            onChange={(event) => setDate(event.target.value)}
+            onChange={changeDate}
             disabled={busyAction !== "" || portfolioReadOnly}
           />
         </div>
@@ -148,7 +164,7 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
             <div className="studio-field">
               <label><span>02</span>選擇系列賽</label>
               {scan.candidates?.length ? (
-                <Select value={seriesId} onValueChange={setSeriesId} disabled={busyAction !== "" || portfolioReadOnly}>
+                <Select value={seriesId} onValueChange={changeSeries} disabled={busyAction !== "" || portfolioReadOnly}>
                   <SelectTrigger className="studio-select"><SelectValue placeholder="選一場系列賽" /></SelectTrigger>
                   <SelectContent>
                     {scan.candidates.map((candidate) => (

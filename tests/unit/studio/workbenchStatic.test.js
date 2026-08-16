@@ -52,3 +52,10 @@ test('advanced tools keeps meta, insights, and publish queue out of the primary 
   assert.match(tools, /\/api\/insights/);
   assert.match(tools, /\/api\/publish/);
 });
+
+test('publish confirmation is absent until media validation passes', () => {
+  const preview = read('app/components/studio/PreviewPanel.jsx');
+
+  assert.match(preview, /publishReady\s*&&/);
+  assert.doesNotMatch(preview, /disabled=\{!canPublishPreview\(preview\)/);
+});

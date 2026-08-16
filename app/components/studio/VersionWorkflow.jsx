@@ -41,8 +41,11 @@ export function VersionWorkflow({ portfolioReadOnly = false, hidden = false }) {
   const [error, setError] = useState("");
   const activeMode = MODES.find((entry) => entry.id === mode) || MODES[0];
   const visibleItems = useMemo(() => (
-    (library?.items || []).filter((item) => activeMode.dataTypes.includes(itemDataType(item)) && PUBLISHABLE.has(item.status || "READY"))
-  ), [activeMode, library]);
+    (library?.items || []).filter((item) => (
+      activeMode.dataTypes.includes(itemDataType(item))
+      && (PUBLISHABLE.has(item.status || "READY") || item.id === selectedItemId)
+    ))
+  ), [activeMode, library, selectedItemId]);
   const selectedItem = useMemo(
     () => visibleItems.find((item) => item.id === selectedItemId) || null,
     [selectedItemId, visibleItems]
@@ -185,7 +188,7 @@ export function VersionWorkflow({ portfolioReadOnly = false, hidden = false }) {
           )}
         </div>
 
-        <Button className="studio-primary-action" onClick={createPreview} disabled={!selectedItem || busyAction !== "" || portfolioReadOnly}>
+        <Button className="studio-primary-action" onClick={createPreview} disabled={!selectedItem || !PUBLISHABLE.has(selectedItem.status || "READY") || busyAction !== "" || portfolioReadOnly}>
           <Sparkles aria-hidden="true" />{busyAction === "preview" ? "正在渲染影片…" : "產生影片預覽"}
         </Button>
 

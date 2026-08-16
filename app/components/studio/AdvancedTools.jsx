@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WorkflowStatus } from "./WorkflowStatus";
+import { isRenderableMetaCandidate } from "./studioModel";
 
 async function requestJson(url, options) {
   const response = await fetch(url, options);
@@ -44,6 +45,8 @@ function MetaTool({ portfolioReadOnly, portfolioDemoState }) {
   const [result, setResult] = useState(() => portfolioDemoState?.renderResult || null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const renderableCandidates = useMemo(() => candidates.filter(isRenderableMetaCandidate), [candidates]);
+  const blockedCount = candidates.length - renderableCandidates.length;
 
   async function scan() {
     setBusy(true); setError(""); setResult(null);
@@ -56,7 +59,7 @@ function MetaTool({ portfolioReadOnly, portfolioDemoState }) {
       const pool = mode === "tier" ? payload.candidates?.tierRankings || [] : payload.candidates?.offmeta || [];
       setSnapshotId(payload.snapshotId || "");
       setCandidates(pool);
-      setSelectedId(candidateId(pool[0]));
+      setSelectedId(candidateId(pool.find(isRenderableMetaCandidate)));
       setResult(payload);
     } catch (caught) { setError(caught.message); }
     finally { setBusy(false); }
@@ -86,10 +89,11 @@ function MetaTool({ portfolioReadOnly, portfolioDemoState }) {
         <label>版本（可留空）<input value={patch} onChange={(event) => setPatch(event.target.value)} placeholder="例如 26.16" /></label>
       </div>
       <Button onClick={scan} disabled={busy || portfolioReadOnly}><ScanSearch aria-hidden="true" />{busy ? "處理中…" : "掃描 Meta 題材"}</Button>
-      {candidates.length > 0 && <>
-        <Select value={selectedId} onValueChange={setSelectedId}><SelectTrigger className="studio-tool-select"><SelectValue placeholder="選擇題材" /></SelectTrigger><SelectContent>{candidates.map((candidate) => <SelectItem key={candidateId(candidate)} value={candidateId(candidate)}>{candidateTitle(candidate)}</SelectItem>)}</SelectContent></Select>
+      {renderableCandidates.length > 0 && <>
+        <Select value={selectedId} onValueChange={setSelectedId}><SelectTrigger className="studio-tool-select"><SelectValue placeholder="選擇題材" /></SelectTrigger><SelectContent>{renderableCandidates.map((candidate) => <SelectItem key={candidateId(candidate)} value={candidateId(candidate)}>{candidateTitle(candidate)}</SelectItem>)}</SelectContent></Select>
         <Button variant="outline" onClick={render} disabled={!selectedId || busy || portfolioReadOnly}><Sparkles aria-hidden="true" />產生 Meta 預覽</Button>
       </>}
+      {blockedCount > 0 && <WorkflowStatus>{blockedCount} 筆題材因資料不足或風險規則被隱藏。</WorkflowStatus>}
       {video?.videoUrl && <video className="studio-tool-video" src={video.videoUrl} controls playsInline />}
       {error && <WorkflowStatus tone="error">{error}</WorkflowStatus>}
     </div>

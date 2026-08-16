@@ -16,6 +16,7 @@ export function PreviewPanel({
 }) {
   const video = preview?.videos?.[0];
   const failedJobs = failedPublishJobs(publishResult);
+  const publishReady = canPublishPreview(preview);
 
   return (
     <section className="studio-preview" aria-label="影片預覽">
@@ -40,7 +41,7 @@ export function PreviewPanel({
         <div className="studio-preview-footer">
           <div className="studio-validation">
             <CheckCircle2 aria-hidden="true" />
-            <span>{canPublishPreview(preview) ? "媒體驗證已通過" : "媒體驗證尚未通過"}</span>
+            <span>{publishReady ? "媒體驗證已通過" : "媒體驗證尚未通過"}</span>
           </div>
           {publishResult?.jobs?.length > 0 && (
             <div className="studio-platform-results" aria-label="發布結果">
@@ -56,10 +57,10 @@ export function PreviewPanel({
               <RotateCcw aria-hidden="true" />
               只重試失敗平台
             </Button>
-          ) : (
+          ) : publishReady && !publishResult?.jobs?.length && (
             <Button
               onClick={onPublish}
-              disabled={!canPublishPreview(preview) || publishing || disabled}
+              disabled={publishing || disabled}
             >
               <Send aria-hidden="true" />
               {publishing ? "發布中…" : "確認發布這份成品"}

@@ -34,10 +34,16 @@ test("esports workflow previews before publishing the same artifact", async ({ p
   });
 
   await page.goto("/");
+  await expect(page.getByRole("button", { name: "確認發布這份成品" })).toHaveCount(0);
   await page.getByRole("button", { name: "尋找已完成賽事" }).click();
   await expect(page.getByRole("combobox")).toContainText("LCK · HLE vs GEN · 0-2");
   await page.getByRole("button", { name: "產生影片預覽" }).click();
   await expect(page.locator("video")).toHaveAttribute("src", "/renders/hle-gen.mp4");
+  await page.locator("#esports-date").fill("2026-08-13");
+  await expect(page.locator("video")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "確認發布這份成品" })).toHaveCount(0);
+  await page.getByRole("button", { name: "尋找已完成賽事" }).click();
+  await page.getByRole("button", { name: "產生影片預覽" }).click();
   await page.getByRole("button", { name: "確認發布這份成品" }).click();
 
   expect(previewRequest).toMatchObject({ scanId: "scan-lck", seriesId: "hle-gen", mode: "preview", languages: ["zh"] });
@@ -72,6 +78,8 @@ test("version workflow keeps selection single and reuses its preview", async ({ 
   await page.getByRole("button", { name: "產生影片預覽" }).click();
   await expect(page.locator("video")).toHaveAttribute("src", "/renders/patch-b.mp4");
   await page.getByRole("button", { name: "確認發布這份成品" }).click();
+  await expect(page.getByText("Threads · PUBLISHED")).toBeVisible();
+  await expect(page.getByRole("button", { name: "確認發布這份成品" })).toHaveCount(0);
 
   expect(publishRequest.itemIds).toEqual(["patch-b"]);
 });

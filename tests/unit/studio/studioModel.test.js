@@ -76,3 +76,11 @@ test('version preview keeps the exact rendered artifact for confirmation', async
   assert.deepEqual(preview.videos, [{ locale: 'zh', videoUrl: '/renders/patch-26.16.mp4' }]);
   assert.equal(canPublishPreview(preview), true);
 });
+
+test('Meta candidates with hard blocks or missing ranking entries cannot render', async () => {
+  const { isRenderableMetaCandidate } = await import(MODULE_URL);
+
+  assert.equal(isRenderableMetaCandidate({ candidateId: 'blocked', hardBlock: { blocked: true } }), false);
+  assert.equal(isRenderableMetaCandidate({ candidateId: 'empty-tier', kind: 'META_TIER_RANKING', entries: [] }), false);
+  assert.equal(isRenderableMetaCandidate({ candidateId: 'valid-tier', kind: 'META_TIER_RANKING', entries: [{ champion: 'Ahri' }] }), true);
+});

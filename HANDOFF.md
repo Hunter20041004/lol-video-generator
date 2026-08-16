@@ -14,7 +14,8 @@
 - 賽事 preview-only canary：`public/renders/render_1786859158391.mp4`（ignored），SHA-256 `406d375c8e0be2815e4006cd5de2eb961dafe65693b7b344a250e32f489d80fc`；H.264／AAC、1080×1920、30fps、25.045333 秒、-17.1 LUFS、true peak -8.2 dBFS、leading silence 49.3333ms，媒體閘門通過，publish jobs 0。
 - 版本 preview API canary：ITEM_UPDATE `patch_16eee974c930695c` 保持 `READY`，`publishResult: null`，保存中英文 2 支影片；中文 SHA-256 `293bf5849f8745201e7daba4b9e2729e21ec9e928bbb71a4dbefaaa4e66c8678`，英文 `bc3cfbcb775236f1452ebcea2b8a6aa2dd3ef723a1823cca35e28b774fa91c57`。隔離 worktree 的內容 DB SHA-256 為 `069578bcc00191419ec00731bb574043ee20320b4eb62e0d303c66d918ae0f98`。
 - Canary 副作用封條：開始時內容 DB／queue／daily runs 都不存在、publish packages 0；完成後只有預期的 ignored canary DB／3 支 MP4，queue 與 daily runs 仍不存在、publish packages 仍為 0。主 worktree runtime 資料未觸碰，Git status 沒有 runtime 檔案。
-- 分支完整閘門：`npm ci` 成功且 audit 0；`tdd:doctor` 通過；coverage 566 tests、562 pass、4 個外部 contract skip、0 fail，line 94.28%、branch 80.66%、function 96.10%；Next 26 routes build 成功；`npm audit --audit-level=high` 0 vulnerabilities；Remotion QA 6/6 stills；Playwright 3/3。
+- 分支完整閘門：`npm ci` 成功且 audit 0；`tdd:doctor` 通過；coverage 568 tests、564 pass、4 個外部 contract skip、0 fail，line 94.28%、branch 80.66%、function 96.10%；Next 26 routes build 成功；`npm audit --audit-level=high` 0 vulnerabilities；Remotion QA 6/6 stills；Playwright 3/3。
+- 最終安全覆核補上 3 個產品契約：切換賽事日期／系列會清除過期預覽、媒體驗證前不顯示發布入口、版本內容發布後保留平台結果但禁止重複發布；Meta 硬阻擋與空排名也不得進入渲染。
 - Next production build 仍有既知 3 個 `playerPortraitManifest.js` dynamic filesystem tracing warnings；沒有新增 warning 或 build failure。Repo 仍無 production deployment target，本輪 push 後只驗證 GitHub source CI／CodeQL，不建立重複正式站。
 
 - 2026-08-13 依使用者核可將 25 秒賽後判讀的 0–4 秒結果幕由 Ryze／Orianna 英雄頭像改為 GEN／HLE 隊徽；4 秒後對位幕仍保留官方英雄方形頭像，其他四幕排版與節奏未改。

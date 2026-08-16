@@ -26,6 +26,15 @@ export function normalizeVersionPreview(payload = {}) {
   };
 }
 
+export function isRenderableMetaCandidate(candidate = {}) {
+  if ((!candidate.candidateId && !candidate.role) || candidate.hardBlock?.blocked) return false;
+  if (candidate.kind === "META_TIER_RANKING") return Array.isArray(candidate.entries) && candidate.entries.length > 0;
+  if (candidate.kind === "META_OFFMETA_PICK" && candidate.offmetaType === "OFFMETA_BUILD") {
+    return Boolean(candidate.coreItems?.length || candidate.coreRunes?.length);
+  }
+  return true;
+}
+
 export function canPublishPreview(preview) {
   if (!preview || preview.videos.length === 0) return false;
   if (preview.kind === "esports") {
