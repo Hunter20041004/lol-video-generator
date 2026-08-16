@@ -1,8 +1,21 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-13 由 Codex 更新。25 秒「賽後判讀／POST MATCH READ」已完成 inline TDD、GEN／HLE preview-only canary、main 整合、本機全套驗證與 GitHub checks。
+> 2026-08-15 由 Codex 更新。前端已重構為兩條 preview-first 日常流程；目前分支全套驗證與兩支 preview-only canary 已通過，待合併 main、push 與 GitHub checks。
 
 ## 本輪狀態
+
+- 2026-08-15 完成「安靜的 LCK 轉播工作台」前端重構：首頁只保留 `賽事影片`、`版本更新` 與右上角 `進階工具`；桌機為左側控制／右側預覽，375px 手機改為操作後接預覽，沒有橫向溢出。
+- 賽事流程固定以 `mode: "preview"`、`languages: ["zh"]` 先渲染及驗證；沒有預覽時不呈現發布動作，確認時把畫面上同一組 `videos` 與 localized PLAYER_RADAR payload 交給 `/api/publish`。部分平台失敗只重試失敗平台。
+- 版本流程改為英雄／系統／裝備符文三類單筆選擇，移除選取全部與批次發布；preview route 會保存 `renderedAt` 與 `renderResult.videos`，確認發布只傳 `itemIds: [selectedItem.id]`，publish route 重用已確認影片。
+- Meta 掃描／render、Insights GET／sync 與發布佇列 GET 保留於 Sheet 進階工具；portfolio read-only mode 仍停用所有 mutation，GET-only 重新整理可用，`?portfolio=1` 的 synthetic fixture 仍可在進階 Meta 顯示。
+- TDD 新增 pure workflow model、preview artifact 真實 filesystem 契約與 3 條 Playwright 使用者流程；瀏覽器用 network boundary mock 驗證賽事 exact-artifact publish、版本單 ID publish 與進階工具 disclosure，不會真的發 Instagram／Threads。
+- 前端輕量化：刪除未再引用的舊 `InsightsDashboard.jsx` 359 行；`app/globals.css` 由 2,585 行降至 678 行，移除舊 `.hvsShell`、Hextech card 與舊 insights 樣式。保留最小 shadcn Button／Tabs／Sheet／Select、Tailwind v4、repo-hosted Outfit／Cinzel 與 reduced-motion。
+- 最終前端圖：`.screenshots/final-desktop.png`（1280×800）與 `.screenshots/final-mobile.png`（375×812）。層次、留白、字體、單一霧金配色、對齊、響應式、狀態、focus 與動效均通過；console 只有 React devtools／HMR 資訊，沒有產品錯誤。動效審查無阻擋項：沒有 `transition: all`、`scale(0)`、ease-in UI 或超過 300ms 的新動效。
+- 賽事 preview-only canary：`public/renders/render_1786859158391.mp4`（ignored），SHA-256 `406d375c8e0be2815e4006cd5de2eb961dafe65693b7b344a250e32f489d80fc`；H.264／AAC、1080×1920、30fps、25.045333 秒、-17.1 LUFS、true peak -8.2 dBFS、leading silence 49.3333ms，媒體閘門通過，publish jobs 0。
+- 版本 preview API canary：ITEM_UPDATE `patch_16eee974c930695c` 保持 `READY`，`publishResult: null`，保存中英文 2 支影片；中文 SHA-256 `293bf5849f8745201e7daba4b9e2729e21ec9e928bbb71a4dbefaaa4e66c8678`，英文 `bc3cfbcb775236f1452ebcea2b8a6aa2dd3ef723a1823cca35e28b774fa91c57`。隔離 worktree 的內容 DB SHA-256 為 `069578bcc00191419ec00731bb574043ee20320b4eb62e0d303c66d918ae0f98`。
+- Canary 副作用封條：開始時內容 DB／queue／daily runs 都不存在、publish packages 0；完成後只有預期的 ignored canary DB／3 支 MP4，queue 與 daily runs 仍不存在、publish packages 仍為 0。主 worktree runtime 資料未觸碰，Git status 沒有 runtime 檔案。
+- 分支完整閘門：`npm ci` 成功且 audit 0；`tdd:doctor` 通過；coverage 566 tests、562 pass、4 個外部 contract skip、0 fail，line 94.28%、branch 80.66%、function 96.10%；Next 26 routes build 成功；`npm audit --audit-level=high` 0 vulnerabilities；Remotion QA 6/6 stills；Playwright 3/3。
+- Next production build 仍有既知 3 個 `playerPortraitManifest.js` dynamic filesystem tracing warnings；沒有新增 warning 或 build failure。Repo 仍無 production deployment target，本輪 push 後只驗證 GitHub source CI／CodeQL，不建立重複正式站。
 
 - 2026-08-13 依使用者核可將 25 秒賽後判讀的 0–4 秒結果幕由 Ryze／Orianna 英雄頭像改為 GEN／HLE 隊徽；4 秒後對位幕仍保留官方英雄方形頭像，其他四幕排版與節奏未改。
 - 新增 `config/esports-team-crests.json` 與 `utils/render/teamCrestManifest.js`：render 前核對 team／season、PNG、SHA-256、尺寸與 `public/team-crests/` 路徑；Remotion props 只帶本機路徑與必要尺寸，不帶遠端 URL。官方／來源與商標限制記錄於 `THIRD_PARTY_ASSETS.md`。
