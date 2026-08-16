@@ -51,13 +51,14 @@ export function failedPublishJobs(payload = {}) {
 
 export function humanizeWorkflowError(payload = {}) {
   const message = String(payload?.error || payload?.message || "操作失敗，請稍後重試。");
+  const retryAt = payload?.cooldownUntil || payload?.retryAt;
   if (payload?.needsAuth || /not authenticated|authentication|unauthorized/i.test(message)) {
     const platform = String(payload?.platform || (/threads/i.test(message) ? "Threads" : "Instagram"));
     const label = platform.toLowerCase() === "threads" ? "Threads" : "Instagram";
     return `${label} 連線已失效，請到進階工具重新連接後再試。`;
   }
-  if (/leaguepedia|rate limit/i.test(message) && payload?.retryAt) {
-    return `Leaguepedia 暫時限制請求，可於 ${new Date(payload.retryAt).toLocaleString("zh-TW")} 後重試。`;
+  if (/leaguepedia|rate limit/i.test(message) && retryAt) {
+    return `Leaguepedia 暫時限制請求，可於 ${new Date(retryAt).toLocaleString("zh-TW")} 後重試。`;
   }
   return message;
 }

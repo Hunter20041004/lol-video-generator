@@ -47,12 +47,14 @@ test('unpublished preview has no failed platform jobs', async () => {
 test('Leaguepedia cooldown errors preserve the retry time', async () => {
   const { humanizeWorkflowError } = await import(MODULE_URL);
   const message = humanizeWorkflowError({
-    error: 'Leaguepedia rate limit reached.',
-    retryAt: '2026-08-15T20:30:00.000Z',
+    error: "Leaguepedia API returned error: You've exceeded your rate limit. Please wait some time and try again.",
+    cooldownUntil: '2026-08-15T20:30:00.000Z',
   });
 
   assert.match(message, /Leaguepedia/);
   assert.match(message, /2026/);
+  assert.match(message, /後重試/);
+  assert.doesNotMatch(message, /exceeded your rate limit/);
 });
 
 test('publishing auth errors explain which connection must be restored', async () => {
