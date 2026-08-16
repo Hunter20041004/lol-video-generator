@@ -61,7 +61,9 @@ export function VersionWorkflow({ portfolioReadOnly = false, hidden = false }) {
     }
   }, []);
 
-  useEffect(() => { loadLibrary({ quiet: true }); }, [loadLibrary]);
+  useEffect(() => {
+    if (!hidden && !library) loadLibrary({ quiet: true });
+  }, [hidden, library, loadLibrary]);
 
   useEffect(() => {
     if (!visibleItems.some((item) => item.id === selectedItemId)) {
@@ -105,7 +107,7 @@ export function VersionWorkflow({ portfolioReadOnly = false, hidden = false }) {
       setPreview(normalizeVersionPreview(payload));
       setLibrary((current) => ({
         ...(current || {}),
-        items: (current?.items || []).map((item) => item.id === payload.item?.id ? payload.item : item),
+        items: (current?.items || []).map((item) => item.id === payload.item?.id ? { ...item, ...payload.item } : item),
       }));
     } catch (caught) {
       setError(humanizeWorkflowError(caught.payload || { error: caught.message }));
@@ -129,7 +131,7 @@ export function VersionWorkflow({ portfolioReadOnly = false, hidden = false }) {
       if (result?.item) {
         setLibrary((current) => ({
           ...(current || {}),
-          items: (current?.items || []).map((item) => item.id === result.item.id ? result.item : item),
+          items: (current?.items || []).map((item) => item.id === result.item.id ? { ...item, ...result.item } : item),
         }));
       }
       if (result?.success === false) setError(result.error || "部分平台發布失敗，可只重試失敗平台。");
