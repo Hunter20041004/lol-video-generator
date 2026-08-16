@@ -30,3 +30,14 @@ test('esports workflow scans candidates and renders an explicit preview before p
   assert.match(workflow, /languages:\s*\[["']zh["']\]/);
   assert.doesNotMatch(workflow, /daily-one-click/);
 });
+
+test('version workflow uses one selected item and preview-first content factory routes', () => {
+  const workflow = read('app/components/studio/VersionWorkflow.jsx');
+
+  assert.match(workflow, /\/api\/content-factory\/library/);
+  assert.match(workflow, /\/api\/content-factory\/scan/);
+  assert.match(workflow, /\/api\/content-factory\/preview/);
+  assert.match(workflow, /\/api\/content-factory\/publish/);
+  assert.match(workflow, /itemIds:\s*\[selectedItem\.id\]/);
+  assert.doesNotMatch(workflow, /selectedItemIds|選取全部|一鍵發布/);
+});

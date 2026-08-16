@@ -13,27 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { EsportsWorkflow } from "./EsportsWorkflow";
-
-function WorkflowPlaceholder({ title, description, testId, hidden }) {
-  return (
-    <section
-      data-testid={testId}
-      hidden={hidden}
-      aria-hidden={hidden}
-      className="studio-placeholder"
-    >
-      <div>
-        <span className="studio-eyebrow">DAILY WORKFLOW</span>
-        <h1>{title}</h1>
-        <p>{description}</p>
-      </div>
-      <div className="studio-placeholder-grid" aria-hidden="true">
-        <div />
-        <div />
-      </div>
-    </section>
-  );
-}
+import { VersionWorkflow } from "./VersionWorkflow";
 
 export function StudioShell({ portfolioReadOnly, portfolioDemoState }) {
   const [activeWorkflow, setActiveWorkflow] = useState("esports");
@@ -78,10 +58,8 @@ export function StudioShell({ portfolioReadOnly, portfolioDemoState }) {
         portfolioReadOnly={portfolioReadOnly}
         hidden={activeWorkflow !== "esports"}
       />
-      <WorkflowPlaceholder
-        title="版本更新"
-        description="手動選擇一則版本內容，先看過成品，再確認是否發布。"
-        testId="version-workflow"
+      <VersionWorkflow
+        portfolioReadOnly={portfolioReadOnly}
         hidden={activeWorkflow !== "version"}
       />
     </main>

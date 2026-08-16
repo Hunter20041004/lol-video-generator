@@ -2468,6 +2468,52 @@ h1, h2, h3, h4 {
 .studio-spin { animation: studio-spin 900ms linear infinite; }
 @keyframes studio-spin { to { transform: rotate(360deg); } }
 
+.studio-mode-tabs { margin-top: 24px; }
+.studio-mode-tabs [role="tablist"] { width: 100%; height: 38px; background: #090e14; }
+.studio-mode-tabs [role="tab"] { flex: 1; color: #7d8996; }
+.studio-mode-tabs [role="tab"][data-state="active"] { background: #202a35; color: #eef1f4; }
+
+.studio-inline-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.studio-inline-actions button { min-height: 40px; }
+.studio-content-list { margin-top: 24px; border-top: 1px solid var(--studio-line); }
+
+.studio-content-list-heading {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #aeb7c1;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.studio-content-list-heading svg { width: 15px; height: 15px; color: var(--studio-gold); }
+.studio-content-list-heading small { margin-left: auto; color: #687482; font-size: 10px; }
+
+.studio-content-option {
+  width: 100%;
+  height: auto;
+  min-height: 54px;
+  padding: 9px 10px;
+  justify-content: space-between;
+  border-radius: 6px;
+  color: #c0c7cf;
+  text-align: left;
+}
+
+.studio-content-option[data-selected="true"] { background: #222b35; box-shadow: inset 2px 0 var(--studio-gold); }
+.studio-option-copy { min-width: 0; display: grid; gap: 3px; }
+.studio-option-copy strong { overflow: hidden; text-overflow: ellipsis; font-size: 12px; font-weight: 650; }
+.studio-option-copy small { color: #788491; font-size: 10px; }
+.studio-option-status { flex: 0 0 auto; color: #819c8c; font-size: 9px; letter-spacing: .08em; }
+.studio-list-empty { padding: 22px 12px; border: 1px dashed #303b48; border-radius: 7px; color: #7e8995; font-size: 12px; line-height: 1.6; text-align: center; }
+
 .studio-advanced-sheet {
   width: min(480px, 94vw) !important;
   background: #0d1219;
@@ -2491,6 +2537,7 @@ h1, h2, h3, h4 {
   .studio-workflow { grid-template-columns: 1fr; margin-top: 24px; }
   .studio-video-frame,
   .studio-preview-empty { min-height: 320px; }
+  .studio-inline-actions { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
