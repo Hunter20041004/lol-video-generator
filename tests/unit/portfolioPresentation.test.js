@@ -411,8 +411,12 @@ test("portfolio demo state is enabled only by the exact portfolio query", () => 
 
 test("workbench enables deterministic evidence only with portfolio query", () => {
   const page = fs.readFileSync(path.join(ROOT, "app/page.jsx"), "utf8");
+  const shell = fs.readFileSync(path.join(ROOT, "app/components/studio/StudioShell.jsx"), "utf8");
+  const advanced = fs.readFileSync(path.join(ROOT, "app/components/studio/AdvancedTools.jsx"), "utf8");
   assert.match(page, /createPortfolioDemoStateFromSearch\(window\.location\.search\)/);
-  assert.match(page, /Synthetic portfolio fixture/);
+  assert.match(page, /portfolioDemoState=\{portfolioDemoState\}/);
+  assert.match(shell, /portfolioDemoState=\{portfolioDemoState\}/);
+  assert.match(advanced, /Synthetic portfolio fixture/);
 });
 
 test("portfolio render command passes canonical synthetic props through the Remotion CLI", () => {

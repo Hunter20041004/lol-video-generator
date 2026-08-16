@@ -33,14 +33,15 @@ function candidateTitle(candidate = {}) {
   return [candidate.champion, candidate.role].filter(Boolean).join(" · ") || "未命名題材";
 }
 
-function MetaTool({ portfolioReadOnly }) {
+function MetaTool({ portfolioReadOnly, portfolioDemoState }) {
+  const portfolioCandidate = portfolioDemoState?.candidates?.[0];
   const [mode, setMode] = useState("tier");
   const [position, setPosition] = useState("Mid");
   const [patch, setPatch] = useState("");
   const [snapshotId, setSnapshotId] = useState("");
-  const [candidates, setCandidates] = useState([]);
-  const [selectedId, setSelectedId] = useState("");
-  const [result, setResult] = useState(null);
+  const [candidates, setCandidates] = useState(() => portfolioDemoState?.candidates || []);
+  const [selectedId, setSelectedId] = useState(() => candidateId(portfolioCandidate));
+  const [result, setResult] = useState(() => portfolioDemoState?.renderResult || null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -77,6 +78,7 @@ function MetaTool({ portfolioReadOnly }) {
   const video = result?.videos?.[0] || result?.render?.videos?.[0];
   return (
     <div className="studio-tool-pane">
+      {portfolioDemoState && <WorkflowStatus tone="success">Synthetic portfolio fixture · 不會連接正式資料或發布。</WorkflowStatus>}
       <p>需要額外題材時，才從版本數據找梯度榜或非主流玩法。</p>
       <div className="studio-tool-grid">
         <label>題材<Select value={mode} onValueChange={setMode}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="tier">梯度榜</SelectItem><SelectItem value="offmeta">非主流玩法</SelectItem></SelectContent></Select></label>
@@ -151,7 +153,7 @@ function QueueTool() {
   );
 }
 
-export function AdvancedTools({ portfolioReadOnly = false }) {
+export function AdvancedTools({ portfolioReadOnly = false, portfolioDemoState = null }) {
   return (
     <Tabs defaultValue="meta" className="studio-tools-tabs">
       <TabsList aria-label="進階工具分類">
@@ -159,7 +161,7 @@ export function AdvancedTools({ portfolioReadOnly = false }) {
         <TabsTrigger value="insights"><BarChart3 aria-hidden="true" />成效</TabsTrigger>
         <TabsTrigger value="queue"><RefreshCw aria-hidden="true" />佇列</TabsTrigger>
       </TabsList>
-      <TabsContent value="meta"><MetaTool portfolioReadOnly={portfolioReadOnly} /></TabsContent>
+      <TabsContent value="meta"><MetaTool portfolioReadOnly={portfolioReadOnly} portfolioDemoState={portfolioDemoState} /></TabsContent>
       <TabsContent value="insights"><InsightsTool portfolioReadOnly={portfolioReadOnly} /></TabsContent>
       <TabsContent value="queue"><QueueTool /></TabsContent>
     </Tabs>

@@ -40,7 +40,7 @@ export function StudioShell({ portfolioReadOnly, portfolioDemoState }) {
                 Meta、洞察、發布佇列與工程資訊會保留在這裡，不干擾日常產片。
               </SheetDescription>
             </SheetHeader>
-            <AdvancedTools portfolioReadOnly={portfolioReadOnly} />
+            <AdvancedTools portfolioReadOnly={portfolioReadOnly} portfolioDemoState={portfolioDemoState} />
           </SheetContent>
         </Sheet>
       </header>
