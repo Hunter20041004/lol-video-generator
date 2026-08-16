@@ -12,6 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { EsportsWorkflow } from "./EsportsWorkflow";
 
 function WorkflowPlaceholder({ title, description, testId, hidden }) {
   return (
@@ -73,10 +74,8 @@ export function StudioShell({ portfolioReadOnly, portfolioDemoState }) {
         </TabsList>
       </Tabs>
 
-      <WorkflowPlaceholder
-        title="賽事影片"
-        description="選擇已完成的系列賽，先產生 25 秒預覽，再確認是否發布。"
-        testId="esports-workflow"
+      <EsportsWorkflow
+        portfolioReadOnly={portfolioReadOnly}
         hidden={activeWorkflow !== "esports"}
       />
       <WorkflowPlaceholder

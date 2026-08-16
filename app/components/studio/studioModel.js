@@ -36,7 +36,7 @@ export function canPublishPreview(preview) {
 }
 
 export function failedPublishJobs(payload = {}) {
-  return (Array.isArray(payload.jobs) ? payload.jobs : [])
+  return (Array.isArray(payload?.jobs) ? payload.jobs : [])
     .filter((job) => !["PUBLISHED", "QUEUED"].includes(job?.status));
 }
 

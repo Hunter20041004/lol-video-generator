@@ -38,6 +38,12 @@ test('partial publish retry includes only failed platform jobs', async () => {
   );
 });
 
+test('unpublished preview has no failed platform jobs', async () => {
+  const { failedPublishJobs } = await import(MODULE_URL);
+
+  assert.deepEqual(failedPublishJobs(null), []);
+});
+
 test('Leaguepedia cooldown errors preserve the retry time', async () => {
   const { humanizeWorkflowError } = await import(MODULE_URL);
   const message = humanizeWorkflowError({
