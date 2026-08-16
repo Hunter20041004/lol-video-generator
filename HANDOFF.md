@@ -1,6 +1,6 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-15 由 Codex 更新。前端已重構為兩條 preview-first 日常流程；目前分支全套驗證與兩支 preview-only canary 已通過，待合併 main、push 與 GitHub checks。
+> 2026-08-15 由 Codex 更新。前端已重構為兩條 preview-first 日常流程，已合併並推送至 `main`；本機主線與 GitHub CI／CodeQL 全部通過。
 
 ## 本輪狀態
 
@@ -16,6 +16,7 @@
 - Canary 副作用封條：開始時內容 DB／queue／daily runs 都不存在、publish packages 0；完成後只有預期的 ignored canary DB／3 支 MP4，queue 與 daily runs 仍不存在、publish packages 仍為 0。主 worktree runtime 資料未觸碰，Git status 沒有 runtime 檔案。
 - 分支完整閘門：`npm ci` 成功且 audit 0；`tdd:doctor` 通過；coverage 568 tests、564 pass、4 個外部 contract skip、0 fail，line 94.28%、branch 80.66%、function 96.10%；Next 26 routes build 成功；`npm audit --audit-level=high` 0 vulnerabilities；Remotion QA 6/6 stills；Playwright 3/3。
 - 最終安全覆核補上 3 個產品契約：切換賽事日期／系列會清除過期預覽、媒體驗證前不顯示發布入口、版本內容發布後保留平台結果但禁止重複發布；Meta 硬阻擋與空排名也不得進入渲染。
+- `main` 於提交 `fdbf1b0` 重跑安裝、TDD doctor、完整 coverage、Next build、high audit 與 Remotion QA 全綠；遠端 CI run `31930380927`、CodeQL run `31930379984` 成功。Dependabot open alerts 以 API 重新計數為 0，open PR 為 0。
 - Next production build 仍有既知 3 個 `playerPortraitManifest.js` dynamic filesystem tracing warnings；沒有新增 warning 或 build failure。Repo 仍無 production deployment target，本輪 push 後只驗證 GitHub source CI／CodeQL，不建立重複正式站。
 
 - 2026-08-13 依使用者核可將 25 秒賽後判讀的 0–4 秒結果幕由 Ryze／Orianna 英雄頭像改為 GEN／HLE 隊徽；4 秒後對位幕仍保留官方英雄方形頭像，其他四幕排版與節奏未改。
