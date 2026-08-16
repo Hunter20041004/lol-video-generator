@@ -4,6 +4,7 @@ const { buildLocalizedAnalysis } = require('../../../../utils/contentFactory/ana
 const { resolveInternalOrigin } = require('../../../../utils/contentFactory/internalOrigin');
 const { buildSocialCopy } = require('../../../../utils/publishing/copy');
 const { renderVideosFromRequest } = require('../../../../utils/render/renderService');
+const { persistPreviewArtifact } = require('../../../../utils/contentFactory/previewArtifact');
 
 const COPY_PREVIEW_PLATFORMS = ['instagram', 'threads'];
 
@@ -35,6 +36,7 @@ export async function POST(request) {
     const internalOrigin = resolveInternalOrigin(request.url);
     const analysis = await buildLocalizedAnalysis(internalOrigin, item);
     let render = null;
+    let responseItem = item;
 
     if (shouldRender) {
       render = await renderVideosFromRequest({
@@ -43,11 +45,12 @@ export async function POST(request) {
         renderLanguages: ['zh', 'en'],
         localizedPayloads: analysis.localizedPayloads,
       });
+      responseItem = persistPreviewArtifact(item, render) || item;
     }
 
     return NextResponse.json({
       success: true,
-      item,
+      item: responseItem,
       analysis,
       copyPreview: buildCopyPreview(analysis),
       render,
