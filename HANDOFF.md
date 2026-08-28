@@ -4,6 +4,7 @@
 
 ## 本輪狀態
 
+- 2026-08-28 全球一級賽事素材庫施工計畫已寫入 `docs/superpowers/plans/2026-08-28-global-tier-one-esports-assets.md`：10 個垂直 TDD tasks 依序處理九項賽事登錄、單次精確日期查詢、日期感知素材 identity、聚合缺口、名單盤點、核准匯入／驗證、當前 LCK blocker、六區域素材填充、前端狀態與真實 canary／全套收尾。依使用者明確授權，計畫自我檢查後直接 inline 實作，不另停下選執行方式；禁止使用子代理。
 - 2026-08-28 產品負責人核可將素材與掃描範圍擴充為 Riot 2026 全球一級職業體系：LCK、LPL、LEC、LCS、CBLOL、LCP，以及 First Stand、MSI、Worlds。採用版本化本機完整素材庫、官方來源優先／Leaguepedia 備援、自動盤點缺口但人工核准入庫；正式名單含先發與替補，改名／轉隊依比賽日期解析，缺素材仍阻擋且一次回報完整缺口。正式規格為 `docs/superpowers/specs/2026-08-28-global-tier-one-esports-assets-design.md`；使用者明確授權規格完成後直接寫施工計畫並進入實作，不需再次停下拍板。
 - 2026-08-28 診斷 BNK FEARX vs Nongshim RedForce 預覽的 `Player portrait not found for Taeyoon (Kim Tae-yoon)`：候選賽事、推薦主角與名稱均正確，根因是正式素材 manifest 只有 Ruler、GEN、HLE；本場同時缺 Taeyoon 照片及 BNK FEARX／Nongshim RedForce 隊徽，只補名稱解析或單張照片都無法打通流程。現行閘門正確阻止錯用他人照片。最初提出的文字識別備援已由產品負責人否決，正式決策改為補齊全球一級賽事素材庫；尚未修改 render 行為、下載外部素材或建立發布工作。
 - 2026-08-28 修復賽事工作台選定有賽事日期卻顯示空狀態：根因是 `fetchCompletedSeriesForDate()` 無視選定日期，固定向 Leaguepedia 各取 LCK／LPL 最新 5 局後才在本機篩日期；8/27 賽事已被 8/28 新局數擠出結果。新增 `fetchMatchesForDate(date, tournament)`，把 UTC 日界 `[00:00, 隔日 00:00)` 下推至 Cargo 查詢；LCK／LPL 縮寫只匹配同名或以縮寫加空格開頭的賽事，避免誤抓 LPLOL 與名稱中偶然含 LPL 的資格賽。TDD 回歸先確認舊 recent 入口造成紅燈，再轉為聚焦 10/10 綠；真實 2026-08-27 LCK 邊界回傳 BNK FEARX 對 Nongshim RedForce 4 局並合併為 3-1，10 位選手、5 組位置、完整性全通過。分支與 main 完整驗證皆為 571 tests、567 pass、4 個既有外部 contract skip、0 fail，line 94.28%、branch 80.59%、function 96.10%；Next 26 routes build 通過（保留既知 3 個 portrait tracing warnings），audit 0。瀏覽器重掃後空狀態計數 0，系列選單顯示 `LCK · BNK FEARX vs Nongshim RedForce · 3-1`，console error 0。
