@@ -51,6 +51,38 @@ test("fetchCompletedSeriesForDate queries active tournament filters and groups g
   assert.equal(candidates.find((series) => series.league === "LPL").games.length, 1);
 });
 
+test("fetchCompletedSeriesForDate queries the selected date at the source boundary", async () => {
+  const { fetchCompletedSeriesForDate } = require("../../../utils/esports/seriesFetcher");
+  const queries = [];
+
+  const candidates = await fetchCompletedSeriesForDate({
+    date: "2026-08-27",
+    activeMode: { mode: "regular", tournaments: ["LCK"] },
+  }, {
+    fetchMatchesForDate: async (date, tournament) => {
+      queries.push({ date, tournament });
+      return [{
+        ...makeMatch("lck-aug-27-g1", "LCK 2026 Season Play-In", "BNK FEARX", "Nongshim RedForce", "BNK FEARX"),
+        dateUtc: "2026-08-27T08:07:00Z",
+      }];
+    },
+    fetchRecentMatches: async () => {
+      throw new Error("must query the selected date");
+    },
+    fetchMatchPlayers: async () => ({
+      match: {
+        ...makeMatch("lck-aug-27-g1", "LCK 2026 Season Play-In", "BNK FEARX", "Nongshim RedForce", "BNK FEARX"),
+        dateUtc: "2026-08-27T08:07:00Z",
+      },
+      players: makePlayers("BNK FEARX", "Nongshim RedForce"),
+    }),
+    fetchMatchTeamStats: async () => [],
+  });
+
+  assert.deepEqual(queries, [{ date: "2026-08-27", tournament: "LCK" }]);
+  assert.equal(candidates.length, 1);
+});
+
 test("fetchCompletedSeriesForDate stores ScoreboardTeams rows on their game", async () => {
   const { fetchCompletedSeriesForDate } = require("../../../utils/esports/seriesFetcher");
 

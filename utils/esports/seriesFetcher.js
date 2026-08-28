@@ -46,12 +46,15 @@ async function fetchCompletedSeriesForDate(options = {}, deps = {}) {
   const date = normalizeDate(options.date || new Date().toISOString());
   const tournaments = options.activeMode?.tournaments || [];
   const fetchRecentMatches = deps.fetchRecentMatches || leaguepedia.fetchRecentMatches;
+  const fetchMatchesForDate = deps.fetchMatchesForDate
+    || (deps.fetchRecentMatches ? ((selectedDate, tournament) => fetchRecentMatches(36, tournament)) : leaguepedia.fetchMatchesForDate)
+    || ((selectedDate, tournament) => fetchRecentMatches(36, tournament));
   const fetchMatchPlayers = deps.fetchMatchPlayers || leaguepedia.fetchMatchPlayers;
   const fetchMatchTeamStats = deps.fetchMatchTeamStats || leaguepedia.fetchMatchTeamStats;
   const groups = new Map();
 
   for (const tournament of tournaments) {
-    const matches = await fetchRecentMatches(36, tournament);
+    const matches = await fetchMatchesForDate(date, tournament);
     for (const match of matches) {
       const matchDate = normalizeDate(match.dateUtc || match.DateTime_UTC || match.date);
       if (matchDate && date && matchDate !== date) continue;
