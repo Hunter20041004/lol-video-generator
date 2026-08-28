@@ -50,6 +50,40 @@ test("esports workflow previews before publishing the same artifact", async ({ p
   expect(publishRequest.videos).toEqual([{ locale: "zh", videoUrl: "/renders/hle-gen.mp4" }]);
 });
 
+test("global tier-one scan keeps every league option and clears a stale preview", async ({ page }) => {
+  const candidates = [
+    { seriesId: "lec", league: "LEC", teamA: "G2", teamB: "KC", seriesScore: "2-1" },
+    { seriesId: "lcs", league: "LCS", teamA: "FLY", teamB: "C9", seriesScore: "2-0" },
+    { seriesId: "lck", league: "LCK", teamA: "BFX", teamB: "NS", seriesScore: "3-1" },
+    { seriesId: "msi", league: "MSI", teamA: "GEN", teamB: "G2", seriesScore: "3-2" },
+  ];
+  await page.route("**/api/esports/candidates", async (route) => route.fulfill({ json: {
+    success: true,
+    scanId: "scan-global",
+    candidates,
+  } }));
+  await page.route("**/api/esports/player-radar", async (route) => route.fulfill({ json: {
+    success: true,
+    videos: [{ locale: "zh", videoUrl: "/renders/global.mp4" }],
+    validationReports: [{ passed: true, reasons: [] }],
+    payloads: [{ locale: "zh", dataType: "PLAYER_RADAR" }],
+  } }));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "尋找已完成賽事" }).click();
+  await page.getByRole("combobox").click();
+  for (const candidate of candidates) {
+    await expect(page.getByRole("option", { name: `${candidate.league} · ${candidate.teamA} vs ${candidate.teamB} · ${candidate.seriesScore}` })).toBeVisible();
+  }
+  await page.getByRole("option", { name: "LEC · G2 vs KC · 2-1" }).click();
+  await page.getByRole("button", { name: "產生影片預覽" }).click();
+  await expect(page.locator("video")).toHaveAttribute("src", "/renders/global.mp4");
+
+  await page.getByRole("combobox").click();
+  await page.getByRole("option", { name: "LCS · FLY vs C9 · 2-0" }).click();
+  await expect(page.locator("video")).toHaveCount(0);
+});
+
 test("version workflow keeps selection single and reuses its preview", async ({ page }) => {
   let publishRequest;
   await page.route("**/api/content-factory/library?**", async (route) => route.fulfill({ json: {

@@ -470,6 +470,11 @@ body {
   font: inherit;
 }
 
+.studio-select {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .studio-field input { padding: 0 12px; color-scheme: dark; }
 .studio-field input:focus-visible,
 .studio-select:focus-visible { border-color: var(--studio-gold); outline: 2px solid rgba(211, 179, 91, .18); outline-offset: 2px; }

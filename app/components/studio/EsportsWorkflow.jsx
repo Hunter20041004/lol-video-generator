@@ -173,7 +173,7 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
                   </SelectContent>
                 </Select>
               ) : (
-                <WorkflowStatus>這一天沒有找到已完成且資料完整的賽事。</WorkflowStatus>
+                <WorkflowStatus>這一天在全球一級賽事中沒有找到已完成且資料完整的賽事。</WorkflowStatus>
               )}
             </div>
             {selected && (

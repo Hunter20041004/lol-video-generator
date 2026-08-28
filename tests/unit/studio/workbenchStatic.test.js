@@ -29,6 +29,7 @@ test('esports workflow scans candidates and renders an explicit preview before p
   assert.match(workflow, /mode:\s*["']preview["']/);
   assert.match(workflow, /languages:\s*\[["']zh["']\]/);
   assert.doesNotMatch(workflow, /daily-one-click/);
+  assert.match(workflow, /全球一級賽事中沒有找到已完成且資料完整的賽事/);
 });
 
 test('version workflow uses one selected item and preview-first content factory routes', () => {
@@ -58,4 +59,11 @@ test('publish confirmation is absent until media validation passes', () => {
 
   assert.match(preview, /publishReady\s*&&/);
   assert.doesNotMatch(preview, /disabled=\{!canPublishPreview\(preview\)/);
+});
+
+test('long global series labels can shrink inside the mobile control panel', () => {
+  const styles = read('app/globals.css');
+
+  assert.match(styles, /\.studio-select\s*\{[^}]*min-width:\s*0/s);
+  assert.match(styles, /\.studio-select\s*\{[^}]*max-width:\s*100%/s);
 });

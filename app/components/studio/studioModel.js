@@ -52,6 +52,19 @@ export function failedPublishJobs(payload = {}) {
 export function humanizeWorkflowError(payload = {}) {
   const message = String(payload?.error || payload?.message || "操作失敗，請稍後重試。");
   const retryAt = payload?.cooldownUntil || payload?.retryAt;
+  if (payload?.code === "ESPORTS_ASSETS_MISSING") {
+    const missing = Array.isArray(payload.missing) ? payload.missing : [];
+    const labels = missing.map((entry) => {
+      if (entry?.kind === "portrait") {
+        const player = String(entry.publicName || entry.playerId || "未知選手");
+        const team = String(entry.team || "未知隊伍");
+        return `${player}（${team}）的選手照片`;
+      }
+      return `${String(entry?.team || "未知隊伍")} 隊徽`;
+    });
+    const detail = labels.length ? `：${labels.join("、")}` : "";
+    return `這場影片還缺 ${missing.length} 項正式素材${detail}。請先完成素材核准匯入，再產生預覽。`;
+  }
   if (payload?.needsAuth || /not authenticated|authentication|unauthorized/i.test(message)) {
     const platform = String(payload?.platform || (/threads/i.test(message) ? "Threads" : "Instagram"));
     const label = platform.toLowerCase() === "threads" ? "Threads" : "Instagram";

@@ -57,6 +57,25 @@ test('Leaguepedia cooldown errors preserve the retry time', async () => {
   assert.doesNotMatch(message, /exceeded your rate limit/);
 });
 
+test('structured esports asset gaps name every missing portrait and crest in Chinese', async () => {
+  const { humanizeWorkflowError } = await import(MODULE_URL);
+  const message = humanizeWorkflowError({
+    code: 'ESPORTS_ASSETS_MISSING',
+    error: 'Required esports assets missing (3).',
+    missing: [
+      { kind: 'portrait', publicName: 'Taeyoon', team: 'BNK FEARX' },
+      { kind: 'teamA', team: 'BNK FEARX' },
+      { kind: 'teamB', team: 'Nongshim RedForce' },
+    ],
+  });
+
+  assert.match(message, /Taeyoon（BNK FEARX）的選手照片/);
+  assert.match(message, /BNK FEARX 隊徽/);
+  assert.match(message, /Nongshim RedForce 隊徽/);
+  assert.match(message, /核准匯入/);
+  assert.doesNotMatch(message, /Required esports assets missing/);
+});
+
 test('publishing auth errors explain which connection must be restored', async () => {
   const { humanizeWorkflowError } = await import(MODULE_URL);
 
