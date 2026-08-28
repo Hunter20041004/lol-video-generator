@@ -10,6 +10,7 @@ const {
 test("competition registry recognizes all 2026 tier-one competitions and rejects lookalikes", () => {
   const supported = new Map([
     ["LCK 2026 Season Play-In", "LCK"],
+    ["LCK/2026 Season/Rounds 1-2", "LCK"],
     ["LPL 2026 Split 2", "LPL"],
     ["LEC 2026 Summer", "LEC"],
     ["LCS 2026 Spring", "LCS"],
@@ -20,7 +21,7 @@ test("competition registry recognizes all 2026 tier-one competitions and rejects
     ["World Championship 2026", "WORLDS"],
   ]);
 
-  assert.deepEqual(listTierOneCompetitions().map(({ id }) => id), [...supported.values()]);
+  assert.deepEqual(listTierOneCompetitions().map(({ id }) => id), [...new Set(supported.values())]);
   for (const [name, id] of supported) {
     assert.equal(classifyTierOneTournament(name)?.id, id, name);
   }
@@ -43,6 +44,7 @@ test("competition registry builds an anchored SQL-safe Cargo predicate", () => {
 
   assert.match(where, /ScoreboardGames\.Tournament = 'LCK'/);
   assert.match(where, /ScoreboardGames\.Tournament LIKE 'LCK %'/);
+  assert.match(where, /ScoreboardGames\.Tournament LIKE 'LCK\/%'/);
   assert.match(where, /ScoreboardGames\.Tournament = 'Mid-Season Invitational'/);
   assert.match(where, /ScoreboardGames\.Tournament LIKE 'World Championship %'/);
   assert.doesNotMatch(where, /LIKE '%LCK%'/);

@@ -9,7 +9,16 @@ const {
 } = require("../../../utils/esports/assetInventory");
 
 test("parseRosterRows aligns player roles, deduplicates registrations, and excludes lower tiers", () => {
-  const parsed = parseRosterRows(fixture.rosters, { year: "2026" });
+  const parsed = parseRosterRows([
+    ...fixture.rosters,
+    {
+      Team: "GEN",
+      Short: "GEN",
+      Tournament: "LCK/2026 Season/Rounds 1-2",
+      RosterLinks: "Ruler;;Coach Kim",
+      Roles: "Bot;;Coach",
+    },
+  ], { year: "2026" });
 
   assert.deepEqual(parsed.teams.map(({ team }) => team), ["GEN", "G2 Esports"]);
   assert.deepEqual(parsed.players.map(({ playerId, team, role }) => [playerId, team, role]), [
@@ -17,6 +26,7 @@ test("parseRosterRows aligns player roles, deduplicates registrations, and exclu
     ["mata", "GEN", "Support"],
     ["caps", "G2 Esports", "Mid"],
   ]);
+  assert.equal(parsed.players.some(({ playerId }) => playerId === "coach-kim"), false);
 });
 
 test("fetchTierOneAssetInventory uses the four documented Cargo tables and preserves provenance", async () => {

@@ -13,7 +13,9 @@ function normalizeTournament(value = "") {
 
 function matchesName(name, candidate) {
   const normalizedCandidate = normalizeTournament(candidate);
-  return name === normalizedCandidate || name.startsWith(`${normalizedCandidate} `);
+  return name === normalizedCandidate
+    || name.startsWith(`${normalizedCandidate} `)
+    || name.startsWith(`${normalizedCandidate}/`);
 }
 
 function listTierOneCompetitions() {
@@ -52,6 +54,7 @@ function buildTierOneTournamentWhere(field = "ScoreboardGames.Tournament") {
     }
     for (const prefix of competition.prefixes || []) {
       clauses.add(`${field} LIKE '${escapeCargoValue(prefix)} %'`);
+      clauses.add(`${field} LIKE '${escapeCargoValue(prefix)}/%'`);
     }
   }
   return `(${[...clauses].join(" OR ")})`;

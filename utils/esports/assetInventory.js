@@ -36,6 +36,11 @@ function normalizeRole(value = "") {
   return String(value || "").trim();
 }
 
+function isPlayerRole(value = "") {
+  return ["Top", "Jungle", "Mid", "Adc", "Support", "Substitute"]
+    .includes(normalizeRole(value));
+}
+
 function parseRosterRows(rows = [], options = {}) {
   const year = String(options.year || "2026");
   const teams = new Map();
@@ -62,6 +67,7 @@ function parseRosterRows(rows = [], options = {}) {
     const rosterLinks = splitAlignedList(row.RosterLinks);
     const roles = splitAlignedList(row.Roles);
     rosterLinks.forEach((link, index) => {
+      if (!isPlayerRole(roles[index] || "")) return;
       const publicName = String(link).replace(/^.*\//, "").trim();
       const playerId = playerSlug(publicName);
       if (!playerId) return;
