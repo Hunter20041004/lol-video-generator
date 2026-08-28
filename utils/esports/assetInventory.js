@@ -33,6 +33,7 @@ function normalizeRole(value = "") {
   if (["jungle", "jungler", "jg"].includes(role)) return "Jungle";
   if (["mid", "middle"].includes(role)) return "Mid";
   if (["top", "toplane"].includes(role)) return "Top";
+  if (["sub", "substitute", "reserve"].includes(role)) return "Substitute";
   return String(value || "").trim();
 }
 

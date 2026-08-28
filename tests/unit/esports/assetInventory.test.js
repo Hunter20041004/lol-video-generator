@@ -16,8 +16,8 @@ test("parseRosterRows aligns player roles, deduplicates registrations, and exclu
       Team: "GEN",
       Short: "GEN",
       Tournament: "LCK/2026 Season/Rounds 1-2",
-      RosterLinks: "Ruler;;Coach Kim",
-      Roles: "Bot;;Coach",
+      RosterLinks: "Ruler;;Benchman;;Coach Kim",
+      Roles: "Bot;;Sub;;Coach",
     },
   ], { year: "2026" });
 
@@ -26,6 +26,7 @@ test("parseRosterRows aligns player roles, deduplicates registrations, and exclu
     ["ruler", "GEN", "Adc"],
     ["mata", "GEN", "Support"],
     ["caps", "G2 Esports", "Mid"],
+    ["benchman", "GEN", "Substitute"],
   ]);
   assert.equal(parsed.players.some(({ playerId }) => playerId === "coach-kim"), false);
 });
