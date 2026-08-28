@@ -10,7 +10,7 @@ const {
 
 function makeViewModel(edgeChampion = "Xin Zhao") {
   return {
-    seriesContext: { season: "2026", teamA: "GEN", teamB: "HLE" },
+    seriesContext: { season: "2026", matchDate: "2026-08-13", teamA: "GEN", teamB: "HLE" },
     matchup: {
       edgePlayer: { name: "JackeyLove", championPlayed: edgeChampion },
       opponentPlayer: { name: "Elk", championPlayed: "Vi" },
@@ -33,8 +33,8 @@ test("resolvePlayerRadarAssets resolves both series teams as verified crests", a
   });
 
   assert.deepEqual(resolvedTeams, [
-    { team: "GEN", season: "2026" },
-    { team: "HLE", season: "2026" },
+    { team: "GEN", season: "2026", matchDate: "2026-08-13" },
+    { team: "HLE", season: "2026", matchDate: "2026-08-13" },
   ]);
   assert.equal(resolved.teams.teamA.publicPath, "/team-crests/gen.png");
   assert.equal(resolved.teams.teamB.publicPath, "/team-crests/hle.png");
@@ -59,6 +59,25 @@ const makePortrait = () => ({
   sha256: "verified-hash",
   width: 693,
   height: 549,
+});
+
+test("resolvePlayerRadarAssets reports every identity gap before champion network requests", async () => {
+  let cacheCalls = 0;
+  const missing = () => Object.assign(new Error("not found"), { code: "ASSET_IDENTITY_NOT_FOUND" });
+
+  await assert.rejects(
+    () => resolvePlayerRadarAssets({
+      ...makeViewModel(),
+      seriesContext: { season: "2026", matchDate: "2026-08-27", teamA: "BNK FEARX", teamB: "Nongshim RedForce" },
+      proof: { player: { playerId: "taeyoon", name: "Taeyoon", team: "BNK FEARX", champions: ["Ezreal"] } },
+    }, {
+      cacheRemoteImageUrlImpl: async () => { cacheCalls += 1; return "/render-assets/official.png"; },
+      resolvePlayerPortraitImpl: () => { throw missing(); },
+      resolveTeamCrestImpl: () => { throw missing(); },
+    }),
+    (error) => error.code === "ESPORTS_ASSETS_MISSING" && error.missing.length === 3
+  );
+  assert.equal(cacheCalls, 0);
 });
 
 test("resolvePlayerRadarAssets blocks rendering when the official square face is unavailable", async () => {

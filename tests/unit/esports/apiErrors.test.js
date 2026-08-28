@@ -85,3 +85,24 @@ test("formatEsportsApiError preserves unknown errors as server failures", () => 
   assert.equal(result.userMessage, "Player radar failed.");
   assert.equal(result.error, "renderer exploded");
 });
+
+test("formatEsportsApiError preserves a safe structured esports asset gap", () => {
+  const { formatEsportsApiError } = require("../../../utils/esports/apiErrors");
+  const error = Object.assign(new Error("Required esports assets missing (3)."), {
+    code: "ESPORTS_ASSETS_MISSING",
+    missing: [
+      { kind: "portrait", publicName: "Taeyoon", team: "BNK FEARX" },
+      { kind: "teamA", team: "BNK FEARX" },
+      { kind: "teamB", team: "Nongshim RedForce" },
+    ],
+  });
+
+  const result = formatEsportsApiError(error);
+
+  assert.equal(result.code, "ESPORTS_ASSETS_MISSING");
+  assert.equal(result.status, 422);
+  assert.equal(result.recoverable, false);
+  assert.match(result.userMessage, /3 項正式素材/);
+  assert.deepEqual(result.missing, error.missing);
+  assert.doesNotMatch(JSON.stringify(result), /Users\//);
+});

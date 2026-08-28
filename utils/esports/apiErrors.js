@@ -58,6 +58,27 @@ function formatEsportsApiError(error, options = {}) {
     };
   }
 
+  if (error?.code === "ESPORTS_ASSETS_MISSING") {
+    const missing = (Array.isArray(error.missing) ? error.missing : []).map((entry) => ({
+      kind: String(entry.kind || "asset"),
+      ...(entry.playerId ? { playerId: String(entry.playerId) } : {}),
+      ...(entry.publicName ? { publicName: String(entry.publicName) } : {}),
+      ...(entry.team ? { team: String(entry.team) } : {}),
+      ...(entry.season ? { season: String(entry.season) } : {}),
+      ...(entry.matchDate ? { matchDate: String(entry.matchDate) } : {}),
+    }));
+    return {
+      success: false,
+      code: "ESPORTS_ASSETS_MISSING",
+      status: 422,
+      recoverable: false,
+      userMessage: `這場影片缺少 ${missing.length} 項正式素材，尚未開始算圖。`,
+      recoverySuggestion: "請先把列出的選手照片與隊徽通過來源核准並匯入素材庫。",
+      missing,
+      error: message,
+    };
+  }
+
   return {
     success: false,
     code: options.code || "ESPORTS_PIPELINE_ERROR",

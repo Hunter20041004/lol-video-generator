@@ -6,6 +6,7 @@ const {
 } = require("./remoteAssetCache");
 const { resolvePlayerPortrait } = require("./playerPortraitManifest");
 const { resolveTeamCrest } = require("./teamCrestManifest");
+const { preflightEsportsIdentityAssets } = require("./esportsAssetPreflight");
 
 const championSplashUrl = (id) =>
   `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`;
@@ -33,19 +34,15 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
   const edgePlayer = viewModel.matchup?.edgePlayer || {};
   const opponentPlayer = viewModel.matchup?.opponentPlayer || {};
   const proofPlayer = viewModel.proof?.player || {};
-  const season = viewModel.seriesContext?.season || "2026";
-  const teamA = viewModel.seriesContext?.teamA;
-  const teamB = viewModel.seriesContext?.teamB;
   const heroNames = [edgePlayer.championPlayed, opponentPlayer.championPlayed];
   const heroIds = heroNames.map(normalizeChampionId);
   const proofNames = (proofPlayer.champions || []).slice(0, 3);
   const proofIds = proofNames.map(normalizeChampionId);
-  const resolvedPortrait = resolvePlayerPortraitImpl({
-    playerId: proofPlayer.playerId,
-    publicName: proofPlayer.name,
-    team: proofPlayer.team,
-    season: viewModel.seriesContext?.season || "2026",
-  }, { rootDir });
+  const preflight = preflightEsportsIdentityAssets(viewModel, {
+    resolvePlayerPortrait: (identity) => resolvePlayerPortraitImpl(identity, { rootDir }),
+    resolveTeamCrest: (identity) => resolveTeamCrestImpl(identity, { rootDir }),
+  });
+  const resolvedPortrait = preflight.playerPortrait;
   const playerPortrait = {
     playerId: resolvedPortrait.playerId,
     publicName: resolvedPortrait.publicName,
@@ -69,8 +66,7 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
   const proofSquares = supporting.slice(0, proofIds.length);
   const smiteSrc = supporting[proofIds.length];
   const mapSrc = supporting[proofIds.length + 1];
-  const renderTeamCrest = (identity) => {
-    const crest = resolveTeamCrestImpl(identity, { rootDir });
+  const renderTeamCrest = (crest) => {
     return {
       team: crest.team,
       season: crest.season,
@@ -81,8 +77,8 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
     };
   };
   const teams = resolveTeamCrestImpl ? {
-    teamA: renderTeamCrest({ team: teamA, season }),
-    teamB: renderTeamCrest({ team: teamB, season }),
+    teamA: renderTeamCrest(preflight.teams.teamA),
+    teamB: renderTeamCrest(preflight.teams.teamB),
   } : undefined;
 
   const buildHero = (championName, splashSrc, squareSrc) => {
