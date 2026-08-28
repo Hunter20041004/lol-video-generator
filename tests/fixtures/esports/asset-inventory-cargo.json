@@ -1,0 +1,56 @@
+{
+  "tournaments": [
+    { "Name": "LCK 2026 Season", "Year": "2026", "DateStart": "2026-04-01" },
+    { "Name": "LEC 2026 Summer", "Year": "2026", "DateStart": "2026-07-01" },
+    { "Name": "LCK CL 2026 Summer", "Year": "2026", "DateStart": "2026-07-01" }
+  ],
+  "rosters": [
+    {
+      "Team": "GEN",
+      "OverviewPage": "LCK/2026 Season",
+      "Region": "KR",
+      "RosterLinks": "Ruler;;Mata",
+      "Roles": "Bot;;Support",
+      "Tournament": "LCK 2026 Season",
+      "Short": "GEN",
+      "IsComplete": "1"
+    },
+    {
+      "Team": "GEN",
+      "OverviewPage": "LCK/2026 Season",
+      "Region": "KR",
+      "RosterLinks": "Ruler",
+      "Roles": "Bot",
+      "Tournament": "LCK 2026 Season",
+      "Short": "GEN",
+      "IsComplete": "1"
+    },
+    {
+      "Team": "G2 Esports",
+      "OverviewPage": "LEC/2026 Season/Summer",
+      "Region": "EU",
+      "RosterLinks": "Caps",
+      "Roles": "Mid",
+      "Tournament": "LEC 2026 Summer",
+      "Short": "G2",
+      "IsComplete": "1"
+    },
+    {
+      "Team": "Academy Team",
+      "OverviewPage": "LCK CL/2026 Season",
+      "Region": "KR",
+      "RosterLinks": "Prospect",
+      "Roles": "Top",
+      "Tournament": "LCK CL 2026 Summer",
+      "Short": "ACA",
+      "IsComplete": "1"
+    }
+  ],
+  "playerImages": [
+    { "FileName": "GEN Ruler.png", "Link": "Ruler", "Team": "GEN", "Tournament": "LCK 2026 Season", "ImageType": "Player", "IsProfileImage": "1", "SortDate": "2026-01-01" }
+  ],
+  "teams": [
+    { "Name": "GEN", "OverviewPage": "Gen.G", "Short": "GEN", "Region": "KR", "Image": "Gen.Glogo.png", "Website": "https://geng.gg/" },
+    { "Name": "G2 Esports", "OverviewPage": "G2 Esports", "Short": "G2", "Region": "EU", "Image": "G2 Esportslogo.png", "Website": "https://g2esports.com/" }
+  ]
+}
