@@ -314,6 +314,31 @@ async function cargoQuery(params) {
 // SECTION 2 · High-Level Fetch Functions
 // =========================================================================
 
+const SCOREBOARD_MATCH_FIELDS = [
+  'ScoreboardGames.OverviewPage',
+  'ScoreboardGames.Tournament',
+  'ScoreboardGames.DateTime_UTC',
+  'ScoreboardGames.Team1',
+  'ScoreboardGames.Team2',
+  'ScoreboardGames.WinTeam',
+  'ScoreboardGames.LossTeam',
+  'ScoreboardGames.Team1Score',
+  'ScoreboardGames.Team2Score',
+  'ScoreboardGames.Gamelength',
+  'ScoreboardGames.Patch',
+  'ScoreboardGames.GameId',
+].join(',');
+
+function deduplicateMatchRows(rows = []) {
+  const seen = new Set();
+  return rows.filter((row) => {
+    const key = row.GameId || `${row.Team1}_${row.Team2}_${row['DateTime UTC'] || row.DateTime_UTC}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 /**
  * Fetches recent completed matches from Leaguepedia.
  * Returns match-level data (no per-player stats yet — use fetchMatchPlayers for that).
@@ -333,36 +358,55 @@ async function fetchRecentMatches(hours = 24, tournament = null) {
 
   const rows = await cargoQuery({
     tables: 'ScoreboardGames',
-    fields: [
-      'ScoreboardGames.OverviewPage',
-      'ScoreboardGames.Tournament',
-      'ScoreboardGames.DateTime_UTC',
-      'ScoreboardGames.Team1',
-      'ScoreboardGames.Team2',
-      'ScoreboardGames.WinTeam',
-      'ScoreboardGames.LossTeam',
-      'ScoreboardGames.Team1Score',
-      'ScoreboardGames.Team2Score',
-      'ScoreboardGames.Gamelength',
-      'ScoreboardGames.Patch',
-      'ScoreboardGames.GameId',
-    ].join(','),
+    fields: SCOREBOARD_MATCH_FIELDS,
     where,
     order_by: 'ScoreboardGames.DateTime_UTC DESC',
     limit: 5,
   });
 
   // Deduplicate by GameId
-  const seen = new Set();
-  const unique = rows.filter(r => {
-    const key = r.GameId || `${r.Team1}_${r.Team2}_${r['DateTime UTC'] || r.DateTime_UTC}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  const unique = deduplicateMatchRows(rows);
 
   console.log(`🏟️ [Leaguepedia] Found ${unique.length} recent matches (last ${hours}h)`);
   return unique.map(r => normalizeMatchRow(r));
+}
+
+/**
+ * Fetches completed matches whose UTC timestamp falls on an exact calendar date.
+ *
+ * @param {string} date — UTC date in YYYY-MM-DD form
+ * @param {string} [tournament] — Optional tournament name fragment
+ * @returns {Array} — Array of normalized match objects
+ */
+async function fetchMatchesForDate(date, tournament = null) {
+  const normalizedDate = String(date || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+    throw new Error('Leaguepedia match date must use YYYY-MM-DD.');
+  }
+  const start = new Date(`${normalizedDate}T00:00:00.000Z`);
+  if (Number.isNaN(start.getTime()) || start.toISOString().slice(0, 10) !== normalizedDate) {
+    throw new Error('Leaguepedia match date is invalid.');
+  }
+  const nextDate = new Date(start.getTime() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const escapedTournament = String(tournament || '').replaceAll("'", "''");
+  const where = [
+    escapedTournament ? `ScoreboardGames.Tournament LIKE '%${escapedTournament}%'` : '',
+    `ScoreboardGames.DateTime_UTC >= '${normalizedDate} 00:00:00'`,
+    `ScoreboardGames.DateTime_UTC < '${nextDate} 00:00:00'`,
+  ].filter(Boolean).join(' AND ');
+
+  const rows = await cargoQuery({
+    tables: 'ScoreboardGames',
+    fields: SCOREBOARD_MATCH_FIELDS,
+    where,
+    order_by: 'ScoreboardGames.DateTime_UTC DESC',
+    limit: 50,
+  });
+
+  const unique = deduplicateMatchRows(rows);
+
+  console.log(`🏟️ [Leaguepedia] Found ${unique.length} matches on ${normalizedDate}`);
+  return unique.map((row) => normalizeMatchRow(row));
 }
 
 /**
@@ -680,6 +724,7 @@ function normalizeRole(raw) {
 module.exports = {
   // High-level fetchers
   fetchRecentMatches,
+  fetchMatchesForDate,
   fetchMatchPlayers,
   fetchMatchTeamStats,
   fetchRecentMatchesWithPlayers,
