@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "competitions": [
+    {
+      "id": "LCK",
+      "label": "LCK",
+      "kind": "regional",
+      "region": "Korea",
+      "order": 10,
+      "exactNames": ["LCK"],
+      "prefixes": ["LCK"],
+      "excludedPrefixes": ["LCK CL", "LCK AS"]
+    },
+    {
+      "id": "LPL",
+      "label": "LPL",
+      "kind": "regional",
+      "region": "China",
+      "order": 20,
+      "exactNames": ["LPL"],
+      "prefixes": ["LPL"],
+      "excludedPrefixes": ["LPL Development League"]
+    },
+    {
+      "id": "LEC",
+      "label": "LEC",
+      "kind": "regional",
+      "region": "EMEA",
+      "order": 30,
+      "exactNames": ["LEC"],
+      "prefixes": ["LEC"],
+      "excludedPrefixes": ["LEC Academy"]
+    },
+    {
+      "id": "LCS",
+      "label": "LCS",
+      "kind": "regional",
+      "region": "North America",
+      "order": 40,
+      "exactNames": ["LCS"],
+      "prefixes": ["LCS"],
+      "excludedPrefixes": ["LCS Challengers"]
+    },
+    {
+      "id": "CBLOL",
+      "label": "CBLOL",
+      "kind": "regional",
+      "region": "Brazil",
+      "order": 50,
+      "exactNames": ["CBLOL"],
+      "prefixes": ["CBLOL"],
+      "excludedPrefixes": ["CBLOL Academy"]
+    },
+    {
+      "id": "LCP",
+      "label": "LCP",
+      "kind": "regional",
+      "region": "Asia-Pacific",
+      "order": 60,
+      "exactNames": ["LCP"],
+      "prefixes": ["LCP"],
+      "excludedPrefixes": ["LCP Promotion", "LCP Qualifier"]
+    },
+    {
+      "id": "FIRST_STAND",
+      "label": "First Stand",
+      "kind": "international",
+      "region": "International",
+      "order": 70,
+      "exactNames": ["First Stand", "2026 First Stand"],
+      "prefixes": ["First Stand"],
+      "excludedPrefixes": ["First Stand Qualifier"]
+    },
+    {
+      "id": "MSI",
+      "label": "MSI",
+      "kind": "international",
+      "region": "International",
+      "order": 80,
+      "exactNames": ["MSI", "Mid-Season Invitational"],
+      "prefixes": ["MSI", "Mid-Season Invitational"],
+      "excludedPrefixes": ["MSI Qualifier"]
+    },
+    {
+      "id": "WORLDS",
+      "label": "Worlds",
+      "kind": "international",
+      "region": "International",
+      "order": 90,
+      "exactNames": ["Worlds", "World Championship"],
+      "prefixes": ["Worlds", "World Championship"],
+      "excludedPrefixes": ["Worlds Qualifying Series", "World Championship Qualifier"]
+    }
+  ]
+}
