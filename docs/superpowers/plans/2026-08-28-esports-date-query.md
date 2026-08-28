@@ -118,10 +118,10 @@ Call `fetchMatchesForDate("2026-08-27", "LCK")` with local environment loading a
 
 Run: `npm run tdd:doctor`, `npm run test:coverage`, `npx next build`, and `npm audit --audit-level=high`.
 
-- [ ] **Step 4: Merge to main and verify the visible workflow**
+- [x] **Step 4: Merge to main and verify the visible workflow**
 
 Fast-forward `main`, rerun the focused tests, reload `http://localhost:49761`, scan `2026-08-27`, and confirm a series selector appears instead of the empty-state message.
 
-- [ ] **Step 5: Update handoff, push, and verify remote main**
+- [x] **Step 5: Update handoff, push, and verify remote main**
 
 Record the root cause, test counts, live match evidence, and browser result in `HANDOFF.md`; commit, push `main`, and confirm the remote SHA matches local.
