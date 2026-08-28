@@ -6,7 +6,7 @@
 
 **Architecture:** A shared competition registry drives Cargo filtering, classification, labels, and tests. Versioned portrait/crest manifests resolve identities by `matchDate`; inventory and import scripts discover roster gaps, normalize only reviewed sources into local assets, and verify coverage before render. The render preflight aggregates every missing asset before any remote champion fetch or Remotion work.
 
-**Tech Stack:** Node.js CommonJS utilities and `node:test`, Next.js 16 App Router, React 19, Leaguepedia Cargo API, FFmpeg, Remotion 4, Playwright CLI.
+**Tech Stack:** Node.js CommonJS utilities and `node:test`, Next.js 16 App Router, React 19, Leaguepedia Cargo API, Sharp 0.35.3, Remotion 4, Playwright CLI.
 
 ## Global Constraints
 
@@ -300,7 +300,7 @@ git commit -m "feat: inventory tier-one esports assets"
 
 **Interfaces:**
 - Produces: `validateApprovedSource(entry): void`
-- Produces: `importApprovedAsset(entry, {fetchImpl, ffmpegPath, rootDir}): Promise<ManifestEntry>`
+- Produces: `importApprovedAsset(entry, {fetchImpl, normalizeImage, rootDir}): Promise<ManifestEntry>`
 - Produces: `verifyEsportsAssetLibrary({rootDir, inventory, asOf}): VerificationReport`
 - Scripts: `assets:inventory`, `assets:import`, and `assets:verify`.
 
@@ -312,13 +312,13 @@ Run: `node --test tests/unit/esports/assetImporter.test.js`.
 
 - [ ] **Step 2: RED/GREEN — download and verify decoded image input**
 
-Use an injected fetch response around the tracked PNG fixture. Assert HTML, SVG, empty bytes, and HTTP failures are rejected before invoking FFmpeg. Keep redirect count bounded and record the final HTTPS URL.
+Use an injected fetch response around the tracked PNG fixture. Assert HTML, SVG, empty bytes, and HTTP failures are rejected before invoking normalization. Keep redirects HTTPS-only and record the final HTTPS URL.
 
 Run: `node --test tests/unit/esports/assetImporter.test.js`.
 
-- [ ] **Step 3: RED/GREEN — deterministic FFmpeg output and manifest metadata**
+- [ ] **Step 3: RED/GREEN — deterministic Sharp output and manifest metadata**
 
-Normalize portraits to WebP and crests to transparent PNG with explicit FFmpeg arguments, then derive the SHA and actual decoded dimensions from written bytes. Run the same fixture twice and assert byte-identical output. Import into a temporary directory only; tests never touch production manifests.
+Normalize portraits to WebP and crests to transparent PNG with pinned Sharp options, then derive the SHA and actual decoded dimensions from written bytes. Run the same fixture twice and assert byte-identical output. Import into a temporary directory only; tests never touch production manifests. Sharp replaces the planned FFmpeg encoder because the calibrated local FFmpeg build exposes a WebP muxer but no WebP encoder.
 
 Run: `node --test tests/unit/esports/assetImporter.test.js`.
 
