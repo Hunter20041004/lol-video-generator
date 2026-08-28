@@ -95,6 +95,25 @@ function cargoValue(value) {
   return String(value).replaceAll("'", "''");
 }
 
+function leaguepediaFileSource(fileName) {
+  const encoded = encodeURIComponent(String(fileName || "").trim());
+  if (!encoded) return null;
+  return {
+    sourceKind: "leaguepedia",
+    sourcePage: `https://lol.fandom.com/wiki/File:${encoded}`,
+    sourceUrl: `https://lol.fandom.com/wiki/Special:Redirect/file/${encoded}`,
+  };
+}
+
+function approvedWebsiteCandidate(value) {
+  try {
+    const url = new URL(String(value || "").trim());
+    return url.protocol === "https:" ? { sourceKind: "team", sourcePage: url.toString() } : null;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchTierOneAssetInventory(options = {}, deps = {}) {
   const year = String(options.year || "2026");
   const asOf = String(options.asOf || new Date().toISOString().slice(0, 10));
@@ -147,7 +166,17 @@ async function fetchTierOneAssetInventory(options = {}, deps = {}) {
     asOf,
     sourceTables: ["Tournaments", "TournamentRosters", "PlayerImages", "Teams"],
     queryScope: { competitionIds: [...new Set(parsed.teams.map(({ competitionId }) => competitionId))] },
-    teams: parsed.teams.map((team) => ({ ...team, sourceTeam: teamsByName.get(normalized(team.team)) || null })),
+    teams: parsed.teams.map((team) => {
+      const sourceTeam = teamsByName.get(normalized(team.team)) || null;
+      return {
+        ...team,
+        sourceTeam,
+        candidateSources: [
+          approvedWebsiteCandidate(sourceTeam?.Website),
+          leaguepediaFileSource(sourceTeam?.Image),
+        ].filter(Boolean),
+      };
+    }),
     players: parsed.players.map((player) => ({
       ...player,
       candidateImage: (() => {
@@ -159,6 +188,11 @@ async function fetchTierOneAssetInventory(options = {}, deps = {}) {
           tournament: row.Tournament,
           sortDate: row.SortDate,
         } : null;
+      })(),
+      candidateSources: (() => {
+        const row = imagesByPlayer.get(`${player.playerId}::${normalized(player.team)}`);
+        const source = leaguepediaFileSource(row?.FileName);
+        return source ? [source] : [];
       })(),
     })),
   };

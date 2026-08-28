@@ -7,6 +7,7 @@ const {
   fetchTierOneAssetInventory,
   parseRosterRows,
 } = require("../../../utils/esports/assetInventory");
+const { markdownReport } = require("../../../scripts/esportsAssetInventory");
 
 test("parseRosterRows aligns player roles, deduplicates registrations, and excludes lower tiers", () => {
   const parsed = parseRosterRows([
@@ -49,7 +50,21 @@ test("fetchTierOneAssetInventory uses the four documented Cargo tables and prese
   assert.deepEqual(inventory.sourceTables, ["Tournaments", "TournamentRosters", "PlayerImages", "Teams"]);
   assert.equal(inventory.teams.length, 2);
   assert.equal(inventory.players.length, 3);
-  assert.equal(inventory.players.find(({ playerId }) => playerId === "ruler").candidateImage.fileName, "GEN Ruler.png");
+  const ruler = inventory.players.find(({ playerId }) => playerId === "ruler");
+  assert.equal(ruler.candidateImage.fileName, "GEN Ruler.png");
+  assert.deepEqual(ruler.candidateSources, [{
+    sourceKind: "leaguepedia",
+    sourcePage: "https://lol.fandom.com/wiki/File:GEN%20Ruler.png",
+    sourceUrl: "https://lol.fandom.com/wiki/Special:Redirect/file/GEN%20Ruler.png",
+  }]);
+  assert.deepEqual(inventory.teams.find(({ team }) => team === "GEN").candidateSources, [
+    { sourceKind: "team", sourcePage: "https://geng.gg/" },
+    {
+      sourceKind: "leaguepedia",
+      sourcePage: "https://lol.fandom.com/wiki/File:Gen.Glogo.png",
+      sourceUrl: "https://lol.fandom.com/wiki/Special:Redirect/file/Gen.Glogo.png",
+    },
+  ]);
 });
 
 test("compareInventoryToManifests reports calibrated team and player coverage", () => {
@@ -77,4 +92,31 @@ test("compareInventoryToManifests reports calibrated team and player coverage", 
   });
   assert.deepEqual(report.missingTeams.map(({ team }) => team), ["G2 Esports"]);
   assert.deepEqual(report.missingPlayers.map(({ playerId }) => playerId), ["caps", "mata"]);
+});
+
+test("markdown inventory exposes review candidates without approving them", () => {
+  const inventory = {
+    sourceTables: ["Tournaments", "TournamentRosters", "PlayerImages", "Teams"],
+    teams: [{
+      team: "GEN",
+      candidateSources: [{ sourceKind: "team", sourcePage: "https://geng.gg/" }],
+    }],
+    players: [{
+      publicName: "Ruler",
+      team: "GEN",
+      candidateSources: [{ sourceKind: "leaguepedia", sourcePage: "https://lol.fandom.com/wiki/File:GEN%20Ruler.png" }],
+    }],
+  };
+  const coverage = {
+    asOf: "2026-08-28",
+    counts: { coveredTeams: 0, teams: 1, coveredPlayers: 0, players: 1 },
+    missingTeams: inventory.teams,
+    missingPlayers: inventory.players,
+  };
+
+  const report = markdownReport(inventory, coverage);
+
+  assert.match(report, /GEN — \[team candidate\]\(https:\/\/geng\.gg\/\)/);
+  assert.match(report, /Ruler — GEN — \[leaguepedia candidate\]/);
+  assert.match(report, /Candidates require explicit review; this report does not approve them/);
 });

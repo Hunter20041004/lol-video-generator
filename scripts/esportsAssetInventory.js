@@ -39,21 +39,30 @@ function safeOutputPath(value, extension) {
 }
 
 function markdownReport(inventory, coverage) {
+  const reviewLinks = (entry) => (entry.candidateSources || [])
+    .filter(({ sourcePage }) => /^https:\/\//.test(String(sourcePage || "")))
+    .map(({ sourceKind, sourcePage }) => `[${sourceKind} candidate](${sourcePage})`)
+    .join(" · ");
   return [
     `# Esports asset coverage — ${coverage.asOf}`,
     "",
     `- Source tables: ${inventory.sourceTables.join(", ")}`,
     `- Teams: ${coverage.counts.coveredTeams}/${coverage.counts.teams}`,
     `- Players: ${coverage.counts.coveredPlayers}/${coverage.counts.players}`,
+    "- Candidates require explicit review; this report does not approve them.",
     "",
     "## Missing teams",
     "",
-    ...(coverage.missingTeams.length ? coverage.missingTeams.map(({ team }) => `- ${team}`) : ["- None"]),
+    ...(coverage.missingTeams.length ? coverage.missingTeams.map((entry) => (
+      `- ${entry.team}${reviewLinks(entry) ? ` — ${reviewLinks(entry)}` : " — no candidate source"}`
+    )) : ["- None"]),
     "",
     "## Missing players",
     "",
     ...(coverage.missingPlayers.length
-      ? coverage.missingPlayers.map(({ publicName, team }) => `- ${publicName} — ${team}`)
+      ? coverage.missingPlayers.map((entry) => (
+        `- ${entry.publicName} — ${entry.team}${reviewLinks(entry) ? ` — ${reviewLinks(entry)}` : " — no candidate source"}`
+      ))
       : ["- None"]),
     "",
   ].join("\n");
