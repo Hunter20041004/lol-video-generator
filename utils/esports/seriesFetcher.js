@@ -47,8 +47,9 @@ async function fetchCompletedSeriesForDate(options = {}, deps = {}) {
   const tournaments = options.activeMode?.tournaments || [];
   const fetchRecentMatches = deps.fetchRecentMatches || leaguepedia.fetchRecentMatches;
   const fetchMatchesForDate = deps.fetchMatchesForDate
-    || (deps.fetchRecentMatches ? ((selectedDate, tournament) => fetchRecentMatches(36, tournament)) : leaguepedia.fetchMatchesForDate)
-    || ((selectedDate, tournament) => fetchRecentMatches(36, tournament));
+    || (deps.fetchRecentMatches
+      ? ((selectedDate, tournament) => fetchRecentMatches(36, tournament))
+      : leaguepedia.fetchMatchesForDate);
   const fetchMatchPlayers = deps.fetchMatchPlayers || leaguepedia.fetchMatchPlayers;
   const fetchMatchTeamStats = deps.fetchMatchTeamStats || leaguepedia.fetchMatchTeamStats;
   const groups = new Map();
