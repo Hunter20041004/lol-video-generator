@@ -92,6 +92,10 @@ git add tests/unit/esports/leaguepediaSecurity.test.js utils/leaguepediaApi.js
 git commit -m "fix: query Leaguepedia matches by selected date"
 ```
 
+- [x] **Review follow-up: keep league abbreviations from matching unrelated tournaments**
+
+Added a Red → Green contract proving `LPL` matches only `LPL` or names beginning with `LPL `, excluding `LPLOL` and tournament names that merely contain `LPL` later in the string. Applied the same acronym rule to exact-date filters such as `LCK`.
+
 ### Task 3: Verify the real user flow and document evidence
 
 **Files:**

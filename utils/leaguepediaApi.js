@@ -389,8 +389,13 @@ async function fetchMatchesForDate(date, tournament = null) {
   }
   const nextDate = new Date(start.getTime() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const escapedTournament = String(tournament || '').replaceAll("'", "''");
+  const tournamentWhere = escapedTournament
+    ? (/^[A-Z0-9]{2,5}$/.test(escapedTournament)
+      ? `(ScoreboardGames.Tournament = '${escapedTournament}' OR ScoreboardGames.Tournament LIKE '${escapedTournament} %')`
+      : `ScoreboardGames.Tournament LIKE '%${escapedTournament}%'`)
+    : '';
   const where = [
-    escapedTournament ? `ScoreboardGames.Tournament LIKE '%${escapedTournament}%'` : '',
+    tournamentWhere,
     `ScoreboardGames.DateTime_UTC >= '${normalizedDate} 00:00:00'`,
     `ScoreboardGames.DateTime_UTC < '${nextDate} 00:00:00'`,
   ].filter(Boolean).join(' AND ');

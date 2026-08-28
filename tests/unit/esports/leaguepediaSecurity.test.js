@@ -32,9 +32,34 @@ test("fetchMatchesForDate bounds the Cargo query to the selected UTC date", asyn
     await fetchMatchesForDate("2026-08-27", "LCK");
     const where = new URL(requestedUrl).searchParams.get("where");
 
-    assert.match(where, /ScoreboardGames\.Tournament LIKE '%LCK%'/);
+    assert.match(where, /\(ScoreboardGames\.Tournament = 'LCK' OR ScoreboardGames\.Tournament LIKE 'LCK %'\)/);
     assert.match(where, /ScoreboardGames\.DateTime_UTC >= '2026-08-27 00:00:00'/);
     assert.match(where, /ScoreboardGames\.DateTime_UTC < '2026-08-28 00:00:00'/);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("fetchMatchesForDate keeps league abbreviations from matching unrelated tournaments", async () => {
+  const originalFetch = global.fetch;
+  let requestedUrl = "";
+  global.fetch = async (url) => {
+    requestedUrl = String(url);
+    return {
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      json: async () => ({ cargoquery: [] }),
+    };
+  };
+
+  try {
+    const { fetchMatchesForDate } = require(path.join(ROOT, "utils/leaguepediaApi.js"));
+    await fetchMatchesForDate("2026-08-27", "LPL");
+    const where = new URL(requestedUrl).searchParams.get("where");
+
+    assert.match(where, /\(ScoreboardGames\.Tournament = 'LPL' OR ScoreboardGames\.Tournament LIKE 'LPL %'\)/);
+    assert.doesNotMatch(where, /LIKE '%LPL%'/);
   } finally {
     global.fetch = originalFetch;
   }
