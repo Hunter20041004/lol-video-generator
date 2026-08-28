@@ -129,13 +129,16 @@ async function fetchTierOneAssetInventory(options = {}, deps = {}) {
     .filter((row) => !row.DateStart || String(row.DateStart).slice(0, 10) <= asOf)
     .map((row) => String(row.Name || "").trim())
     .filter((name) => classifyTierOneTournament(name)));
+  if (eligibleTournaments.size === 0) {
+    throw new Error(`Leaguepedia returned no eligible tournaments for ${year} as of ${asOf}; coverage was not calculated.`);
+  }
   const rosterRows = await cargoQuery({
     tables: "TournamentRosters",
     fields: "Team,OverviewPage,Region,RosterLinks,Roles,Tournament,Short,IsComplete",
     where: `${buildTierOneTournamentWhere("TournamentRosters.Tournament")} AND TournamentRosters.Tournament LIKE '%${cargoValue(year)}%'`,
     limit: 50,
   });
-  const scopedRosters = rosterRows.filter((row) => eligibleTournaments.size === 0 || eligibleTournaments.has(String(row.Tournament || "").trim()));
+  const scopedRosters = rosterRows.filter((row) => eligibleTournaments.has(String(row.Tournament || "").trim()));
   const parsed = parseRosterRows(scopedRosters, { year });
   const playerImages = await cargoQuery({
     tables: "PlayerImages",

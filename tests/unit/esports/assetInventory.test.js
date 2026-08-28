@@ -67,6 +67,15 @@ test("fetchTierOneAssetInventory uses the four documented Cargo tables and prese
   ]);
 });
 
+test("fetchTierOneAssetInventory never treats an empty tournament boundary as zero coverage", async () => {
+  await assert.rejects(
+    () => fetchTierOneAssetInventory({ year: "2026", asOf: "2026-08-28" }, {
+      cargoQuery: async ({ tables }) => tables === "Tournaments" ? [] : fixture[tables],
+    }),
+    /returned no eligible tournaments/i
+  );
+});
+
 test("compareInventoryToManifests reports calibrated team and player coverage", () => {
   const inventory = {
     asOf: "2026-08-28",
