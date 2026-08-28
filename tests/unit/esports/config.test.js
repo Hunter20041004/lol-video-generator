@@ -53,3 +53,12 @@ test("resolveActiveMode normalizes world aliases and merges custom tournament fi
   assert.equal(result.mode, "worlds");
   assert.deepEqual(result.tournaments, ["World Championship 2026"]);
 });
+
+test("resolveActiveMode always exposes the complete configured tier-one scan scope", () => {
+  const { resolveActiveMode } = require("../../../utils/esports/config");
+  const result = resolveActiveMode({ activeMode: "auto" }, new Date("2026-08-27T12:00:00.000Z"));
+
+  assert.deepEqual(result.configuredCompetitionIds, [
+    "LCK", "LPL", "LEC", "LCS", "CBLOL", "LCP", "FIRST_STAND", "MSI", "WORLDS",
+  ]);
+});

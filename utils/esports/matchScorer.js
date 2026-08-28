@@ -1,4 +1,11 @@
 const { mergeEsportsConfig, normalizeMode } = require("./config");
+const { listTierOneCompetitions } = require("./competitionRegistry");
+
+const REGIONAL_LEAGUES = new Set(
+  listTierOneCompetitions()
+    .filter(({ kind }) => kind === "regional")
+    .map(({ label }) => label)
+);
 
 function number(value, fallback = 0) {
   const parsed = Number(value);
@@ -77,7 +84,7 @@ function selectDailySeries(candidates = [], configInput = {}) {
   const maxDailySeries = Math.max(1, Math.min(2, number(config.maxDailySeries, 2)));
   const scoredCandidates = ensureScores(candidates, config).sort(byScoreDesc);
   const scoped = mode === "regular"
-    ? scoredCandidates.filter((candidate) => ["LCK", "LPL"].includes(candidate.league))
+    ? scoredCandidates.filter((candidate) => REGIONAL_LEAGUES.has(candidate.league))
     : scoredCandidates.filter((candidate) => candidate.league === (mode === "msi" ? "MSI" : "Worlds"));
 
   return mode === "regular"

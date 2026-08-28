@@ -83,6 +83,33 @@ test("fetchCompletedSeriesForDate queries the selected date at the source bounda
   assert.equal(candidates.length, 1);
 });
 
+test("fetchCompletedSeriesForDate queries the configured global scope once and classifies every series", async () => {
+  const { fetchCompletedSeriesForDate } = require("../../../utils/esports/seriesFetcher");
+  const dates = [];
+  const matches = [
+    { ...makeMatch("lec-g1", "LEC 2026 Summer", "G2", "KC", "G2"), dateUtc: "2026-08-27T12:00:00Z" },
+    { ...makeMatch("cblol-g1", "CBLOL 2026 Split 2", "LOUD", "FURIA", "LOUD"), dateUtc: "2026-08-27T16:00:00Z" },
+  ];
+  const candidates = await fetchCompletedSeriesForDate({
+    date: "2026-08-27",
+    activeMode: { mode: "regular", tournaments: ["LCK", "LPL"] },
+    tournamentScope: "configured",
+  }, {
+    fetchTierOneMatchesForDate: async (date) => {
+      dates.push(date);
+      return matches;
+    },
+    fetchMatchPlayers: async (gameId) => {
+      const match = matches.find((candidate) => candidate.gameId === gameId);
+      return { match, players: makePlayers(match.matchContext.teamA, match.matchContext.teamB) };
+    },
+    fetchMatchTeamStats: async () => [],
+  });
+
+  assert.deepEqual(dates, ["2026-08-27"]);
+  assert.deepEqual(candidates.map(({ league }) => league), ["LEC", "CBLOL"]);
+});
+
 test("fetchCompletedSeriesForDate stores ScoreboardTeams rows on their game", async () => {
   const { fetchCompletedSeriesForDate } = require("../../../utils/esports/seriesFetcher");
 

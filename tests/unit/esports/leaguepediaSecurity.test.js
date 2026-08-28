@@ -64,3 +64,34 @@ test("fetchMatchesForDate keeps league abbreviations from matching unrelated tou
     global.fetch = originalFetch;
   }
 });
+
+test("fetchTierOneMatchesForDate combines the exact UTC date with the global registry predicate", async () => {
+  const originalFetch = global.fetch;
+  let requestedUrl = "";
+  global.fetch = async (url) => {
+    requestedUrl = String(url);
+    return {
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      json: async () => ({ cargoquery: [] }),
+    };
+  };
+
+  try {
+    const { fetchTierOneMatchesForDate } = require(path.join(ROOT, "utils/leaguepediaApi.js"));
+    await fetchTierOneMatchesForDate("2026-08-27");
+    const url = new URL(requestedUrl);
+    const where = url.searchParams.get("where");
+
+    assert.match(where, /ScoreboardGames\.Tournament = 'LCK'/);
+    assert.match(where, /ScoreboardGames\.Tournament LIKE 'CBLOL %'/);
+    assert.match(where, /ScoreboardGames\.Tournament = '2026 First Stand'/);
+    assert.match(where, /ScoreboardGames\.Tournament LIKE 'World Championship %'/);
+    assert.match(where, /ScoreboardGames\.DateTime_UTC >= '2026-08-27 00:00:00'/);
+    assert.match(where, /ScoreboardGames\.DateTime_UTC < '2026-08-28 00:00:00'/);
+    assert.equal(url.searchParams.get("limit"), "50");
+  } finally {
+    global.fetch = originalFetch;
+  }
+});

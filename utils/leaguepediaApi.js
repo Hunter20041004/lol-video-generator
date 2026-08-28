@@ -26,6 +26,7 @@ const {
   recordSourceCooldown,
 } = require('./esports/sourceCooldown');
 const LEAGUEPEDIA_SOURCE = 'leaguepedia';
+const { buildTierOneTournamentWhere } = require('./esports/competitionRegistry');
 
 // =========================================================================
 // SECTION 0 · MediaWiki Bot Authentication (clientlogin flow)
@@ -414,6 +415,31 @@ async function fetchMatchesForDate(date, tournament = null) {
   return unique.map((row) => normalizeMatchRow(row));
 }
 
+async function fetchTierOneMatchesForDate(date) {
+  const normalizedDate = String(date || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+    throw new Error('Leaguepedia match date must use YYYY-MM-DD.');
+  }
+  const start = new Date(`${normalizedDate}T00:00:00.000Z`);
+  if (Number.isNaN(start.getTime()) || start.toISOString().slice(0, 10) !== normalizedDate) {
+    throw new Error('Leaguepedia match date is invalid.');
+  }
+  const nextDate = new Date(start.getTime() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const where = [
+    buildTierOneTournamentWhere('ScoreboardGames.Tournament'),
+    `ScoreboardGames.DateTime_UTC >= '${normalizedDate} 00:00:00'`,
+    `ScoreboardGames.DateTime_UTC < '${nextDate} 00:00:00'`,
+  ].join(' AND ');
+  const rows = await cargoQuery({
+    tables: 'ScoreboardGames',
+    fields: SCOREBOARD_MATCH_FIELDS,
+    where,
+    order_by: 'ScoreboardGames.DateTime_UTC DESC',
+    limit: 50,
+  });
+  return deduplicateMatchRows(rows).map((row) => normalizeMatchRow(row));
+}
+
 /**
  * Fetches all player stats for a specific match.
  * Uses the UniqueGame identifier to join ScoreboardGames with ScoreboardPlayers.
@@ -730,6 +756,7 @@ module.exports = {
   // High-level fetchers
   fetchRecentMatches,
   fetchMatchesForDate,
+  fetchTierOneMatchesForDate,
   fetchMatchPlayers,
   fetchMatchTeamStats,
   fetchRecentMatchesWithPlayers,

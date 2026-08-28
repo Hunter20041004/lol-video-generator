@@ -1,4 +1,5 @@
 const leaguepedia = require("../leaguepediaApi");
+const { classifyTierOneTournament } = require("./competitionRegistry");
 
 function normalizeDate(value = "") {
   return String(value || "").slice(0, 10);
@@ -31,6 +32,7 @@ function normalizeGame(detail = {}) {
     seriesId: seriesKey(match),
     date: normalizeDate(match.dateUtc || match.DateTime_UTC || match.date),
     league: match.league || match.matchContext?.league || "",
+    competitionId: match.competitionId || match.matchContext?.competitionId || "",
     tournament: match.tournament || match.Tournament || "",
     teamA,
     teamB,
@@ -52,24 +54,43 @@ async function fetchCompletedSeriesForDate(options = {}, deps = {}) {
       : leaguepedia.fetchMatchesForDate);
   const fetchMatchPlayers = deps.fetchMatchPlayers || leaguepedia.fetchMatchPlayers;
   const fetchMatchTeamStats = deps.fetchMatchTeamStats || leaguepedia.fetchMatchTeamStats;
+  const fetchTierOneMatchesForDate = deps.fetchTierOneMatchesForDate || leaguepedia.fetchTierOneMatchesForDate;
   const groups = new Map();
 
-  for (const tournament of tournaments) {
-    const matches = await fetchMatchesForDate(date, tournament);
+  const batches = options.tournamentScope === "configured"
+    ? [await fetchTierOneMatchesForDate(date)]
+    : await Promise.all(tournaments.map((tournament) => fetchMatchesForDate(date, tournament)));
+
+  for (const matches of batches) {
     for (const match of matches) {
       const matchDate = normalizeDate(match.dateUtc || match.DateTime_UTC || match.date);
       if (matchDate && date && matchDate !== date) continue;
+      const competition = classifyTierOneTournament(match.tournament || match.Tournament || "");
+      if (options.tournamentScope === "configured" && !competition) continue;
       const gameId = match.gameId || match.GameId || match.uniqueGame;
       const detail = await fetchMatchPlayers(gameId);
       if (!detail) continue;
       const teamFinalStats = await fetchMatchTeamStats(gameId);
-      const game = normalizeGame({ ...detail, teamFinalStats });
+      const normalizedMatch = {
+        ...(detail.match || detail),
+        ...(competition ? {
+          league: competition.label,
+          competitionId: competition.id,
+          matchContext: {
+            ...((detail.match || detail).matchContext || {}),
+            league: competition.label,
+            competitionId: competition.id,
+          },
+        } : {}),
+      };
+      const game = normalizeGame({ ...detail, match: normalizedMatch, teamFinalStats });
       const key = seriesKey(game);
       if (!groups.has(key)) {
         groups.set(key, {
           seriesId: key,
           date: game.date || date,
           league: game.league,
+          competitionId: game.competitionId,
           tournament: game.tournament,
           teams: [game.teamA, game.teamB],
           teamA: game.teamA,

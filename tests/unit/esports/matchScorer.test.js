@@ -110,7 +110,22 @@ test("selectDailySeries computes missing scores, clamps daily max, and falls bac
 
   assert.deepEqual(oneResult.map((item) => item.seriesId), ["computed-score"]);
   assert.equal(oneResult[0].score, 85.5);
-  assert.deepEqual(fillResult.map((item) => item.seriesId), ["lck-only", "lpl-only"]);
+  assert.deepEqual(fillResult.map((item) => item.seriesId), ["lck-only", "lec-guest"]);
+});
+
+test("selectDailySeries keeps every registered regional league eligible", () => {
+  const { selectDailySeries } = require("../../../utils/esports/matchScorer");
+  const result = selectDailySeries([
+    candidate("lec-best", "LEC", 92),
+    candidate("lcp-best", "LCP", 88),
+    candidate("unknown", "PCS", 99),
+  ], {
+    activeMode: "regular",
+    maxDailySeries: 2,
+    regularLeagues: ["LEC", "LCP"],
+  });
+
+  assert.deepEqual(result.map((item) => item.seriesId), ["lec-best", "lcp-best"]);
 });
 
 test("selectDailySeries scopes Worlds mode separately from MSI and regional leagues", () => {

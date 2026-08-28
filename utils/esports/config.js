@@ -86,6 +86,7 @@ function resolveActiveMode(configInput = {}, nowInput = new Date()) {
     source,
     leagues,
     tournaments: [...(config.tournamentFilters?.[mode] || leagues)],
+    configuredCompetitionIds: listTierOneCompetitions().map(({ id }) => id),
   };
 }
 
@@ -95,3 +96,4 @@ module.exports = {
   normalizeMode,
   resolveActiveMode,
 };
+const { listTierOneCompetitions } = require("./competitionRegistry");
