@@ -4,6 +4,7 @@
 
 ## 本輪狀態
 
+- 2026-08-28 修復本機工具常駐服務 `com.cengweiting.lol-video-generator.dev`：LaunchAgent 與啟動腳本由已不存在的 `/Users/cengweiting/Desktop/lol-video-generator` 改指目前專案 `/Users/cengweiting/Developer/lol-video-generator`，固定沿用 `http://localhost:49761`。修前網址為 HTTP 000、launchd `EX_CONFIG` 並累積 20,791 次失敗啟動；修後首頁 HTTP 200（29,865 bytes），刻意送出 SIGTERM 後約 3 秒自動換新 PID 並恢復 HTTP 200，確認登入自啟與 `KeepAlive` 均有效。這是本機登入工作階段的常駐服務，不是網際網路公開的 24/7 正式站。
 - 2026-08-16 修正 Leaguepedia 限流錯誤的前後端欄位落差：API 回傳 `cooldownUntil`，工作台現在會顯示中文可重試時間並保留舊 `retryAt` 相容，不再直接露出 Fandom 原始英文錯誤。根因另確認為舊 `frontend-workbench-refactor` dev server 未載入根目錄 `.env`／`.env.local`，已切回主專案並沿用 `http://localhost:49761`。TDD 目標測試 7/7；完整 coverage 568 tests、564 pass、4 個外部 contract skip、0 fail，line 94.28%、branch 80.66%、function 96.10%；Next 26 routes build 通過（保留既知 3 個 portrait tracing warnings）、audit 0、Remotion QA 6/6、Playwright 3/3。最終錯誤狀態截圖為 `.screenshots/rate-limit-round2-desktop.png` 與 `.screenshots/rate-limit-round2-mobile.png`，375px `scrollWidth = clientWidth = 375`、錯誤節點 `role="alert"`。
 - 2026-08-15 完成「安靜的 LCK 轉播工作台」前端重構：首頁只保留 `賽事影片`、`版本更新` 與右上角 `進階工具`；桌機為左側控制／右側預覽，375px 手機改為操作後接預覽，沒有橫向溢出。
 - 賽事流程固定以 `mode: "preview"`、`languages: ["zh"]` 先渲染及驗證；沒有預覽時不呈現發布動作，確認時把畫面上同一組 `videos` 與 localized PLAYER_RADAR payload 交給 `/api/publish`。部分平台失敗只重試失敗平台。
