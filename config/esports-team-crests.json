@@ -3,7 +3,10 @@
   "crests": [
     {
       "team": "GEN",
-      "teamAliases": ["Gen.G", "Gen.G Esports"],
+      "teamAliases": [
+        "Gen.G",
+        "Gen.G Esports"
+      ],
       "region": "Korea",
       "season": "2026",
       "validFrom": "2026-01-01",
@@ -19,7 +22,10 @@
     },
     {
       "team": "HLE",
-      "teamAliases": ["Hanwha Life Esports", "Hanwha Life"],
+      "teamAliases": [
+        "Hanwha Life Esports",
+        "Hanwha Life"
+      ],
       "region": "Korea",
       "season": "2026",
       "validFrom": "2026-01-01",
@@ -32,6 +38,46 @@
       "width": 1000,
       "height": 500,
       "verifiedAt": "2026-08-13"
+    },
+    {
+      "team": "BNK FEARX",
+      "teamAliases": [
+        "BFX",
+        "FearX"
+      ],
+      "region": "Korea",
+      "season": "2026",
+      "validFrom": "2026-01-01",
+      "validTo": "2026-12-31",
+      "sourceUrl": "https://static.wixstatic.com/media/b625f3_54c9266e5ccf45fd8b1fcb7647cfdb2a~mv2.png",
+      "sourcePage": "https://www.fearx.gg/brands",
+      "sourceKind": "team",
+      "licenseNote": "Official FEARX website brand asset used for editorial team identification; trademarks remain the property of BNK FEARX.",
+      "reviewedAt": "2026-08-28T17:31:00.000Z",
+      "sha256": "b5b69b5d9ddaf255c1e95f66f5a79eecda4d9d07f42afddd53bab73a79cb68c6",
+      "width": 1000,
+      "height": 1000,
+      "repositoryPath": "public/team-crests/bnk-fearx-2026.png"
+    },
+    {
+      "team": "Nongshim RedForce",
+      "teamAliases": [
+        "NS",
+        "NS RedForce"
+      ],
+      "region": "Korea",
+      "season": "2026",
+      "validFrom": "2026-01-01",
+      "validTo": "2026-12-31",
+      "sourceUrl": "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/b8/Nongshim_RedForcelogo_square.png/revision/latest?cb=20260114093156",
+      "sourcePage": "https://lol.fandom.com/wiki/File:Nongshim_RedForcelogo_square.png",
+      "sourceKind": "leaguepedia",
+      "licenseNote": "Leaguepedia-hosted high-resolution 2026 crest used for editorial team identification and cross-checked against https://ns-esports.com/page/11; trademarks remain the property of Nongshim RedForce.",
+      "reviewedAt": "2026-08-28T17:31:00.000Z",
+      "sha256": "e56bdcad9679c1348c6b5c4c8149d1c22d50bbcdef456feca18f2c477c6399be",
+      "width": 1000,
+      "height": 1000,
+      "repositoryPath": "public/team-crests/nongshim-redforce-2026.png"
     }
   ]
 }

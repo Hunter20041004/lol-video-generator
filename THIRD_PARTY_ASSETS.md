@@ -19,6 +19,7 @@ The project owner confirmed on 2026-08-13 that player portraits may be used in g
 | Player | Team / season | Repository file | Source | Dimensions / format | SHA-256 |
 | --- | --- | --- | --- | --- | --- |
 | Ruler | Gen.G / 2026 | `public/player-portraits/gen-ruler-2026.webp` | [Leaguepedia-hosted image](https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/e/e3/GEN_Ruler_2026_Split_1.png/revision/latest?cb=20260122171312) | 693×549 WebP | `9b10b93cc8368c90c82dd1381151931e6f857a4beb6a34e46469ea6aee9d558d` |
+| Taeyoon | BNK FEARX / 2026 Split 2 | `public/player-portraits/bfx-taeyoon-2026.webp` | [Leaguepedia file page](https://lol.fandom.com/wiki/File:BFX_Taeyoon_2026_Split_2.png) | 615×531 WebP | `d7b397902180dee83edcd337724c63e75b3bc6287bb5863fa81c46e3e6472456` |
 
 ## Bundled team crests
 
@@ -28,6 +29,8 @@ Team crests are used only for editorial team identification in generated match-a
 | --- | --- | --- | --- | --- | --- |
 | Gen.G | 2026 | `public/team-crests/gen.png` | [Gen.G official website asset](https://geng.gg/cdn/shop/files/practicum_website_asset_5.png?v=1768196264&width=1000) | 864×864 PNG | `46c54c21bc348179479fa9983f7cd6aeb1199f8a6194f9298c3fca5b64c532f0` |
 | Hanwha Life Esports | 2026 | `public/team-crests/hle.png` | [PandaScore-hosted team asset](https://cdn-api.pandascore.co/images/team/image/2883/hanwha-life-esports-1s04vbu0.png), center-cropped · [official emblem reference](https://hle.kr/) | 1000×500 PNG | `3c1a0a675b314a772c8529618cfe564db9ed44f5d883f6e45c4cd6b7c67a4352` |
+| BNK FEARX | 2026 | `public/team-crests/bnk-fearx-2026.png` | [official FEARX brand page](https://www.fearx.gg/brands) | 1000×1000 PNG | `b5b69b5d9ddaf255c1e95f66f5a79eecda4d9d07f42afddd53bab73a79cb68c6` |
+| Nongshim RedForce | 2026 | `public/team-crests/nongshim-redforce-2026.png` | [Leaguepedia file page](https://lol.fandom.com/wiki/File:Nongshim_RedForcelogo_square.png), cross-checked against the [official NS brand page](https://ns-esports.com/page/11) | 1000×1000 PNG | `e56bdcad9679c1348c6b5c4c8149d1c22d50bbcdef456feca18f2c477c6399be` |
 
 ## Repository-hosted Google Fonts
 

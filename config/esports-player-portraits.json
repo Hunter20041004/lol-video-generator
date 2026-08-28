@@ -4,9 +4,14 @@
     {
       "playerId": "ruler",
       "publicName": "Ruler",
-      "playerAliases": ["Ruler (Park Jae-hyuk)"],
+      "playerAliases": [
+        "Ruler (Park Jae-hyuk)"
+      ],
       "team": "Gen.G",
-      "teamAliases": ["GEN", "Gen.G"],
+      "teamAliases": [
+        "GEN",
+        "Gen.G"
+      ],
       "region": "Korea",
       "season": "2026",
       "validFrom": "2026-01-01",
@@ -18,6 +23,31 @@
       "height": 549,
       "verifiedAt": "2026-08-13T00:00:00Z",
       "repositoryPath": "public/player-portraits/gen-ruler-2026.webp"
+    },
+    {
+      "playerId": "taeyoon",
+      "publicName": "Taeyoon",
+      "playerAliases": [
+        "Taeyoon (Kim Tae-yoon)"
+      ],
+      "team": "BNK FEARX",
+      "teamAliases": [
+        "BFX",
+        "FearX"
+      ],
+      "region": "Korea",
+      "season": "2026",
+      "validFrom": "2026-04-15",
+      "validTo": "2026-12-31",
+      "sourceUrl": "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/4c/BFX_Taeyoon_2026_Split_2.png/revision/latest?cb=20260516162323",
+      "sourcePage": "https://lol.fandom.com/wiki/File:BFX_Taeyoon_2026_Split_2.png",
+      "sourceKind": "leaguepedia",
+      "licenseNote": "Leaguepedia-hosted 2026 BNK FEARX headshot used for editorial player identification in the project owner's authorized video context.",
+      "reviewedAt": "2026-08-28T17:31:00.000Z",
+      "sha256": "d7b397902180dee83edcd337724c63e75b3bc6287bb5863fa81c46e3e6472456",
+      "width": 615,
+      "height": 531,
+      "repositoryPath": "public/player-portraits/bfx-taeyoon-2026.webp"
     }
   ]
 }

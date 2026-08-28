@@ -88,6 +88,12 @@ test("importApprovedAsset creates deterministic verified portrait metadata", asy
 });
 
 test("verifyEsportsAssetLibrary reports capacity and calibrated coverage", () => {
+  const portraitManifest = require("../../../config/esports-player-portraits.json");
+  const crestManifest = require("../../../config/esports-team-crests.json");
+  const expectedFiles = new Set([
+    ...portraitManifest.portraits,
+    ...crestManifest.crests,
+  ].map(({ repositoryPath }) => repositoryPath)).size;
   const report = verifyEsportsAssetLibrary({
     rootDir: path.resolve(__dirname, "../../.."),
     asOf: "2026-08-28",
@@ -102,7 +108,7 @@ test("verifyEsportsAssetLibrary reports capacity and calibrated coverage", () =>
   });
 
   assert.equal(report.asOf, "2026-08-28");
-  assert.equal(report.fileCount, 3);
+  assert.equal(report.fileCount, expectedFiles);
   assert.ok(report.totalBytes > 0);
   assert.ok(report.largestFileBytes > 0);
   assert.equal(report.coverage.counts.missingTeams, 1);
