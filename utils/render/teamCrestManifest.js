@@ -2,6 +2,7 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 const repositoryManifest = require("../../config/esports-team-crests.json");
+const { resolveDatedEntry } = require("./esportsAssetIdentity");
 
 function normalized(value) {
   return String(value || "").trim().toLowerCase();
@@ -20,13 +21,14 @@ function resolveTeamCrest(identity = {}, options = {}) {
   const manifest = options.manifest || repositoryManifest;
   const entries = Array.isArray(manifest.crests) ? manifest.crests : [];
   const requestedTeam = normalized(identity.team);
-  const entry = entries.find((candidate) =>
+  const teamMatches = entries.filter((candidate) =>
     [candidate.team, ...(candidate.teamAliases || [])].map(normalized).includes(requestedTeam)
   );
-  if (!entry) throw new Error(`Team crest not found for ${identity.team || "unknown team"}.`);
-  if (normalized(entry.season) !== normalized(identity.season)) {
-    throw new Error(`Team crest season mismatch for ${entry.team}: expected ${entry.season}, received ${identity.season || "missing"}.`);
+  if (teamMatches.length === 0) throw new Error(`Team crest not found for ${identity.team || "unknown team"}.`);
+  if (!teamMatches.some((entry) => normalized(entry.season) === normalized(identity.season))) {
+    throw new Error(`Team crest season mismatch for ${teamMatches[0].team}: expected ${teamMatches.map(({ season }) => season).join(" or ")}, received ${identity.season || "missing"}.`);
   }
+  const entry = resolveDatedEntry(entries, identity, { kind: "Team crest" });
 
   const crestRoot = path.join(rootDir, "public/team-crests");
   const filePath = path.resolve(rootDir, entry.repositoryPath);
@@ -45,6 +47,8 @@ function resolveTeamCrest(identity = {}, options = {}) {
   return {
     team: entry.team,
     season: entry.season,
+    validFrom: entry.validFrom,
+    validTo: entry.validTo,
     sourceUrl: entry.sourceUrl,
     sourcePage: entry.sourcePage,
     licenseNote: entry.licenseNote,

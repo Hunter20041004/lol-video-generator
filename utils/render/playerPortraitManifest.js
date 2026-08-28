@@ -1,6 +1,7 @@
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
+const { resolveDatedEntry } = require("./esportsAssetIdentity");
 
 function normalized(value) {
   return String(value || "").trim().toLowerCase();
@@ -44,25 +45,24 @@ function resolvePlayerPortrait(identity = {}, options = {}) {
   const entries = Array.isArray(manifest.portraits) ? manifest.portraits : [];
   const playerId = normalized(identity.playerId);
   const publicName = normalized(identity.publicName);
-  const matches = entries.filter((entry) =>
-    (playerId && normalized(entry.playerId) === playerId)
-    || (publicName && normalized(entry.publicName) === publicName)
+  const playerMatches = entries.filter((entry) =>
+    (playerId && [entry.playerId, ...(entry.playerIdAliases || [])].map(normalized).includes(playerId))
+    || (publicName && [entry.publicName, ...(entry.playerAliases || [])].map(normalized).includes(publicName))
   );
-  if (matches.length === 0) {
+  if (playerMatches.length === 0) {
     throw new Error(`Player portrait not found for ${identity.publicName || identity.playerId || "unknown player"}.`);
   }
-  if (matches.length !== 1) {
-    throw new Error(`Player portrait identity is ambiguous for ${identity.publicName || identity.playerId}.`);
+  const matchingTeam = playerMatches.some((entry) =>
+    [entry.team, ...(entry.teamAliases || [])].map(normalized).includes(normalized(identity.team))
+  );
+  if (!matchingTeam) {
+    throw new Error(`Player portrait team mismatch for ${playerMatches[0].publicName}: expected ${playerMatches.map(({ team }) => team).join(" or ")}, received ${identity.team || "missing"}.`);
   }
-
-  const entry = matches[0];
-  const acceptedTeams = [entry.team, ...(entry.teamAliases || [])].map(normalized);
-  if (!acceptedTeams.includes(normalized(identity.team))) {
-    throw new Error(`Player portrait team mismatch for ${entry.publicName}: expected ${entry.team}, received ${identity.team || "missing"}.`);
+  const matchingSeason = playerMatches.some((entry) => normalized(entry.season) === normalized(identity.season));
+  if (!matchingSeason) {
+    throw new Error(`Player portrait season mismatch for ${playerMatches[0].publicName}: expected ${playerMatches.map(({ season }) => season).join(" or ")}, received ${identity.season || "missing"}.`);
   }
-  if (normalized(entry.season) !== normalized(identity.season)) {
-    throw new Error(`Player portrait season mismatch for ${entry.publicName}: expected ${entry.season}, received ${identity.season || "missing"}.`);
-  }
+  const entry = resolveDatedEntry(entries, identity, { kind: "Player portrait" });
 
   const portraitRoot = path.resolve(rootDir, "public/player-portraits");
   const filePath = path.resolve(rootDir, String(entry.repositoryPath || ""));
@@ -90,6 +90,8 @@ function resolvePlayerPortrait(identity = {}, options = {}) {
     publicName: entry.publicName,
     team: entry.team,
     season: entry.season,
+    validFrom: entry.validFrom,
+    validTo: entry.validTo,
     sourceUrl: entry.sourceUrl,
     licenseNote: entry.licenseNote,
     sha256,

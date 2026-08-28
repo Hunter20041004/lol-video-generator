@@ -59,6 +59,16 @@ test("post-match read storyboard is exactly five beats and 750 frames", () => {
   assert.equal(viewModel.storyboard.reduce((sum, scene) => sum + scene.durationInFrames, 0), 750);
 });
 
+test("post-match read carries the series date into asset identity context", () => {
+  const input = makeInput();
+  input.series.date = "2026-08-27";
+
+  const viewModel = buildPostMatchReadViewModel(input);
+
+  assert.equal(viewModel.seriesContext.matchDate, "2026-08-27");
+  assert.equal(viewModel.seriesContext.season, "2026");
+});
+
 test("Mid matchup copy is role-aware and exposes its primary evidence", () => {
   const input = makeInput();
   const edgePlayer = { name: "Chovy", team: "GEN", role: "Mid" };

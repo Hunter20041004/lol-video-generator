@@ -283,6 +283,7 @@ function buildPostMatchReadViewModel({
       seriesId: series.seriesId || "",
       snapshotId: selection.snapshotId || series.snapshotId || "",
       season: String(series.season || String(series.date || "").slice(0, 4) || ""),
+      matchDate: String(series.date || "").slice(0, 10),
       teamA: shortTeamLabel(sourceTeamA, series.teamAAbbreviation),
       teamB: shortTeamLabel(sourceTeamB, series.teamBAbbreviation),
       score,

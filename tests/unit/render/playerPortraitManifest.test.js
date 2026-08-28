@@ -11,6 +11,7 @@ test("resolvePlayerPortrait verifies Ruler 2026 GEN identity and tracked bytes",
     publicName: "Ruler",
     team: "GEN",
     season: "2026",
+    matchDate: "2026-08-13",
   }, { rootDir: ROOT });
 
   assert.equal(resolved.publicPath, "/player-portraits/gen-ruler-2026.webp");
@@ -23,7 +24,7 @@ test("resolvePlayerPortrait rejects the wrong team for a known player", () => {
   const { resolvePlayerPortrait } = require(path.join(ROOT, "utils/render/playerPortraitManifest.js"));
 
   assert.throws(
-    () => resolvePlayerPortrait({ publicName: "Ruler", team: "HLE", season: "2026" }, { rootDir: ROOT }),
+    () => resolvePlayerPortrait({ publicName: "Ruler", team: "HLE", season: "2026", matchDate: "2026-08-13" }, { rootDir: ROOT }),
     /team mismatch/i
   );
 });
@@ -32,7 +33,7 @@ test("resolvePlayerPortrait rejects an unknown player instead of substituting an
   const { resolvePlayerPortrait } = require(path.join(ROOT, "utils/render/playerPortraitManifest.js"));
 
   assert.throws(
-    () => resolvePlayerPortrait({ publicName: "Unknown", team: "GEN", season: "2026" }, { rootDir: ROOT }),
+    () => resolvePlayerPortrait({ publicName: "Unknown", team: "GEN", season: "2026", matchDate: "2026-08-13" }, { rootDir: ROOT }),
     /not found/i
   );
 });
@@ -46,7 +47,7 @@ test("resolvePlayerPortrait rejects manifest hashes that do not match the tracke
   };
 
   assert.throws(
-    () => resolvePlayerPortrait({ publicName: "Ruler", team: "GEN", season: "2026" }, {
+    () => resolvePlayerPortrait({ publicName: "Ruler", team: "GEN", season: "2026", matchDate: "2026-08-13" }, {
       rootDir: ROOT,
       manifest: tamperedHashManifest,
     }),

@@ -1,12 +1,16 @@
 {
-  "version": 1,
+  "version": 2,
   "portraits": [
     {
       "playerId": "ruler",
       "publicName": "Ruler",
+      "playerAliases": ["Ruler (Park Jae-hyuk)"],
       "team": "Gen.G",
       "teamAliases": ["GEN", "Gen.G"],
+      "region": "Korea",
       "season": "2026",
+      "validFrom": "2026-01-01",
+      "validTo": "2026-12-31",
       "sourceUrl": "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/e/e3/GEN_Ruler_2026_Split_1.png/revision/latest?cb=20260122171312",
       "licenseNote": "Project owner confirmed player portraits are authorized for video use and redistribution in this GitHub repository on 2026-08-13.",
       "sha256": "9b10b93cc8368c90c82dd1381151931e6f857a4beb6a34e46469ea6aee9d558d",
