@@ -27,16 +27,15 @@ function listTierOneCompetitions() {
 function classifyTierOneTournament(value = "") {
   const name = normalizeTournament(value);
   if (!name) return null;
-  const competitions = listTierOneCompetitions();
-  const excluded = competitions.some((competition) =>
-    (competition.excludedPrefixes || []).some((prefix) => matchesName(name, prefix))
-  );
-  if (excluded) return null;
-
-  return competitions.find((competition) =>
-    (competition.exactNames || []).some((exactName) => normalizeTournament(exactName) === name)
-    || (competition.prefixes || []).some((prefix) => matchesName(name, prefix))
-  ) || null;
+  for (const competition of listTierOneCompetitions()) {
+    const included = (competition.exactNames || []).some((exactName) => normalizeTournament(exactName) === name)
+      || (competition.prefixes || []).some((prefix) => matchesName(name, prefix));
+    if (!included) continue;
+    const excluded = (competition.excludedPrefixes || []).some((prefix) => matchesName(name, prefix))
+      || (competition.excludedContains || []).some((part) => name.includes(normalizeTournament(part)));
+    if (!excluded) return competition;
+  }
+  return null;
 }
 
 function escapeCargoValue(value) {
@@ -60,7 +59,25 @@ function buildTierOneTournamentWhere(field = "ScoreboardGames.Tournament") {
   return `(${[...clauses].join(" OR ")})`;
 }
 
+function buildCompetitionTournamentWhere(id, field = "TournamentRosters.Tournament") {
+  if (!ALLOWED_CARGO_FIELDS.has(field)) {
+    throw new Error(`Unsupported Cargo field for tier-one tournament filter: ${field}`);
+  }
+  const competition = listTierOneCompetitions().find((entry) => entry.id === id);
+  if (!competition) throw new Error(`Unknown tier-one competition: ${id}`);
+  const included = new Set();
+  for (const exactName of competition.exactNames || []) included.add(`${field} = '${escapeCargoValue(exactName)}'`);
+  for (const prefix of competition.prefixes || []) {
+    included.add(`${field} LIKE '${escapeCargoValue(prefix)} %'`);
+    included.add(`${field} LIKE '${escapeCargoValue(prefix)}/%'`);
+  }
+  const excluded = (competition.excludedContains || [])
+    .map((part) => `${field} NOT LIKE '%${escapeCargoValue(part)}%'`);
+  return [`(${[...included].join(" OR ")})`, ...excluded].join(" AND ");
+}
+
 module.exports = {
+  buildCompetitionTournamentWhere,
   buildTierOneTournamentWhere,
   classifyTierOneTournament,
   listTierOneCompetitions,

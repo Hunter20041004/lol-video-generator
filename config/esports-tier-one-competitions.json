@@ -9,7 +9,8 @@
       "order": 10,
       "exactNames": ["LCK"],
       "prefixes": ["LCK"],
-      "excludedPrefixes": ["LCK CL", "LCK AS"]
+      "excludedPrefixes": ["LCK CL", "LCK AS"],
+      "excludedContains": ["Showmatch", "Season Opening"]
     },
     {
       "id": "LPL",
@@ -19,7 +20,8 @@
       "order": 20,
       "exactNames": ["LPL"],
       "prefixes": ["LPL"],
-      "excludedPrefixes": ["LPL Development League"]
+      "excludedPrefixes": ["LPL Development League"],
+      "excludedContains": ["Showmatch"]
     },
     {
       "id": "LEC",
@@ -29,7 +31,8 @@
       "order": 30,
       "exactNames": ["LEC"],
       "prefixes": ["LEC"],
-      "excludedPrefixes": ["LEC Academy"]
+      "excludedPrefixes": ["LEC Academy"],
+      "excludedContains": ["Showmatch"]
     },
     {
       "id": "LCS",
@@ -39,7 +42,8 @@
       "order": 40,
       "exactNames": ["LCS"],
       "prefixes": ["LCS"],
-      "excludedPrefixes": ["LCS Challengers"]
+      "excludedPrefixes": ["LCS Challengers"],
+      "excludedContains": ["Showmatch"]
     },
     {
       "id": "CBLOL",
@@ -49,7 +53,8 @@
       "order": 50,
       "exactNames": ["CBLOL"],
       "prefixes": ["CBLOL"],
-      "excludedPrefixes": ["CBLOL Academy"]
+      "excludedPrefixes": ["CBLOL Academy"],
+      "excludedContains": ["Showmatch"]
     },
     {
       "id": "LCP",
@@ -59,7 +64,8 @@
       "order": 60,
       "exactNames": ["LCP"],
       "prefixes": ["LCP"],
-      "excludedPrefixes": ["LCP Promotion", "LCP Qualifier"]
+      "excludedPrefixes": ["LCP Promotion", "LCP Qualifier"],
+      "excludedContains": ["Showmatch", "Promotion", "Wildcard", "Qualifier"]
     },
     {
       "id": "FIRST_STAND",

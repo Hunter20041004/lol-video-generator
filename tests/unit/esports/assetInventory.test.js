@@ -46,7 +46,12 @@ test("fetchTierOneAssetInventory uses the four documented Cargo tables and prese
     },
   });
 
-  assert.deepEqual(calls.map(({ tables }) => tables), ["Tournaments", "TournamentRosters", "PlayerImages", "Teams"]);
+  assert.deepEqual(calls.map(({ tables }) => tables), [
+    "Tournaments",
+    ...Array(6).fill("TournamentRosters"),
+    ...Array(6).fill("PlayerImages"),
+    "Teams",
+  ]);
   assert.equal(inventory.asOf, "2026-08-28");
   assert.deepEqual(inventory.sourceTables, ["Tournaments", "TournamentRosters", "PlayerImages", "Teams"]);
   assert.equal(inventory.teams.length, 2);

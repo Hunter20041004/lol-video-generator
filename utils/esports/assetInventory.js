@@ -1,7 +1,9 @@
 const leaguepedia = require("../leaguepediaApi");
 const {
+  buildCompetitionTournamentWhere,
   buildTierOneTournamentWhere,
   classifyTierOneTournament,
+  listTierOneCompetitions,
 } = require("./competitionRegistry");
 
 function normalized(value) {
@@ -133,21 +135,28 @@ async function fetchTierOneAssetInventory(options = {}, deps = {}) {
   if (eligibleTournaments.size === 0) {
     throw new Error(`Leaguepedia returned no eligible tournaments for ${year} as of ${asOf}; coverage was not calculated.`);
   }
-  const rosterRows = await cargoQuery({
-    tables: "TournamentRosters",
-    fields: "Team,OverviewPage,Region,RosterLinks,Roles,Tournament,Short,IsComplete",
-    where: `${buildTierOneTournamentWhere("TournamentRosters.Tournament")} AND TournamentRosters.Tournament LIKE '%${cargoValue(year)}%'`,
-    limit: 50,
-  });
+  const regionalCompetitions = listTierOneCompetitions().filter(({ kind }) => kind === "regional");
+  const rosterRows = [];
+  for (const competition of regionalCompetitions) {
+    rosterRows.push(...await cargoQuery({
+      tables: "TournamentRosters",
+      fields: "Team,OverviewPage,Region,RosterLinks,Roles,Tournament,Short,IsComplete",
+      where: `${buildCompetitionTournamentWhere(competition.id, "TournamentRosters.Tournament")} AND TournamentRosters.Tournament LIKE '%${cargoValue(year)}%'`,
+      limit: 50,
+    }));
+  }
   const scopedRosters = rosterRows.filter((row) => eligibleTournaments.has(String(row.Tournament || "").trim()));
   const parsed = parseRosterRows(scopedRosters, { year });
-  const playerImages = await cargoQuery({
-    tables: "PlayerImages",
-    fields: "FileName,Link,Team,Tournament,ImageType,IsProfileImage,SortDate",
-    where: `${buildTierOneTournamentWhere("PlayerImages.Tournament")} AND PlayerImages.Tournament LIKE '%${cargoValue(year)}%'`,
-    order_by: "PlayerImages.SortDate DESC",
-    limit: 50,
-  });
+  const playerImages = [];
+  for (const competition of regionalCompetitions) {
+    playerImages.push(...await cargoQuery({
+      tables: "PlayerImages",
+      fields: "FileName,Link,Team,Tournament,ImageType,IsProfileImage,SortDate",
+      where: `${buildCompetitionTournamentWhere(competition.id, "PlayerImages.Tournament")} AND PlayerImages.Tournament LIKE '%${cargoValue(year)}%'`,
+      order_by: "PlayerImages.SortDate DESC",
+      limit: 50,
+    }));
+  }
   const teamWhere = parsed.teams.length > 0
     ? `(${parsed.teams.map(({ team }) => `Teams.Name = '${cargoValue(team)}'`).join(" OR ")})`
     : "Teams.Name = '__NO_TIER_ONE_TEAMS__'";

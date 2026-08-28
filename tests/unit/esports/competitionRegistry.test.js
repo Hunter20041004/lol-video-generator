@@ -34,12 +34,18 @@ test("competition registry recognizes all 2026 tier-one competitions and rejects
     "CBLOL Academy 2026",
     "PCS 2026",
     "Worlds Qualifying Series 2026",
+    "LCK 2026 Season Opening",
+    "LCS 2026 LoL Classic Showmatch",
+    "CBLOL 2026 LoL Classic Showmatch",
+    "LCP 2026 Promotion",
+    "LCP Wildcard 2026 Philippines Qualifier",
   ]) {
     assert.equal(classifyTierOneTournament(name), null, name);
   }
 });
 
 test("competition registry builds an anchored SQL-safe Cargo predicate", () => {
+  const { buildCompetitionTournamentWhere } = require("../../../utils/esports/competitionRegistry");
   const where = buildTierOneTournamentWhere("ScoreboardGames.Tournament");
 
   assert.match(where, /ScoreboardGames\.Tournament = 'LCK'/);
@@ -49,4 +55,8 @@ test("competition registry builds an anchored SQL-safe Cargo predicate", () => {
   assert.match(where, /ScoreboardGames\.Tournament LIKE 'World Championship %'/);
   assert.doesNotMatch(where, /LIKE '%LCK%'/);
   assert.throws(() => buildTierOneTournamentWhere("unsafe.field; DROP TABLE"), /unsupported Cargo field/i);
+  const lcpWhere = buildCompetitionTournamentWhere("LCP", "TournamentRosters.Tournament");
+  assert.match(lcpWhere, /TournamentRosters\.Tournament LIKE 'LCP\/%'/);
+  assert.match(lcpWhere, /NOT LIKE '%Wildcard%'/);
+  assert.match(lcpWhere, /NOT LIKE '%Promotion%'/);
 });
