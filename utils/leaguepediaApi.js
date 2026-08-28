@@ -392,7 +392,7 @@ async function fetchMatchesForDate(date, tournament = null) {
   const escapedTournament = String(tournament || '').replaceAll("'", "''");
   const tournamentWhere = escapedTournament
     ? (/^[A-Z0-9]{2,5}$/.test(escapedTournament)
-      ? `(ScoreboardGames.Tournament = '${escapedTournament}' OR ScoreboardGames.Tournament LIKE '${escapedTournament} %')`
+      ? `(ScoreboardGames.Tournament = '${escapedTournament}' OR ScoreboardGames.Tournament LIKE '${escapedTournament} %' OR ScoreboardGames.Tournament LIKE '${escapedTournament}/%')`
       : `ScoreboardGames.Tournament LIKE '%${escapedTournament}%'`)
     : '';
   const where = [
