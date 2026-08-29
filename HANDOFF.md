@@ -4,6 +4,12 @@
 
 ## 本輪狀態
 
+- 2026-08-28 全球一級賽事素材庫已完成使用者核准批次：LCK、LPL、LEC、LCS、CBLOL、LCP 共匯入 425 個有明確 Leaguepedia 檔案頁的候選（371 張選手照、54 個隊徽），連同既有素材後 manifest 為 373 個選手身分、58 個隊徽身分、431 個唯一檔案。`assets:verify` 實測總容量 20,846,381 bytes、最大單檔 357,615 bytes；2026-08-28 清冊 62 隊覆蓋 58、438 個選手×隊伍身分覆蓋 373。無候選的 4 隊徽與 65 選手身分依產品拍板保持 render 硬阻擋，正式清單在 `config/esports-asset-unresolved-2026.json`，不得用錯隊、錯制服或舊圖代替。
+- Leaguepedia 的 `Special:Redirect/file` 對匿名程式下載回 HTTP 403；importer 已用 TDD 改為先向 MediaWiki `imageinfo` 解析 HTTPS 靜態圖，再下載、Sharp 正規化、驗證格式／SHA-256／尺寸。以 LCP 1Jiang 真實邊界校準為 748×621 WebP、45,858 bytes、SHA-256 `c5ec178c68ec726275710800a5a667e765840b262a3a1b4344f27b0346a5ce60`。批次下載上限同時 4 筆，輸出順序與 manifest 寫入保持穩定。
+- 分支品質閘門已完成：`npm ci` audit 0、TDD doctor 通過、coverage 602 tests／596 pass／6 個明確外部 skip／0 fail（line 94.30%、branch 80.61%、function 96.13%）、Next 26 routes build 通過、Remotion QA 6/6、Playwright 4/4、素材逐檔驗證通過。Next build 保留既有 3 個 `playerPortraitManifest.js` dynamic filesystem tracing warnings，沒有新增 build failure。
+- 工作台全球掃描與素材缺口畫面完成兩輪自檢；最終桌面／手機圖為 `.screenshots/global-tier-one-assets-round2/desktop.png` 與 `.screenshots/global-tier-one-assets-round2/mobile.png`，375px `scrollWidth = clientWidth = 375`、產品 console error 0。候選拍板頁另以桌面／手機兩輪驗證，第二輪 0 error、7/7 拍板 builder 與 494 列搜尋均可用。
+- 真實 tier-one contract 第一版因每局都抓 players＋team stats，在前五區通過後觸發 Leaguepedia 15 分鐘 rate limit；已改為每個賽事日期用一筆 match query 驗證已完成系列，再用一局 player query 驗證 10 人五路。伺服器回報冷卻至 2026-08-29T02:37:35.820Z；尚待冷卻後補跑六區＋First Stand＋MSI，以及 2026-08-27 BNK FEARX vs Nongshim preview-only 真實流程，再進 main 合併／push。
+
 - 2026-08-28 全球一級賽事素材庫施工計畫已寫入 `docs/superpowers/plans/2026-08-28-global-tier-one-esports-assets.md`：10 個垂直 TDD tasks 依序處理九項賽事登錄、單次精確日期查詢、日期感知素材 identity、聚合缺口、名單盤點、核准匯入／驗證、當前 LCK blocker、六區域素材填充、前端狀態與真實 canary／全套收尾。依使用者明確授權，計畫自我檢查後直接 inline 實作，不另停下選執行方式；禁止使用子代理。
 - 2026-08-28 產品負責人核可將素材與掃描範圍擴充為 Riot 2026 全球一級職業體系：LCK、LPL、LEC、LCS、CBLOL、LCP，以及 First Stand、MSI、Worlds。採用版本化本機完整素材庫、官方來源優先／Leaguepedia 備援、自動盤點缺口但人工核准入庫；正式名單含先發與替補，改名／轉隊依比賽日期解析，缺素材仍阻擋且一次回報完整缺口。正式規格為 `docs/superpowers/specs/2026-08-28-global-tier-one-esports-assets-design.md`；使用者明確授權規格完成後直接寫施工計畫並進入實作，不需再次停下拍板。
 - 2026-08-28 診斷 BNK FEARX vs Nongshim RedForce 預覽的 `Player portrait not found for Taeyoon (Kim Tae-yoon)`：候選賽事、推薦主角與名稱均正確，根因是正式素材 manifest 只有 Ruler、GEN、HLE；本場同時缺 Taeyoon 照片及 BNK FEARX／Nongshim RedForce 隊徽，只補名稱解析或單張照片都無法打通流程。現行閘門正確阻止錯用他人照片。最初提出的文字識別備援已由產品負責人否決，正式決策改為補齊全球一級賽事素材庫；尚未修改 render 行為、下載外部素材或建立發布工作。
