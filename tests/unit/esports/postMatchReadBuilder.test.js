@@ -156,6 +156,11 @@ test("result hook splits the score and final read only recaps displayed evidence
   input.series.teamA = "GEN";
   input.series.teamB = "HLE";
   input.series.winningTeam = "GEN";
+  input.matchupSegment.edgePlayer = {
+    name: "Chovy",
+    team: "GEN",
+    role: "Mid",
+  };
   input.matchupSegment.reasons[0] = {
     metric: "GPM", winnerValue: 460, loserValue: 388, delta: 72,
   };
@@ -171,8 +176,8 @@ test("result hook splits the score and final read only recaps displayed evidence
   assert.deepEqual(model.resultHook.scoreParts, { left: "2", separator: "–", right: "0" });
   assert.equal(model.finalRead.conclusion, "GEN 的勝點不是搶得多，而是把每次領先換成塔與輸出。");
   assert.deepEqual(model.finalRead.recapReferences, [
-    { source: "matchup", metric: "GPM", displayValue: "+72 GPM" },
-    { source: "proof", metric: "CSM", displayValue: "9.88 CSM" },
+    { source: "matchup", playerName: "Chovy", metric: "GPM", displayValue: "+72 GPM", label: "CHOVY · GPM" },
+    { source: "proof", playerName: "Ruler", metric: "CSM", displayValue: "9.88 CSM", label: "RULER · CSM" },
   ]);
 });
 
@@ -275,4 +280,37 @@ test("proof secondary evidence omits unavailable metrics instead of inventing ze
   assert.deepEqual(model.proof.secondaryEvidence, [
     { metric: "GPM", displayValue: "451" },
   ]);
+});
+
+test("final read derives winner, copy, and evidence labels from the selected series", () => {
+  const input = makeInput();
+  input.series.teamA = "T1";
+  input.series.teamB = "BNK FEARX";
+  input.series.winningTeam = "T1";
+  input.series.score = "3-2";
+  input.matchupSegment.edgePlayer = {
+    ...input.matchupSegment.edgePlayer,
+    name: "Oner (Mun Hyeon-jun)",
+    team: "T1",
+  };
+  input.proofSegment.player = {
+    ...input.proofSegment.player,
+    name: "Gumayusi (Lee Min-hyeong)",
+    team: "T1",
+    rawStats: { csm: 10.65 },
+  };
+
+  const model = buildPostMatchReadViewModel(input);
+
+  assert.deepEqual(model.finalRead.winnerTeam, { name: "T1", identity: "T1" });
+  assert.equal(model.finalRead.conclusion, "T1 的勝點不是搶得多，而是把每次領先換成塔與輸出。");
+  assert.deepEqual(model.finalRead.conclusionParts, {
+    lead: "T1 的勝點不是搶得多，而是把每次領先",
+    emphasis: "換成塔與輸出。",
+  });
+  assert.deepEqual(model.finalRead.recapReferences, [
+    { source: "matchup", playerName: "Oner", metric: "KDA", displayValue: "+13.03 KDA", label: "ONER · KDA" },
+    { source: "proof", playerName: "Gumayusi", metric: "CSM", displayValue: "10.65 CSM", label: "GUMAYUSI · CSM" },
+  ]);
+  assert.doesNotMatch(JSON.stringify(model.finalRead), /GEN|Chovy|Ruler/i);
 });

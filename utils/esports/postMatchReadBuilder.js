@@ -239,6 +239,29 @@ function buildProofRecap(proofSegment = {}) {
   };
 }
 
+function finalReadReference(source, player = {}, evidence = {}) {
+  const playerName = publicPlayer(player).name;
+  const metric = String(evidence.metric || "").trim();
+  return {
+    source,
+    playerName,
+    metric,
+    displayValue: String(evidence.displayValue || "").trim(),
+    label: `${playerName} · ${metric}`.toUpperCase(),
+  };
+}
+
+function finalReadCopy(winningTeam, locale) {
+  if (locale === "en") {
+    const lead = `${winningTeam} did not win by taking more. Every lead became `;
+    const emphasis = "towers and damage.";
+    return { conclusion: `${lead}${emphasis}`, conclusionParts: { lead, emphasis } };
+  }
+  const lead = `${winningTeam} 的勝點不是搶得多，而是把每次領先`;
+  const emphasis = "換成塔與輸出。";
+  return { conclusion: `${lead}${emphasis}`, conclusionParts: { lead, emphasis } };
+}
+
 function buildPostMatchReadViewModel({
   series = {},
   matchupSegment = {},
@@ -272,7 +295,8 @@ function buildPostMatchReadViewModel({
   const gameFlow = buildGameFlow(series, locale);
   const score = series.score || series.seriesScore || "";
   const primaryEvidence = buildMatchupPrimaryEvidence(matchupSegment);
-  const winningTeam = shortTeamLabel(series.winningTeam || sourceTeamA);
+  const winningTeamIdentity = String(series.winningTeam || sourceTeamA).trim();
+  const winningTeam = shortTeamLabel(winningTeamIdentity);
   const resultHook = {
     scoreParts: splitScore(score),
     resultClaim: locale === "en"
@@ -280,13 +304,13 @@ function buildPostMatchReadViewModel({
       : `${winningTeam} 以 ${score.replace("-", "–")} 拿下系列賽。`,
     displayOrder: [shortTeamLabel(sourceTeamA), shortTeamLabel(sourceTeamB)],
   };
+  const proofRecap = buildProofRecap(proofSegment);
   const finalRead = {
-    conclusion: locale === "en"
-      ? `${winningTeam} did not win by taking more. Every lead became towers and damage.`
-      : `${winningTeam} 的勝點不是搶得多，而是把每次領先換成塔與輸出。`,
+    winnerTeam: { name: winningTeam, identity: winningTeamIdentity },
+    ...finalReadCopy(winningTeam, locale),
     recapReferences: [
-      { source: "matchup", metric: primaryEvidence.metric, displayValue: primaryEvidence.displayValue },
-      buildProofRecap(proofSegment),
+      finalReadReference("matchup", matchupSegment.edgePlayer, primaryEvidence),
+      finalReadReference("proof", proofPlayer, proofRecap),
     ],
   };
 
