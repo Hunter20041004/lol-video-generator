@@ -198,9 +198,12 @@ function shortTeamLabel(team = "", abbreviation = "") {
 }
 
 function publicPlayer(player = {}) {
+  const sourceName = String(player.name || "").trim();
+  const match = sourceName.match(/^(.*?)\s*\(([^()]*)\)\s*$/);
   return {
     ...player,
-    name: String(player.name || "").replace(/\s*\([^)]*\)\s*$/, "").trim(),
+    name: (match?.[1] || sourceName).trim(),
+    ...(match?.[2]?.trim() ? { originalName: match[2].trim() } : {}),
   };
 }
 
@@ -246,6 +249,7 @@ function buildPostMatchReadViewModel({
     : copy.localClaim(localizedRole);
   const hook = buildRatioHook(matchupSegment.reasons?.[0], locale);
   const proofPlayer = proofSegment.player || {};
+  const publicProofPlayer = publicPlayer(proofPlayer);
   const labelType = proofLabelType(series, proofPlayer, selection.mvpPlayerName || selection.playerName || "");
   const label = labelType === "official-mvp"
     ? copy.officialMvp
@@ -309,9 +313,10 @@ function buildPostMatchReadViewModel({
     gameFlow,
     proof: {
       ...proofSegment,
+      player: publicProofPlayer,
       labelType,
       label,
-      claim: `${label}: ${proofPlayer.name || ""}`.replace(/:\s*$/, ""),
+      claim: `${label}: ${publicProofPlayer.name || ""}`.replace(/:\s*$/, ""),
     },
     finalRead,
     assets: {},

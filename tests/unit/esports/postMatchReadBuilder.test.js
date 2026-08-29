@@ -240,3 +240,15 @@ test("public matchup names omit parenthetical real names", () => {
   assert.equal(viewModel.matchup.edgePlayer.name, "Jackal");
   assert.equal(viewModel.matchup.focusPlayer.name, "Jackal");
 });
+
+test("proof identity separates the public handle from the original name", () => {
+  const input = makeInput();
+  input.proofSegment.player.name = "Taeyoon (Kim Tae-yoon)";
+  input.series.recommendedMvp.name = "Taeyoon (Kim Tae-yoon)";
+
+  const model = buildPostMatchReadViewModel(input);
+
+  assert.equal(model.proof.player.name, "Taeyoon");
+  assert.equal(model.proof.player.originalName, "Kim Tae-yoon");
+  assert.equal(model.proof.claim, "數據 MVP 候選: Taeyoon");
+});
