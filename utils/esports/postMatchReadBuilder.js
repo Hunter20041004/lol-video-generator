@@ -207,6 +207,16 @@ function publicPlayer(player = {}) {
   };
 }
 
+function buildSecondaryEvidence(rawStats = {}) {
+  return [
+    ["KDA", rawStats.kda, (value) => String(value)],
+    ["KP%", rawStats.kp, (value) => `${Math.round(value * 100)}%`],
+    ["GPM", rawStats.gpm, (value) => String(value)],
+  ]
+    .filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== "" && Number.isFinite(Number(value)))
+    .map(([metric, value, format]) => ({ metric, displayValue: format(Number(value)) }));
+}
+
 function splitScore(score = "") {
   const match = String(score || "").trim().match(/^(\d+)\s*[-–:]\s*(\d+)$/);
   if (!match) throw new Error(`Post Match Read series score is invalid: ${score || "missing"}.`);
@@ -314,6 +324,7 @@ function buildPostMatchReadViewModel({
     proof: {
       ...proofSegment,
       player: publicProofPlayer,
+      secondaryEvidence: buildSecondaryEvidence(proofPlayer.rawStats),
       labelType,
       label,
       claim: `${label}: ${publicProofPlayer.name || ""}`.replace(/:\s*$/, ""),

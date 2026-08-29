@@ -252,3 +252,27 @@ test("proof identity separates the public handle from the original name", () => 
   assert.equal(model.proof.player.originalName, "Kim Tae-yoon");
   assert.equal(model.proof.claim, "數據 MVP 候選: Taeyoon");
 });
+
+test("proof secondary evidence keeps KDA, participation, and gold pace in order", () => {
+  const input = makeInput();
+  input.proofSegment.player.rawStats = { kda: 5.89, kp: 0.72, gpm: 488 };
+
+  const model = buildPostMatchReadViewModel(input);
+
+  assert.deepEqual(model.proof.secondaryEvidence, [
+    { metric: "KDA", displayValue: "5.89" },
+    { metric: "KP%", displayValue: "72%" },
+    { metric: "GPM", displayValue: "488" },
+  ]);
+});
+
+test("proof secondary evidence omits unavailable metrics instead of inventing zero", () => {
+  const input = makeInput();
+  input.proofSegment.player.rawStats = { kda: null, kp: undefined, gpm: 451 };
+
+  const model = buildPostMatchReadViewModel(input);
+
+  assert.deepEqual(model.proof.secondaryEvidence, [
+    { metric: "GPM", displayValue: "451" },
+  ]);
+});
