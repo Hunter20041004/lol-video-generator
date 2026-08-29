@@ -11,6 +11,21 @@ const PRIMARY_FACE = 275;
 const SECONDARY_FACE = 230;
 const SCORE_DIGIT_SIZE = 255;
 const SCORE_SEPARATOR_SIZE = 103;
+const PLAYER_PROOF_DATA_OFFSET = 304;
+const SECONDARY_EVIDENCE_LABELS = {
+  KDA: "KDA",
+  "KP%": "KILL PART.",
+  GPM: "GOLD / MIN",
+};
+
+const playerHandleFontSize = (value = "") => {
+  const length = Array.from(String(value)).length;
+  if (length <= 8) return 142;
+  if (length <= 11) return 116;
+  return Math.max(76, 116 - ((length - 11) * 8));
+};
+
+const originalNameFontSize = (value = "") => Math.max(22, 30 - Math.max(0, Array.from(String(value)).length - 18));
 
 const enterStyle = (localFrame, start, duration, reducedMotion) => {
   const motion = motionProgress({ frame: localFrame, start, duration, reducedMotion });
@@ -34,8 +49,8 @@ const Face = ({ asset, size, dim = false }) => asset?.squareSrc ? (
 ) : null;
 
 const TeamCrest = ({ asset, team, dim = false }) => asset?.publicPath ? (
-  <div style={{ width: 330, display: "grid", justifyItems: "center", gap: 24 }}>
-    <div style={{ width: 270, height: 220, display: "grid", placeItems: "center" }}>
+  <div style={{ width: 330, height: 350, display: "grid", gridTemplateRows: "260px 66px", justifyItems: "center", rowGap: 24 }}>
+    <div style={{ width: 300, height: 260, display: "grid", placeItems: "center", overflow: "hidden" }}>
       <Img
         src={assetSrc(asset.publicPath)}
         style={{
@@ -48,7 +63,7 @@ const TeamCrest = ({ asset, team, dim = false }) => asset?.publicPath ? (
         }}
       />
     </div>
-    <b style={{ font: `900 ${dim ? 54 : 66}px ${NUMBER_FONT}`, color: dim ? COLORS.muted : COLORS.paper }}>{team}</b>
+    {asset.labelMode === "embedded" ? null : <b style={{ maxWidth: 330, overflow: "hidden", whiteSpace: "nowrap", font: `900 ${String(team).length > 16 ? 44 : dim ? 54 : 66}px ${NUMBER_FONT}`, color: dim ? COLORS.muted : COLORS.paper }}>{team}</b>}
   </div>
 ) : null;
 
@@ -140,6 +155,7 @@ export const GameFlowScene = ({ model, localFrame, reducedMotion }) => {
 export const PlayerProofScene = ({ model, localFrame, reducedMotion }) => {
   const proof = model.proof || {};
   const player = proof.player || {};
+  const secondaryEvidence = proof.secondaryEvidence || [];
   const portrait = model.assets?.proof?.playerPortrait;
   const champions = model.assets?.proof?.champions || [];
   return (
@@ -149,13 +165,21 @@ export const PlayerProofScene = ({ model, localFrame, reducedMotion }) => {
       {portrait?.publicPath ? <div style={{ ...enterStyle(localFrame, 4, 13, reducedMotion), position: "absolute", right: -28, top: 185, width: 720, height: 980, overflow: "hidden", maskImage: "linear-gradient(#000 0 62%,transparent 88%)", WebkitMaskImage: "linear-gradient(#000 0 62%,transparent 88%)" }}><Img src={assetSrc(portrait.publicPath)} style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center top", filter: "drop-shadow(-20px 24px 45px rgba(0,0,0,.65))" }} /></div> : null}
       <div style={{ position: "absolute", left: 0, right: 0, top: 700, height: 260, background: "linear-gradient(180deg,transparent,#03080C 82%)" }} />
       <div style={{ ...enterStyle(localFrame, 15, 12, reducedMotion), position: "absolute", left: SAFE_X, right: SAFE_X, top: 290 }}>
-        <div style={{ width: 390 }}><span style={{ font: `800 23px ${NUMBER_FONT}`, color: COLORS.gold, letterSpacing: 4 }}>DATA MVP CANDIDATE</span><h2 style={{ font: `900 142px/.82 ${NUMBER_FONT}`, letterSpacing: -5, margin: "24px 0 0" }}>{player.name}</h2><span style={{ display: "block", font: `800 23px ${NUMBER_FONT}`, color: COLORS.cyan, letterSpacing: 4, marginTop: 30 }}>2-GAME AVERAGE</span></div>
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 34, borderTop: "2px solid rgba(244,234,213,.18)", paddingTop: 34, marginTop: 400 }}>
+        <div style={{ width: 430 }}>
+          <span style={{ font: `800 23px ${NUMBER_FONT}`, color: COLORS.gold, letterSpacing: 4 }}>DATA MVP CANDIDATE</span>
+          <h2 style={{ font: `900 ${playerHandleFontSize(player.name)}px/.82 ${NUMBER_FONT}`, letterSpacing: -5, margin: "24px 0 0", whiteSpace: "nowrap" }}>{player.name}</h2>
+          {player.originalName ? <span style={{ display: "block", font: `800 ${originalNameFontSize(player.originalName)}px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 2.5, marginTop: 20, textTransform: "uppercase", whiteSpace: "nowrap" }}>{player.originalName}</span> : null}
+          <span style={{ display: "block", font: `800 23px ${NUMBER_FONT}`, color: COLORS.cyan, letterSpacing: 4, marginTop: player.originalName ? 22 : 30 }}>2-GAME AVERAGE</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 34, borderTop: "2px solid rgba(244,234,213,.18)", paddingTop: 34, marginTop: PLAYER_PROOF_DATA_OFFSET }}>
           <div><strong style={{ font: `900 88px/.9 ${NUMBER_FONT}`, color: COLORS.gold }}>{player.rawStats?.csm}</strong><span style={{ display: "block", font: `800 20px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 3, marginTop: 12 }}>CS / MIN</span></div>
           <div><strong style={{ font: `900 88px/.9 ${NUMBER_FONT}` }}>{player.rawStats?.dpm}</strong><span style={{ display: "block", font: `800 20px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 3, marginTop: 12 }}>DPM</span></div>
         </div>
         <div style={{ display: "flex", gap: 18, marginTop: 50, alignItems: "center" }}>{champions.map((champion) => champion.src ? <Img key={champion.championName} src={assetSrc(champion.src)} style={{ width: 96, height: 96, objectFit: "cover", border: `2px solid ${COLORS.gold}` }} /> : null)}<span style={{ font: `800 20px/1.5 ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 2 }}>CHAMPION<br />POOL</span></div>
         <div style={{ font: `900 46px/1.42 ${TEXT_FONT}`, letterSpacing: -2, marginTop: 80, maxWidth: 840 }}>穩定吃下經濟，<br /><b style={{ color: COLORS.cyan }}>讓地圖優勢有輸出終點。</b></div>
+        {secondaryEvidence.length > 0 ? <div style={{ display: "grid", gridTemplateColumns: `repeat(${secondaryEvidence.length}, minmax(0, 1fr))`, gap: 24, borderTop: "1px solid rgba(244,234,213,.18)", paddingTop: 28, marginTop: 64, maxWidth: 780 }}>
+          {secondaryEvidence.map((evidence) => <div key={evidence.metric} style={{ fontVariantNumeric: "tabular-nums" }}><strong style={{ font: `900 48px/.9 ${NUMBER_FONT}` }}>{evidence.displayValue}</strong><span style={{ display: "block", font: `800 18px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 2.4, marginTop: 12 }}>{SECONDARY_EVIDENCE_LABELS[evidence.metric] || evidence.metric}</span></div>)}
+        </div> : null}
       </div>
     </AbsoluteFill>
   );

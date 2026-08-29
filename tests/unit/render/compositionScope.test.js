@@ -237,6 +237,33 @@ test("post-match read result hook identifies teams with crests instead of champi
   assert.doesNotMatch(teamCrest, /grayscale/);
 });
 
+test("post-match read player proof renders separated identity and secondary evidence", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+
+  assert.match(scenes, /player\.originalName/);
+  assert.match(scenes, /proof\.secondaryEvidence/);
+  assert.match(scenes, /KILL PART\./);
+  assert.match(scenes, /GOLD \/ MIN/);
+});
+
+test("post-match read crests suppress duplicate labels for embedded wordmarks", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+  const teamCrest = scenes.match(/const TeamCrest[\s\S]*?\) : null;/)?.[0] || "";
+
+  assert.match(teamCrest, /asset\.labelMode === "embedded"/);
+  assert.match(teamCrest, /asset\.labelMode === "embedded" \? null/);
+  assert.match(teamCrest, /objectFit: "contain"/);
+});
+
+test("post-match read proof data moves up with a static collision-safe grid", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+
+  assert.match(scenes, /const PLAYER_PROOF_DATA_OFFSET = 304/);
+  assert.match(scenes, /marginTop: PLAYER_PROOF_DATA_OFFSET/);
+  assert.match(scenes, /gridTemplateColumns: `repeat\(\$\{secondaryEvidence\.length\}, minmax\(0, 1fr\)\)`/);
+  assert.doesNotMatch(scenes, /transition:\s*["'`]all/);
+});
+
 test("Remotion root player radar preview uses the approved GEN HLE post-match read", () => {
   const rootSource = fs.readFileSync(path.join(ROOT, "src/Root.jsx"), "utf8");
   const playerRadarBlock = rootSource.match(/const mockPlayerRadarData = \{[\s\S]*?\n\};\n\nconst mockEsportsH2HRadarData = \{/);
