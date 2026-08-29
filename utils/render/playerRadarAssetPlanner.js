@@ -22,6 +22,8 @@ function usableAsset(path = "") {
     && path !== RENDER_ASSET_FALLBACK_PUBLIC_PATH;
 }
 
+const normalizeIdentity = (value) => String(value || "").trim().toLowerCase();
+
 async function resolvePlayerRadarAssets(viewModel = {}, {
   cacheRemoteImageUrlImpl = cacheRemoteImageUrl,
   cacheRemoteImageUrlOptions = {},
@@ -81,6 +83,12 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
     teamA: renderTeamCrest(preflight.teams.teamA),
     teamB: renderTeamCrest(preflight.teams.teamB),
   } : undefined;
+  const winnerIdentity = viewModel.finalRead?.winnerTeam?.identity;
+  const winnerCrest = [preflight.teams.teamA, preflight.teams.teamB]
+    .find((crest) => normalizeIdentity(crest.team) === normalizeIdentity(winnerIdentity));
+  if (!winnerCrest) {
+    throw new Error(`Post Match Read winner crest unavailable for ${winnerIdentity || "missing"}.`);
+  }
 
   const buildHero = (championName, splashSrc, squareSrc) => {
     if (!usableAsset(squareSrc)) {
@@ -101,6 +109,7 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
 
   return {
     teams,
+    finalRead: { winnerCrest: renderTeamCrest(winnerCrest) },
     matchup: {
       edge: buildHero(heroNames[0], edgeSplash, edgeSquare),
       opponent: buildHero(heroNames[1], opponentSplash, opponentSquare),

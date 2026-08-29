@@ -18,6 +18,9 @@ function makeViewModel(edgeChampion = "Xin Zhao") {
     proof: {
       player: { playerId: "ruler", name: "Ruler", team: "GEN", champions: ["Lucian", "Varus", "Ezreal"] },
     },
+    finalRead: {
+      winnerTeam: { name: "GEN", identity: "GEN" },
+    },
   };
 }
 
@@ -44,6 +47,44 @@ test("resolvePlayerRadarAssets resolves both series teams as verified crests", a
   assert.equal(resolved.teams.teamB.publicPath, "/team-crests/hle.png");
   assert.equal(resolved.teams.teamA.labelMode, "external");
   assert.equal(resolved.teams.teamB.labelMode, "embedded");
+});
+
+test("resolvePlayerRadarAssets exposes the verified winning-team crest", async () => {
+  const viewModel = makeViewModel();
+  viewModel.seriesContext.teamAIdentity = "GEN";
+  viewModel.seriesContext.teamBIdentity = "HLE";
+  viewModel.finalRead = { winnerTeam: { name: "HLE", identity: "HLE" } };
+
+  const resolved = await resolvePlayerRadarAssets(viewModel, {
+    cacheRemoteImageUrlImpl: async () => "/render-assets/official.png",
+    resolvePlayerPortraitImpl: makePortrait,
+    resolveTeamCrestImpl: (identity) => ({
+      team: identity.team,
+      publicPath: `/team-crests/${identity.team.toLowerCase()}.png`,
+      labelMode: identity.team === "HLE" ? "embedded" : "external",
+    }),
+  });
+
+  assert.equal(resolved.finalRead.winnerCrest.team, "HLE");
+  assert.equal(resolved.finalRead.winnerCrest.publicPath, "/team-crests/hle.png");
+  assert.equal(resolved.finalRead.winnerCrest.labelMode, "embedded");
+});
+
+test("resolvePlayerRadarAssets blocks a winner identity outside the verified series teams", async () => {
+  const viewModel = makeViewModel();
+  viewModel.finalRead = { winnerTeam: { name: "Unknown", identity: "Unknown Team" } };
+
+  await assert.rejects(
+    () => resolvePlayerRadarAssets(viewModel, {
+      cacheRemoteImageUrlImpl: async () => "/render-assets/official.png",
+      resolvePlayerPortraitImpl: makePortrait,
+      resolveTeamCrestImpl: (identity) => ({
+        team: identity.team,
+        publicPath: `/team-crests/${identity.team.toLowerCase()}.png`,
+      }),
+    }),
+    /winner crest unavailable for Unknown Team/i,
+  );
 });
 
 test("resolvePlayerRadarAssets uses the repository team crest manifest by default", async () => {
