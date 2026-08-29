@@ -59,7 +59,7 @@
 
 Create one table-driven test asserting canonical examples map to `LCK`, `LPL`, `LEC`, `LCS`, `CBLOL`, `LCP`, `FIRST_STAND`, `MSI`, and `WORLDS`; assert `LCK CL 2026`, `LPL Development League 2026`, `EMEA Masters 2026`, `NACL 2026`, `CBLOL Academy 2026`, `PCS 2026`, and `Worlds Qualifying Series 2026` return `null`.
 
-Run: `node --test tests/unit/esports/competitionRegistry.test.js`  
+Run: `node --test tests/unit/esports/competitionRegistry.test.js`
 Expected: FAIL because `competitionRegistry.js` does not exist.
 
 - [ ] **Step 2: GREEN — add data-backed classification**
@@ -76,7 +76,7 @@ function classifyTierOneTournament(name = "") {
 }
 ```
 
-Run: `node --test tests/unit/esports/competitionRegistry.test.js`  
+Run: `node --test tests/unit/esports/competitionRegistry.test.js`
 Expected: PASS for nine supported competitions and every exclusion.
 
 - [ ] **Step 3: RED/GREEN — build a SQL-safe registry predicate**
@@ -142,7 +142,7 @@ Run: `node --test tests/unit/esports/matchScorer.test.js`.
 
 - [ ] **Step 5: Focused regression and commit**
 
-Run: `node --test tests/unit/esports/competitionRegistry.test.js tests/unit/esports/leaguepediaSecurity.test.js tests/unit/esports/seriesFetcher.test.js tests/unit/esports/config.test.js tests/unit/esports/candidateScanner.test.js tests/unit/esports/matchScorer.test.js`  
+Run: `node --test tests/unit/esports/competitionRegistry.test.js tests/unit/esports/leaguepediaSecurity.test.js tests/unit/esports/seriesFetcher.test.js tests/unit/esports/config.test.js tests/unit/esports/candidateScanner.test.js tests/unit/esports/matchScorer.test.js`
 Expected: all tests pass with one exact-date global query contract.
 
 ```bash
@@ -276,7 +276,7 @@ Run: `node --test tests/unit/esports/assetInventory.test.js`.
 
 Parse only strict `--year`, `--as-of`, `--json`, and `--markdown` arguments; reject paths outside `.data/esports-assets/`. Add that runtime directory to `.gitignore` while keeping test fixtures tracked.
 
-Run: `node --test tests/unit/esports/assetInventory.test.js && node scripts/esportsAssetInventory.js --help`  
+Run: `node --test tests/unit/esports/assetInventory.test.js && node scripts/esportsAssetInventory.js --help`
 Expected: tests pass and help prints exact supported arguments without a network call.
 
 - [ ] **Step 5: Commit**
@@ -338,7 +338,7 @@ Run: `node --test tests/unit/esports/assetImporter.test.js`.
 }
 ```
 
-Run: `npm run assets:verify -- --help`  
+Run: `npm run assets:verify -- --help`
 Expected: documents strict inputs and performs no mutation.
 
 ```bash
@@ -366,7 +366,7 @@ git commit -m "feat: import and verify esports assets"
 
 Create one contract test using the real manifests and `matchDate: "2026-08-27"`. Assert preflight initially throws three missing identities; run it and observe the expected failure against the desired `missing.length === 0` behavior before importing.
 
-Run: `node --test tests/unit/render/currentSeriesAssetContract.test.js`  
+Run: `node --test tests/unit/render/currentSeriesAssetContract.test.js`
 Expected: FAIL listing Taeyoon portrait and both team crests.
 
 - [ ] **Step 2: Review exact sources in priority order**
@@ -377,7 +377,7 @@ Resolve the official player/team identity against Leaguepedia roster/image data,
 
 Run the importer with explicit IDs for the three records, review the generated file count/byte deltas, and add the verified manifest entries. If any source cannot pass review, retain the exact gap and do not substitute; continue implementing the infrastructure and document the unresolved source.
 
-Run: `node --test tests/unit/render/currentSeriesAssetContract.test.js tests/unit/render/playerPortraitManifest.test.js tests/unit/render/teamCrestManifest.test.js`  
+Run: `node --test tests/unit/render/currentSeriesAssetContract.test.js tests/unit/render/playerPortraitManifest.test.js tests/unit/render/teamCrestManifest.test.js`
 Expected when all three sources pass: current series preflight resolves three verified local paths.
 
 - [ ] **Step 4: Document provenance and commit the real slice**
