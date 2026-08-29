@@ -280,6 +280,26 @@ test("embedded crest lockups reserve clear space inside the media frame", () => 
   assert.match(teamCrest, /height: asset\.labelMode === "embedded" \? "88%" : "100%"/);
 });
 
+test("final read scene uses dynamic winner copy and evidence labels", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+  const finalScene = scenes.match(/export const FinalReadScene[\s\S]*?\n};/)?.[0] || "";
+
+  assert.match(finalScene, /model\.finalRead\?\.conclusionParts/);
+  assert.match(finalScene, /reference\.label/);
+  assert.doesNotMatch(finalScene, /GEN 的勝點|CHOVY|RULER/);
+});
+
+test("final read scene renders a contained winner crest halo and shared score echo", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+  const finalScene = scenes.match(/export const FinalReadScene[\s\S]*?\n};/)?.[0] || "";
+
+  assert.match(scenes, /const WinnerCrestBackdrop/);
+  assert.match(finalScene, /winnerCrest/);
+  assert.match(finalScene, /<WinnerCrestBackdrop/);
+  assert.match(finalScene, /score=\{score\}/);
+  assert.doesNotMatch(finalScene, /animationIterationCount|rotate\(|particle/i);
+});
+
 test("Remotion root player radar preview uses the approved GEN HLE post-match read", () => {
   const rootSource = fs.readFileSync(path.join(ROOT, "src/Root.jsx"), "utf8");
   const playerRadarBlock = rootSource.match(/const mockPlayerRadarData = \{[\s\S]*?\n\};\n\nconst mockEsportsH2HRadarData = \{/);

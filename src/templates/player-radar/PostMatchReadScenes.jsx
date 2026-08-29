@@ -74,6 +74,31 @@ const Atmosphere = ({ asset, side = "center", opacity = 0.55 }) => asset?.atmosp
   }} />
 ) : null;
 
+const WinnerCrestBackdrop = ({ asset, score, localFrame, reducedMotion }) => asset?.publicPath ? (
+  <div style={{
+    ...enterStyle(localFrame, 5, 14, reducedMotion),
+    position: "absolute", right: -72, top: 156, width: 650, height: 650,
+    display: "grid", placeItems: "center",
+  }}>
+    <div style={{
+      position: "absolute", inset: 34, border: "2px solid rgba(207,173,103,.14)", borderRadius: "50%",
+      boxShadow: "inset 0 0 0 28px rgba(207,173,103,.025), inset 0 0 0 88px rgba(53,209,207,.018)",
+    }} />
+    <div style={{
+      position: "absolute", right: 12, top: 166, color: "rgba(207,173,103,.055)",
+      font: `900 210px/.8 ${NUMBER_FONT}`, letterSpacing: -10,
+    }}>{score.left}{score.separator}{score.right}</div>
+    <Img
+      src={assetSrc(asset.publicPath)}
+      style={{
+        width: asset.labelMode === "embedded" ? "72%" : "82%",
+        height: asset.labelMode === "embedded" ? "72%" : "82%",
+        objectFit: "contain", opacity: .13, filter: "saturate(.6) brightness(.8)",
+      }}
+    />
+  </div>
+) : null;
+
 export const MatchupBroadcastScene = ({ model, localFrame, reducedMotion, phase }) => {
   const matchup = model.matchup || {};
   const result = model.resultHook || {};
@@ -189,15 +214,18 @@ export const PlayerProofScene = ({ model, localFrame, reducedMotion }) => {
 export const FinalReadScene = ({ model, localFrame, reducedMotion }) => {
   const score = model.resultHook?.scoreParts || { left: "2", separator: "–", right: "0" };
   const references = model.finalRead?.recapReferences || [];
+  const conclusionParts = model.finalRead?.conclusionParts || { lead: "", emphasis: "" };
+  const winnerCrest = model.assets?.finalRead?.winnerCrest;
   return (
     <AbsoluteFill>
-      <Atmosphere asset={model.assets?.matchup?.edge} side="55% top" opacity={.28} />
+      <Atmosphere asset={model.assets?.matchup?.edge} side="55% top" opacity={.20} />
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(3,8,12,.25),#03080C 76%),linear-gradient(90deg,rgba(7,20,29,.92),rgba(7,20,29,.22))" }} />
+      <WinnerCrestBackdrop asset={winnerCrest} score={score} localFrame={localFrame} reducedMotion={reducedMotion} />
       <div style={{ ...enterStyle(localFrame, 3, 12, reducedMotion), position: "absolute", left: SAFE_X, top: 250, display: "flex", alignItems: "baseline", color: "rgba(207,173,103,.38)", font: `900 260px/.78 ${NUMBER_FONT}` }}><span>{score.left}</span><i style={{ font: `800 ${SCORE_SEPARATOR_SIZE}px ${NUMBER_FONT}`, margin: "0 28px", transform: "translateY(-8px)" }}>{score.separator}</i><span>{score.right}</span></div>
       <div style={{ ...enterStyle(localFrame, 15, 12, reducedMotion), position: "absolute", left: SAFE_X, right: SAFE_X, top: 660 }}>
         <div style={{ font: `800 24px ${NUMBER_FONT}`, color: COLORS.cyan, letterSpacing: 5 }}>THE FINAL READ</div>
-        <h2 style={{ font: `900 66px/1.3 ${TEXT_FONT}`, letterSpacing: -4, margin: "32px 0 0", maxWidth: 900 }}>GEN 的勝點不是搶得多，<br />而是把每次領先<br /><b style={{ color: COLORS.gold }}>換成塔與輸出。</b></h2>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 34, marginTop: 110 }}>{references.map((reference) => <div key={reference.source} style={{ borderTop: "2px solid rgba(244,234,213,.18)", paddingTop: 24 }}><strong style={{ font: `900 68px ${NUMBER_FONT}` }}>{reference.displayValue}</strong><span style={{ display: "block", font: `800 20px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 3, marginTop: 8 }}>{reference.source === "matchup" ? "CHOVY · MID EDGE" : "RULER · ECONOMY"}</span></div>)}</div>
+        <h2 style={{ font: `900 66px/1.3 ${TEXT_FONT}`, letterSpacing: -4, margin: "32px 0 0", maxWidth: 900 }}>{conclusionParts.lead}<br /><b style={{ color: COLORS.gold }}>{conclusionParts.emphasis}</b></h2>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 34, marginTop: 110 }}>{references.map((reference) => <div key={reference.source} style={{ borderTop: "2px solid rgba(244,234,213,.18)", paddingTop: 24 }}><strong style={{ font: `900 68px ${NUMBER_FONT}` }}>{reference.displayValue}</strong><span style={{ display: "block", font: `800 20px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 3, marginTop: 8 }}>{reference.label}</span></div>)}</div>
         <div style={{ font: `700 25px ${TEXT_FONT}`, color: "#AAB5B9", marginTop: 120 }}><span style={{ display: "inline-block", width: 54, height: 4, background: COLORS.gold, verticalAlign: "middle", marginRight: 20 }} />最後 1.5 秒完全靜止，留給觀眾讀完</div>
       </div>
     </AbsoluteFill>
