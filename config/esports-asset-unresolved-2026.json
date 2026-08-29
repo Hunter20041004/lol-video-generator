@@ -1,0 +1,484 @@
+{
+  "version": 1,
+  "asOf": "2026-08-28",
+  "policy": "block-render-and-research-official-or-league-source",
+  "teams": [
+    {
+      "competitionId": "LCK",
+      "team": "BRION",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCK",
+      "team": "DRX",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LPL",
+      "team": "Ninjas in Pyjamas.CN",
+      "region": "China"
+    },
+    {
+      "competitionId": "LCS",
+      "team": "LYON (2024 American Team)",
+      "region": "North America"
+    }
+  ],
+  "players": [
+    {
+      "competitionId": "LCK",
+      "playerId": "aiming",
+      "publicName": "Aiming",
+      "team": "Kiwoom DRX",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "andil",
+      "publicName": "Andil",
+      "team": "Kiwoom DRX",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCS",
+      "playerId": "armao",
+      "publicName": "Armao",
+      "team": "LYON (2024 American Team)",
+      "region": "North America"
+    },
+    {
+      "competitionId": "LPL",
+      "playerId": "assum",
+      "publicName": "Assum",
+      "team": "Invictus Gaming",
+      "region": "China"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "betty",
+      "publicName": "Betty",
+      "team": "Ground Zero Gaming",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "bluffing",
+      "publicName": "Bluffing",
+      "team": "Hanwha Life Esports",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LPL",
+      "playerId": "breathe",
+      "publicName": "Breathe",
+      "team": "Invictus Gaming",
+      "region": "China"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "casting",
+      "publicName": "Casting",
+      "team": "HANJIN BRION",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCS",
+      "playerId": "castle",
+      "publicName": "Castle (Cho Hyeon-seong)",
+      "team": "LYON (2024 American Team)",
+      "region": "North America"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "chika",
+      "publicName": "Chika",
+      "team": "MVK Esports",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LPL",
+      "playerId": "climber",
+      "publicName": "climber",
+      "team": "Ultra Prime",
+      "region": "China"
+    },
+    {
+      "competitionId": "CBLOL",
+      "playerId": "curse",
+      "publicName": "Curse (Raí Yamada)",
+      "team": "RED Canids",
+      "region": "Brazil"
+    },
+    {
+      "competitionId": "LEC",
+      "playerId": "daglas",
+      "publicName": "Daglas",
+      "team": "Team Heretics",
+      "region": "EMEA"
+    },
+    {
+      "competitionId": "LCS",
+      "playerId": "dardoch",
+      "publicName": "Dardoch",
+      "team": "Dignitas",
+      "region": "North America"
+    },
+    {
+      "competitionId": "LCS",
+      "playerId": "denathor",
+      "publicName": "Denathor",
+      "team": "Dignitas",
+      "region": "North America"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "effort",
+      "publicName": "Effort",
+      "team": "KT Rolster",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCS",
+      "playerId": "fbi",
+      "publicName": "FBI",
+      "team": "Dignitas",
+      "region": "North America"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "fenrir",
+      "publicName": "FenRir (Park Kang-jun)",
+      "team": "KT Rolster",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "fisher",
+      "publicName": "Fisher (Lee Jeong-tae)",
+      "team": "DetonatioN FocusMe",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LPL",
+      "playerId": "flandre",
+      "publicName": "Flandre",
+      "team": "Bilibili Gaming",
+      "region": "China"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "frog",
+      "publicName": "Frog (Lee Min-hoi)",
+      "team": "Kiwoom DRX",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "gideon",
+      "publicName": "GIDEON",
+      "team": "HANJIN BRION",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "gloryy",
+      "publicName": "Gloryy",
+      "team": "GAM Esports",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LPL",
+      "playerId": "hang",
+      "publicName": "Hang",
+      "team": "Weibo Gaming",
+      "region": "China"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "harky",
+      "publicName": "Harky",
+      "team": "MVK Esports",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LEC",
+      "playerId": "hype",
+      "publicName": "Hype (Byeon Jeong-hyeon)",
+      "team": "Team Heretics",
+      "region": "EMEA"
+    },
+    {
+      "competitionId": "LCS",
+      "playerId": "ignar",
+      "publicName": "Ignar",
+      "team": "Dignitas",
+      "region": "North America"
+    },
+    {
+      "competitionId": "LPL",
+      "playerId": "jiaqi",
+      "publicName": "JiaQi",
+      "team": "Invictus Gaming",
+      "region": "China"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "jiwoo",
+      "publicName": "Jiwoo",
+      "team": "Kiwoom DRX",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "jiwoo",
+      "publicName": "Jiwoo",
+      "team": "KT Rolster",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "kaiwing",
+      "publicName": "Kaiwing",
+      "team": "Ground Zero Gaming",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "kino",
+      "publicName": "Kino",
+      "team": "CTBC Flying Oyster",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LCS",
+      "playerId": "kryra",
+      "publicName": "KryRa",
+      "team": "Disguised",
+      "region": "North America"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "lazyfeel",
+      "publicName": "LazyFeel",
+      "team": "Kiwoom DRX",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "loki",
+      "publicName": "Loki (Lee Sang-min)",
+      "team": "HANJIN BRION",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCS",
+      "playerId": "loki",
+      "publicName": "Loki (Lee Sang-min)",
+      "team": "Cloud9",
+      "region": "North America"
+    },
+    {
+      "competitionId": "CBLOL",
+      "playerId": "manel",
+      "publicName": "Manel",
+      "team": "RED Canids",
+      "region": "Brazil"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "minous",
+      "publicName": "Minous",
+      "team": "Kiwoom DRX",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "momo",
+      "publicName": "Momo (Sora Tobita)",
+      "team": "DetonatioN FocusMe",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "namgung",
+      "publicName": "Namgung",
+      "team": "HANJIN BRION",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "painter",
+      "publicName": "Painter",
+      "team": "T1",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "pleata",
+      "publicName": "Pleata",
+      "team": "Nongshim RedForce",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "pout",
+      "publicName": "POUT",
+      "team": "CTBC Flying Oyster",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "CBLOL",
+      "playerId": "qats",
+      "publicName": "Qats",
+      "team": "Vivo Keyd Stars",
+      "region": "Brazil"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "rich",
+      "publicName": "Rich (Lee Jae-won)",
+      "team": "Kiwoom DRX",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "roamer",
+      "publicName": "Roamer",
+      "team": "HANJIN BRION",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "CBLOL",
+      "playerId": "sarolu",
+      "publicName": "sarolu",
+      "team": "Vivo Keyd Stars",
+      "region": "Brazil"
+    },
+    {
+      "competitionId": "LPL",
+      "playerId": "sasi",
+      "publicName": "sasi (Yan Rui)",
+      "team": "Ultra Prime",
+      "region": "China"
+    },
+    {
+      "competitionId": "CBLOL",
+      "playerId": "scamber",
+      "publicName": "scamber",
+      "team": "Vivo Keyd Stars",
+      "region": "Brazil"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "sharvel",
+      "publicName": "Sharvel",
+      "team": "DN SOOPers",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "sharvel",
+      "publicName": "Sharvel",
+      "team": "Dplus Kia",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "siuloong",
+      "publicName": "SiuLoong",
+      "team": "MVK Esports",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "slayer",
+      "publicName": "Slayer (Kim Jin-young)",
+      "team": "BNK FEARX",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCS",
+      "playerId": "srtty",
+      "publicName": "Srtty",
+      "team": "Disguised",
+      "region": "North America"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "steller",
+      "publicName": "Steller",
+      "team": "MVK Esports",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LCS",
+      "playerId": "tactical",
+      "publicName": "Tactical",
+      "team": "Cloud9",
+      "region": "North America"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "teddy",
+      "publicName": "Teddy",
+      "team": "HANJIN BRION",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LPL",
+      "playerId": "theshy",
+      "publicName": "TheShy",
+      "team": "Invictus Gaming",
+      "region": "China"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "ucal",
+      "publicName": "Ucal",
+      "team": "Kiwoom DRX",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "uniboy",
+      "publicName": "Uniboy",
+      "team": "Ground Zero Gaming",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "van1",
+      "publicName": "Van1",
+      "team": "Fukuoka SoftBank HAWKS gaming",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "LEC",
+      "playerId": "way",
+      "publicName": "Way (Han Gil)",
+      "team": "Team Heretics",
+      "region": "EMEA"
+    },
+    {
+      "competitionId": "LCK",
+      "playerId": "willer",
+      "publicName": "Willer",
+      "team": "Kiwoom DRX",
+      "region": "Korea"
+    },
+    {
+      "competitionId": "LCP",
+      "playerId": "woody",
+      "publicName": "Woody",
+      "team": "DetonatioN FocusMe",
+      "region": "Asia-Pacific"
+    },
+    {
+      "competitionId": "CBLOL",
+      "playerId": "zekas",
+      "publicName": "zekas",
+      "team": "Vivo Keyd Stars",
+      "region": "Brazil"
+    }
+  ]
+}

@@ -32,6 +32,14 @@ Team crests are used only for editorial team identification in generated match-a
 | BNK FEARX | 2026 | `public/team-crests/bnk-fearx-2026.png` | [official FEARX brand page](https://www.fearx.gg/brands) | 1000×1000 PNG | `b5b69b5d9ddaf255c1e95f66f5a79eecda4d9d07f42afddd53bab73a79cb68c6` |
 | Nongshim RedForce | 2026 | `public/team-crests/nongshim-redforce-2026.png` | [Leaguepedia file page](https://lol.fandom.com/wiki/File:Nongshim_RedForcelogo_square.png), cross-checked against the [official NS brand page](https://ns-esports.com/page/11) | 1000×1000 PNG | `e56bdcad9679c1348c6b5c4c8149d1c22d50bbcdef456feca18f2c477c6399be` |
 
+### Approved 2026 global tier-one regional library
+
+On 2026-08-28, the project owner explicitly approved candidates with a direct Leaguepedia file page for LCK, LPL, LEC, LCS, CBLOL, and LCP. The approved batch contains 425 assets: 371 player portraits and 54 team crests. Each source record preserves its file page, resolved static image URL, review timestamp, identity, validity dates, normalized repository path, dimensions, and SHA-256 in `config/esports-asset-sources-2026.json` and the two asset manifests.
+
+Leaguepedia is the approved fallback source when a direct official league or team asset is unavailable. These images are bundled only for editorial identification in the project owner's authorized match-analysis videos. Player likenesses, team names, logos, and underlying image rights remain with their respective owners; the repository's ISC license grants no independent reuse rights.
+
+The as-of-2026-08-28 library deliberately leaves 4 team identities and 65 player/team identities unresolved because no reviewable 2026 file candidate was available. They remain render blockers and are recorded in `config/esports-asset-unresolved-2026.json`; the system does not substitute a different player, team, or uniform.
+
 ## Repository-hosted Google Fonts
 
 The following variable font files are redistributed under the SIL Open Font License, Version 1.1. The complete license and both project copyright notices are preserved in `public/fonts/OFL.txt`.
