@@ -289,6 +289,13 @@ test("final read scene uses dynamic winner copy and evidence labels", () => {
   assert.doesNotMatch(finalScene, /GEN 的勝點|CHOVY|RULER/);
 });
 
+test("final read conclusion reserves a balanced reading column", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+  const finalScene = scenes.match(/export const FinalReadScene[\s\S]*?\n};/)?.[0] || "";
+
+  assert.match(finalScene, /maxWidth: 760/);
+});
+
 test("final read scene renders a contained winner crest halo and shared score echo", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
   const finalScene = scenes.match(/export const FinalReadScene[\s\S]*?\n};/)?.[0] || "";
