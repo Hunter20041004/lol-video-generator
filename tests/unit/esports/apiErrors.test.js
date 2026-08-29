@@ -71,6 +71,25 @@ test("formatEsportsApiError surfaces Leaguepedia bot auth failures as credential
   assert.match(result.error, /supplied credentials/);
 });
 
+test("formatEsportsApiError hides MediaWiki exception details behind a retryable source message", () => {
+  const { formatEsportsApiError } = require("../../../utils/esports/apiErrors");
+  const error = Object.assign(
+    new Error("Leaguepedia API returned error: [request-id] Caught exception of type MWException"),
+    { code: "LEAGUEPEDIA_UPSTREAM_ERROR", status: 502, recoverable: true }
+  );
+
+  const result = formatEsportsApiError(error, {
+    fallbackMessage: "候選賽事掃描失敗。",
+  });
+
+  assert.equal(result.code, "LEAGUEPEDIA_UPSTREAM_ERROR");
+  assert.equal(result.status, 502);
+  assert.equal(result.recoverable, true);
+  assert.equal(result.userMessage, "Leaguepedia 暫時無法處理這筆賽事資料。");
+  assert.match(result.recoverySuggestion, /稍後再按一次/);
+  assert.doesNotMatch(result.userMessage, /MWException|request-id/);
+});
+
 test("formatEsportsApiError preserves unknown errors as server failures", () => {
   const { formatEsportsApiError } = require("../../../utils/esports/apiErrors");
 

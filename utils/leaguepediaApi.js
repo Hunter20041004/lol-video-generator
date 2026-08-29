@@ -28,6 +28,10 @@ const {
 const LEAGUEPEDIA_SOURCE = 'leaguepedia';
 const { buildTierOneTournamentWhere } = require('./esports/competitionRegistry');
 
+function escapeCargoValue(value = '') {
+  return String(value).replaceAll("'", "''");
+}
+
 // =========================================================================
 // SECTION 0 · MediaWiki Bot Authentication (clientlogin flow)
 // -----------------------------------------------------------------------
@@ -101,6 +105,14 @@ function createLeaguepediaAuthError(message, cause) {
   error.status = 401;
   error.recoverable = false;
   if (cause) error.cause = cause;
+  return error;
+}
+
+function createLeaguepediaUpstreamError(message) {
+  const error = new Error(message);
+  error.code = 'LEAGUEPEDIA_UPSTREAM_ERROR';
+  error.status = 502;
+  error.recoverable = true;
   return error;
 }
 
@@ -294,7 +306,7 @@ async function cargoQuery(params) {
         const cooldown = recordSourceCooldown(LEAGUEPEDIA_SOURCE, { reason: 'rate_limit' });
         throw createSourceCooldownError(LEAGUEPEDIA_SOURCE, cooldown, message);
       }
-      throw new Error(message);
+      throw createLeaguepediaUpstreamError(message);
     }
 
     // Cargo wraps results as: { cargoquery: [ { title: { field1: "val", ... } }, ... ] }
@@ -448,6 +460,7 @@ async function fetchTierOneMatchesForDate(date) {
  * @returns {Object} — { match: {...}, players: [...] }
  */
 async function fetchMatchPlayers(gameId) {
+  const safeGameId = escapeCargoValue(gameId);
   const rows = await cargoQuery({
     tables: 'ScoreboardGames,ScoreboardPlayers',
     join_on: 'ScoreboardGames.GameId=ScoreboardPlayers.GameId',
@@ -474,7 +487,7 @@ async function fetchMatchPlayers(gameId) {
       'ScoreboardPlayers.DamageToChampions',
       'ScoreboardPlayers.VisionScore',
     ].join(','),
-    where: `ScoreboardGames.GameId='${gameId}'`,
+    where: `ScoreboardGames.GameId='${safeGameId}'`,
     limit: 10, // 10 players per game
   });
 
@@ -520,7 +533,7 @@ function normalizeTeamRow(row = {}) {
 }
 
 async function fetchMatchTeamStats(gameId) {
-  const safeGameId = String(gameId || '').replaceAll("'", "''");
+  const safeGameId = escapeCargoValue(gameId);
   const rows = await cargoQuery({
     tables: 'ScoreboardTeams',
     fields: [

@@ -42,6 +42,39 @@ test("cargoQuery records a Leaguepedia cooldown when Fandom returns a rate-limit
   }
 });
 
+test("cargoQuery classifies MediaWiki internal exceptions as recoverable upstream errors", async () => {
+  clearSourceCooldown("leaguepedia");
+  leaguepedia.clearSession();
+  const originalFetch = global.fetch;
+
+  global.fetch = async () => ({
+    ok: true,
+    headers: { get: () => "" },
+    json: async () => ({
+      error: {
+        code: "internal_api_error_MWException",
+        info: "[request-id] Caught exception of type MWException",
+      },
+    }),
+  });
+
+  try {
+    await assert.rejects(
+      () => leaguepedia.cargoQuery({ tables: "ScoreboardGames", fields: "GameId", limit: 1 }),
+      (error) => {
+        assert.equal(error.code, "LEAGUEPEDIA_UPSTREAM_ERROR");
+        assert.equal(error.status, 502);
+        assert.equal(error.recoverable, true);
+        return true;
+      }
+    );
+  } finally {
+    global.fetch = originalFetch;
+    leaguepedia.clearSession();
+    clearSourceCooldown("leaguepedia");
+  }
+});
+
 test("cargoQuery short-circuits active Leaguepedia cooldown before fetching", async () => {
   clearSourceCooldown("leaguepedia");
   const originalFetch = global.fetch;
@@ -226,6 +259,43 @@ test("fetchMatchPlayers requests Leaguepedia DamageToChampions field and normali
     assert.match(requestedFields, /DamageToChampions/);
     assert.equal(result.players[0].stats.damageToChampions, "12345");
     assert.equal(result.players[0].damageToChampions, 12345);
+  } finally {
+    global.fetch = originalFetch;
+    if (originalUsername === undefined) delete process.env.FANDOM_BOT_USERNAME;
+    else process.env.FANDOM_BOT_USERNAME = originalUsername;
+    if (originalPassword === undefined) delete process.env.FANDOM_BOT_PASSWORD;
+    else process.env.FANDOM_BOT_PASSWORD = originalPassword;
+    leaguepedia.clearSession();
+    clearSourceCooldown("leaguepedia");
+  }
+});
+
+test("fetchMatchPlayers escapes apostrophes in Cargo GameId filters", async () => {
+  clearSourceCooldown("leaguepedia");
+  leaguepedia.clearSession();
+  const originalFetch = global.fetch;
+  const originalUsername = process.env.FANDOM_BOT_USERNAME;
+  const originalPassword = process.env.FANDOM_BOT_PASSWORD;
+  let requestedWhere = "";
+
+  delete process.env.FANDOM_BOT_USERNAME;
+  delete process.env.FANDOM_BOT_PASSWORD;
+
+  global.fetch = async (url) => {
+    requestedWhere = new URL(url).searchParams.get("where") || "";
+    return {
+      ok: true,
+      headers: { get: () => "" },
+      json: async () => ({ cargoquery: [] }),
+    };
+  };
+
+  try {
+    await leaguepedia.fetchMatchPlayers("LPL/2026 Season/Grand Finals_Knight's Road_2_3");
+    assert.equal(
+      requestedWhere,
+      "ScoreboardGames.GameId='LPL/2026 Season/Grand Finals_Knight''s Road_2_3'"
+    );
   } finally {
     global.fetch = originalFetch;
     if (originalUsername === undefined) delete process.env.FANDOM_BOT_USERNAME;

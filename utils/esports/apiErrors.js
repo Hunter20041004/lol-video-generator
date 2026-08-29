@@ -58,6 +58,18 @@ function formatEsportsApiError(error, options = {}) {
     };
   }
 
+  if (error?.code === "LEAGUEPEDIA_UPSTREAM_ERROR") {
+    return {
+      success: false,
+      code: "LEAGUEPEDIA_UPSTREAM_ERROR",
+      status: 502,
+      recoverable: true,
+      userMessage: "Leaguepedia 暫時無法處理這筆賽事資料。",
+      recoverySuggestion: "請稍後再按一次；若同一日期持續失敗，請回報日期與賽事名稱。",
+      error: message,
+    };
+  }
+
   if (error?.code === "ESPORTS_ASSETS_MISSING") {
     const missing = (Array.isArray(error.missing) ? error.missing : []).map((entry) => ({
       kind: String(entry.kind || "asset"),
