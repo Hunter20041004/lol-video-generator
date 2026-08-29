@@ -29,6 +29,10 @@ function resolveTeamCrest(identity = {}, options = {}) {
     throw new Error(`Team crest season mismatch for ${teamMatches[0].team}: expected ${teamMatches.map(({ season }) => season).join(" or ")}, received ${identity.season || "missing"}.`);
   }
   const entry = resolveDatedEntry(entries, identity, { kind: "Team crest" });
+  const labelMode = entry.presentation?.labelMode || "external";
+  if (!["external", "embedded"].includes(labelMode)) {
+    throw new Error(`Team crest label mode is invalid for ${entry.team}: ${labelMode}.`);
+  }
 
   const crestRoot = path.join(rootDir, "public/team-crests");
   const filePath = path.resolve(rootDir, entry.repositoryPath);
@@ -55,6 +59,7 @@ function resolveTeamCrest(identity = {}, options = {}) {
     sha256,
     width: dimensions.width,
     height: dimensions.height,
+    labelMode,
     publicPath: `/${path.relative(path.join(rootDir, "public"), filePath).split(path.sep).join("/")}`,
   };
 }

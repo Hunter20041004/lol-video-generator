@@ -28,7 +28,11 @@ test("resolvePlayerRadarAssets resolves both series teams as verified crests", a
     resolvePlayerPortraitImpl: makePortrait,
     resolveTeamCrestImpl: (identity) => {
       resolvedTeams.push(identity);
-      return { team: identity.team, publicPath: `/team-crests/${identity.team.toLowerCase()}.png` };
+      return {
+        team: identity.team,
+        publicPath: `/team-crests/${identity.team.toLowerCase()}.png`,
+        labelMode: identity.team === "HLE" ? "embedded" : "external",
+      };
     },
   });
 
@@ -38,6 +42,8 @@ test("resolvePlayerRadarAssets resolves both series teams as verified crests", a
   ]);
   assert.equal(resolved.teams.teamA.publicPath, "/team-crests/gen.png");
   assert.equal(resolved.teams.teamB.publicPath, "/team-crests/hle.png");
+  assert.equal(resolved.teams.teamA.labelMode, "external");
+  assert.equal(resolved.teams.teamB.labelMode, "embedded");
 });
 
 test("resolvePlayerRadarAssets uses the repository team crest manifest by default", async () => {

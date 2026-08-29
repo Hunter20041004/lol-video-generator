@@ -74,6 +74,7 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
       width: crest.width,
       height: crest.height,
       publicPath: crest.publicPath,
+      labelMode: crest.labelMode,
     };
   };
   const teams = resolveTeamCrestImpl ? {

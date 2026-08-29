@@ -57,7 +57,10 @@
       "sha256": "b5b69b5d9ddaf255c1e95f66f5a79eecda4d9d07f42afddd53bab73a79cb68c6",
       "width": 1000,
       "height": 1000,
-      "repositoryPath": "public/team-crests/bnk-fearx-2026.png"
+      "repositoryPath": "public/team-crests/bnk-fearx-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Nongshim RedForce",
@@ -77,7 +80,10 @@
       "sha256": "e56bdcad9679c1348c6b5c4c8149d1c22d50bbcdef456feca18f2c477c6399be",
       "width": 1000,
       "height": 1000,
-      "repositoryPath": "public/team-crests/nongshim-redforce-2026.png"
+      "repositoryPath": "public/team-crests/nongshim-redforce-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "DN SOOPers",
@@ -94,7 +100,10 @@
       "sha256": "8f8c4eda7851c13bbcbf48b46578feb5dec7bf253537539f6e0354370cfcba99",
       "width": 1000,
       "height": 2344,
-      "repositoryPath": "public/team-crests/lck-dn-soopers-crest-2026.png"
+      "repositoryPath": "public/team-crests/lck-dn-soopers-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Dplus Kia",
@@ -111,7 +120,10 @@
       "sha256": "8bcdfb3f574f582dbb4021e2e4a62f17fc71d427bb33a176d3f515bcb27969c8",
       "width": 1000,
       "height": 429,
-      "repositoryPath": "public/team-crests/lck-dplus-kia-crest-2026.png"
+      "repositoryPath": "public/team-crests/lck-dplus-kia-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "HANJIN BRION",
@@ -128,7 +140,10 @@
       "sha256": "1f863031b65479077c1e54154ad7a29793b79ed2eebab33e923d7d643c67879d",
       "width": 1000,
       "height": 1376,
-      "repositoryPath": "public/team-crests/lck-hanjin-brion-crest-2026.png"
+      "repositoryPath": "public/team-crests/lck-hanjin-brion-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Kiwoom DRX",
@@ -145,7 +160,10 @@
       "sha256": "ccc4c0932504c4730fcf63bc0aeb8e63629cf1f211b7521b65fcb7029b827003",
       "width": 1000,
       "height": 1380,
-      "repositoryPath": "public/team-crests/lck-kiwoom-drx-crest-2026.png"
+      "repositoryPath": "public/team-crests/lck-kiwoom-drx-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "KT Rolster",
@@ -162,7 +180,10 @@
       "sha256": "abc4081f8d1f82f01d4a11af73e8b131390c3e6f23a114dbe0baec51e3f29e1c",
       "width": 1000,
       "height": 1016,
-      "repositoryPath": "public/team-crests/lck-kt-rolster-crest-2026.png"
+      "repositoryPath": "public/team-crests/lck-kt-rolster-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "T1",
@@ -179,7 +200,10 @@
       "sha256": "2def1c8ee2a5181c9d448416428b2fcdb790451cad31d2c1d0d33fcc023dc658",
       "width": 1000,
       "height": 557,
-      "repositoryPath": "public/team-crests/lck-t1-crest-2026.png"
+      "repositoryPath": "public/team-crests/lck-t1-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Anyone's Legend",
@@ -196,7 +220,10 @@
       "sha256": "49d1193d5fff264bcf41ffda94c060730775e364361b2e035c55b27b2874060d",
       "width": 1000,
       "height": 889,
-      "repositoryPath": "public/team-crests/lpl-anyone-s-legend-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-anyone-s-legend-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Bilibili Gaming",
@@ -213,7 +240,10 @@
       "sha256": "d841e696fab376e1b83dc2af07355eff408f5eb7e33296323cd802ab3a2dd0f1",
       "width": 1000,
       "height": 448,
-      "repositoryPath": "public/team-crests/lpl-bilibili-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-bilibili-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "EDward Gaming",
@@ -230,7 +260,10 @@
       "sha256": "b65d6103518c321decdb79e7f133e19ebdf1940fa4746cfc7c3afc0886aef35a",
       "width": 1000,
       "height": 1000,
-      "repositoryPath": "public/team-crests/lpl-edward-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-edward-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Invictus Gaming",
@@ -247,7 +280,10 @@
       "sha256": "e0cb4bc353cd6b862935ee5a7b98968b0454cd2a2983a66c000bd946dd134025",
       "width": 1000,
       "height": 918,
-      "repositoryPath": "public/team-crests/lpl-invictus-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-invictus-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "JD Gaming",
@@ -264,7 +300,10 @@
       "sha256": "f78c4c75e87914db04d5ebeca16cbdc1edeb065eb3596e97f78c441cf90cdca5",
       "width": 1000,
       "height": 804,
-      "repositoryPath": "public/team-crests/lpl-jd-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-jd-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "LGD Gaming",
@@ -281,7 +320,10 @@
       "sha256": "015960546d3aa9bf3897dbd928fe0a052e4f1df2cb87f235181eede1e33bf85b",
       "width": 1000,
       "height": 1000,
-      "repositoryPath": "public/team-crests/lpl-lgd-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-lgd-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "LNG Esports",
@@ -298,7 +340,10 @@
       "sha256": "99b0f694d599f0495ea9d31f5bb0010b1eb40c5ed4b8e2e7266be80ab04bee7b",
       "width": 1000,
       "height": 1000,
-      "repositoryPath": "public/team-crests/lpl-lng-esports-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-lng-esports-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Oh My God",
@@ -332,7 +377,10 @@
       "sha256": "aa62662973561a5ceb1a447fefcac1888ac6bae437cd7fcfe885419df7b433a3",
       "width": 1000,
       "height": 909,
-      "repositoryPath": "public/team-crests/lpl-team-we-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-team-we-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "ThunderTalk Gaming",
@@ -349,7 +397,10 @@
       "sha256": "8bb11b92de781772f635957675e688cfd499d9915d11607da1f1a6622f21cfbc",
       "width": 1000,
       "height": 456,
-      "repositoryPath": "public/team-crests/lpl-thundertalk-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-thundertalk-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Top Esports",
@@ -366,7 +417,10 @@
       "sha256": "8e811b6cd0d5409a5b10b9f1b235d04026c7f702d502771d11f5cdfe4e2f3112",
       "width": 1000,
       "height": 1230,
-      "repositoryPath": "public/team-crests/lpl-top-esports-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-top-esports-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Ultra Prime",
@@ -383,7 +437,10 @@
       "sha256": "ce28e4b2251dc272c1291ef54485f2d4ea1d75505c512e94984368cdea7f4a77",
       "width": 1000,
       "height": 1000,
-      "repositoryPath": "public/team-crests/lpl-ultra-prime-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-ultra-prime-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Weibo Gaming",
@@ -400,7 +457,10 @@
       "sha256": "d7d4ad01610c556cdc3b7671210636be9c006b1c74f3b1cce0f5c8e4ebbca702",
       "width": 1000,
       "height": 883,
-      "repositoryPath": "public/team-crests/lpl-weibo-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/lpl-weibo-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Fnatic",
@@ -417,7 +477,10 @@
       "sha256": "f2e9977da21c6b25e1617fe57c8d1a16043f887e19774d6e26a93261c367b908",
       "width": 1000,
       "height": 146,
-      "repositoryPath": "public/team-crests/lec-fnatic-crest-2026.png"
+      "repositoryPath": "public/team-crests/lec-fnatic-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "G2 Esports",
@@ -434,7 +497,10 @@
       "sha256": "631ab025f36d4f7024e5d796e3565c9f9899e3cfe41b113dcf1131e49f99b493",
       "width": 1000,
       "height": 383,
-      "repositoryPath": "public/team-crests/lec-g2-esports-crest-2026.png"
+      "repositoryPath": "public/team-crests/lec-g2-esports-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "GIANTX",
@@ -451,7 +517,10 @@
       "sha256": "f103a5f9ffc042aa7e5d60d703c635ccdc4935b7b07a1d6f04ce35c606d3f462",
       "width": 1000,
       "height": 843,
-      "repositoryPath": "public/team-crests/lec-giantx-crest-2026.png"
+      "repositoryPath": "public/team-crests/lec-giantx-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Karmine Corp",
@@ -468,7 +537,10 @@
       "sha256": "58c1b6fe2de01df71366b5c632971f452b6047ffa66cc2e2f88c5727633f4588",
       "width": 1000,
       "height": 643,
-      "repositoryPath": "public/team-crests/lec-karmine-corp-crest-2026.png"
+      "repositoryPath": "public/team-crests/lec-karmine-corp-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Karmine Corp Blue",
@@ -485,7 +557,10 @@
       "sha256": "3225e4d27dcc0926126c165ddfea915d8252a4305b2e12c867d85bb740ae11e4",
       "width": 844,
       "height": 994,
-      "repositoryPath": "public/team-crests/lec-karmine-corp-blue-crest-2026.png"
+      "repositoryPath": "public/team-crests/lec-karmine-corp-blue-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Los Ratones",
@@ -536,7 +611,10 @@
       "sha256": "4ad427a74a8dadf1503eb110df0e6728c4f481219bdf84cb528627bf12198f42",
       "width": 1000,
       "height": 1000,
-      "repositoryPath": "public/team-crests/lec-natus-vincere-crest-2026.png"
+      "repositoryPath": "public/team-crests/lec-natus-vincere-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Shifters",
@@ -553,7 +631,10 @@
       "sha256": "cc11fbe16d868d95448a26cab2c25193e9ff6db5911102eda149029650a19e79",
       "width": 1000,
       "height": 863,
-      "repositoryPath": "public/team-crests/lec-shifters-crest-2026.png"
+      "repositoryPath": "public/team-crests/lec-shifters-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "SK Gaming",
@@ -570,7 +651,10 @@
       "sha256": "5386560dd9d2fa68d85b7d7a80c83bc24f218d74d63633b4e0c3c1fa7b91018c",
       "width": 1000,
       "height": 190,
-      "repositoryPath": "public/team-crests/lec-sk-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/lec-sk-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Team Heretics",
@@ -621,7 +705,10 @@
       "sha256": "9dba356c5722a49463ac3223c0acbbd30403d457897ff4b09c3f315e3b65cd16",
       "width": 1000,
       "height": 998,
-      "repositoryPath": "public/team-crests/lcs-cloud9-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcs-cloud9-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Dignitas",
@@ -638,7 +725,10 @@
       "sha256": "f9094ed307d3b712bad299fd43cdba9c2f40c1a5901c804beda8ab2231a381a5",
       "width": 1000,
       "height": 161,
-      "repositoryPath": "public/team-crests/lcs-dignitas-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcs-dignitas-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Disguised",
@@ -655,7 +745,10 @@
       "sha256": "ef4b99425538c9d093ddeb8b5acf5e5fabc7af1a49d5b13a8c4f61063c20300b",
       "width": 1000,
       "height": 438,
-      "repositoryPath": "public/team-crests/lcs-disguised-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcs-disguised-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "FlyQuest",
@@ -672,7 +765,10 @@
       "sha256": "1704fd3bde71781973576aaee023df29001ba89d4c98cd1553b96fed53d0f418",
       "width": 1000,
       "height": 137,
-      "repositoryPath": "public/team-crests/lcs-flyquest-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcs-flyquest-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Sentinels",
@@ -689,7 +785,10 @@
       "sha256": "cef9333fc7161723771e0a4c66a043d12972fcce99f1f20fe21e6ed2cfcd9b2f",
       "width": 1000,
       "height": 152,
-      "repositoryPath": "public/team-crests/lcs-sentinels-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcs-sentinels-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Shopify Rebellion",
@@ -706,7 +805,10 @@
       "sha256": "7ad895bc6f030052f0b4aa0210604beba40035bdd0a92cb7416211bf15d867cc",
       "width": 1000,
       "height": 252,
-      "repositoryPath": "public/team-crests/lcs-shopify-rebellion-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcs-shopify-rebellion-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Team Liquid",
@@ -723,7 +825,10 @@
       "sha256": "36fd714f90c226011ed0b14e5187dff0e1866b038f4fbe074d249de68c2f7a94",
       "width": 1000,
       "height": 1294,
-      "repositoryPath": "public/team-crests/lcs-team-liquid-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcs-team-liquid-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Fluxo W7M",
@@ -740,7 +845,10 @@
       "sha256": "6345581edcddd8f29b027f810bc8eaf4111f88736f925284ebc95d1a0b79087f",
       "width": 1000,
       "height": 1000,
-      "repositoryPath": "public/team-crests/cblol-fluxo-w7m-crest-2026.png"
+      "repositoryPath": "public/team-crests/cblol-fluxo-w7m-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "FURIA",
@@ -757,7 +865,10 @@
       "sha256": "6595229b6b3e5b3c3229f551d1b1eeac991e3dc17890c1557a27104e645542ef",
       "width": 1000,
       "height": 1249,
-      "repositoryPath": "public/team-crests/cblol-furia-crest-2026.png"
+      "repositoryPath": "public/team-crests/cblol-furia-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Leviatan",
@@ -774,7 +885,10 @@
       "sha256": "a7f6b725ebc9a1e68c779e19b2eb43e6573d9488c0faf6868eac7f72e60e74a8",
       "width": 1000,
       "height": 1297,
-      "repositoryPath": "public/team-crests/cblol-leviatan-crest-2026.png"
+      "repositoryPath": "public/team-crests/cblol-leviatan-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "LOUD",
@@ -791,7 +905,10 @@
       "sha256": "5660ef6f27923060dd5963652c1b3835b41e054a7bfc5321d81a3a807a81ec62",
       "width": 1000,
       "height": 185,
-      "repositoryPath": "public/team-crests/cblol-loud-crest-2026.png"
+      "repositoryPath": "public/team-crests/cblol-loud-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "LØS",
@@ -808,7 +925,10 @@
       "sha256": "f385b39f2fb38df3314b5fca426c4d1cf51a7acffcbadd2c97c65aa386123da6",
       "width": 800,
       "height": 800,
-      "repositoryPath": "public/team-crests/cblol-l-s-crest-2026.png"
+      "repositoryPath": "public/team-crests/cblol-l-s-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "paiN Gaming",
@@ -825,7 +945,10 @@
       "sha256": "8c552c87490e3efc250414bb42a528e509dc8200ded355d49262ba929272da30",
       "width": 300,
       "height": 300,
-      "repositoryPath": "public/team-crests/cblol-pain-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/cblol-pain-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "RED Canids",
@@ -842,7 +965,10 @@
       "sha256": "9d65cb1508b8422bd45a0a0396321981a41ff3a11bad0ea73cc5f04e3aa4cfc1",
       "width": 1000,
       "height": 1150,
-      "repositoryPath": "public/team-crests/cblol-red-canids-crest-2026.png"
+      "repositoryPath": "public/team-crests/cblol-red-canids-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Vivo Keyd Stars",
@@ -859,7 +985,10 @@
       "sha256": "561dc98ff0b15fe6ed27af62ff48d258c33b14dab7694d61438fb690e2c2c395",
       "width": 1000,
       "height": 563,
-      "repositoryPath": "public/team-crests/cblol-vivo-keyd-stars-crest-2026.png"
+      "repositoryPath": "public/team-crests/cblol-vivo-keyd-stars-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "CTBC Flying Oyster",
@@ -876,7 +1005,10 @@
       "sha256": "aecc17b04f3f49c3e079917fc7dc82ed695fcaab1cfce435b67ddc974c579857",
       "width": 1000,
       "height": 1000,
-      "repositoryPath": "public/team-crests/lcp-ctbc-flying-oyster-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcp-ctbc-flying-oyster-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Deep Cross Gaming",
@@ -893,7 +1025,10 @@
       "sha256": "91694b62c0275a21dda56dfb5a2b2eadc8978a65016cf74fe2a6a670ad2302bb",
       "width": 1000,
       "height": 437,
-      "repositoryPath": "public/team-crests/lcp-deep-cross-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcp-deep-cross-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "DetonatioN FocusMe",
@@ -910,7 +1045,10 @@
       "sha256": "f0de5ec4394d52ee11738baa4cffdfbb7640c2c4eb98f1891f599909771ebb55",
       "width": 1000,
       "height": 825,
-      "repositoryPath": "public/team-crests/lcp-detonation-focusme-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcp-detonation-focusme-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Fukuoka SoftBank HAWKS gaming",
@@ -927,7 +1065,10 @@
       "sha256": "3ace08e24baedfea6023808a93e246933e2e7131a45b60fa4630c3d490f07bcc",
       "width": 1000,
       "height": 265,
-      "repositoryPath": "public/team-crests/lcp-fukuoka-softbank-hawks-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcp-fukuoka-softbank-hawks-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "GAM Esports",
@@ -944,7 +1085,10 @@
       "sha256": "618e8944b0bddc35268c5f6b6985439e0438da230284780f5f1c9bde23fb34df",
       "width": 1000,
       "height": 1000,
-      "repositoryPath": "public/team-crests/lcp-gam-esports-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcp-gam-esports-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Ground Zero Gaming",
@@ -961,7 +1105,10 @@
       "sha256": "4248a8161b7f882715807f88ddb613c431a666db940a9a9ba01d8a5877a7fc0c",
       "width": 1000,
       "height": 1000,
-      "repositoryPath": "public/team-crests/lcp-ground-zero-gaming-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcp-ground-zero-gaming-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "MVK Esports",
@@ -978,7 +1125,10 @@
       "sha256": "14e23be10989c6dd2feb9b8a8c4a2d7cadd333532d78527f2b6e7279decb8e57",
       "width": 1000,
       "height": 575,
-      "repositoryPath": "public/team-crests/lcp-mvk-esports-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcp-mvk-esports-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     },
     {
       "team": "Team Secret Whales",
@@ -995,7 +1145,10 @@
       "sha256": "cb6c14954304029fad2f6abc2bea4f45ed0118bff9b5cacb26d9a81d1e71f81a",
       "width": 751,
       "height": 476,
-      "repositoryPath": "public/team-crests/lcp-team-secret-whales-crest-2026.png"
+      "repositoryPath": "public/team-crests/lcp-team-secret-whales-crest-2026.png",
+      "presentation": {
+        "labelMode": "embedded"
+      }
     }
   ]
 }
