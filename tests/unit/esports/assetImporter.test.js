@@ -5,6 +5,7 @@ const path = require("node:path");
 const test = require("node:test");
 
 const {
+  buildApprovedSourcesFromCoverage,
   importApprovedAsset,
   validateApprovedSource,
   verifyEsportsAssetLibrary,
@@ -43,6 +44,33 @@ test("validateApprovedSource rejects incomplete and unsafe source records", () =
   assert.throws(() => validateApprovedSource(approved({ destination: "public/player-portraits/ruler.png" })), /WebP/);
 });
 
+test("buildApprovedSourcesFromCoverage promotes only the human-approved file candidates", () => {
+  const source = {
+    sourceKind: "leaguepedia",
+    sourcePage: "https://lol.fandom.com/wiki/File:Example.png",
+    sourceUrl: "https://lol.fandom.com/wiki/Special:Redirect/file/Example.png",
+  };
+  const assets = buildApprovedSourcesFromCoverage({
+    missingTeams: [
+      { team: "Team Example", region: "Europe", competitionId: "LEC", candidateSources: [source] },
+      { team: "No Source", region: "Europe", competitionId: "LEC", candidateSources: [] },
+    ],
+    missingPlayers: [
+      { playerId: "player-one", publicName: "Player One", team: "Team Example", region: "Europe", competitionId: "LEC", candidateSources: [source] },
+      { playerId: "blocked", publicName: "Blocked", team: "No Source", region: "Europe", competitionId: "LEC", candidateSources: [] },
+    ],
+  }, { year: "2026", reviewedAt: "2026-08-28T18:30:00.000Z" });
+
+  assert.equal(assets.length, 2);
+  assert.deepEqual(assets.map(({ assetId }) => assetId), [
+    "lec-team-example-crest-2026",
+    "lec-team-example-player-one-portrait-2026",
+  ]);
+  assert.equal(assets[0].destination, "public/team-crests/lec-team-example-crest-2026.png");
+  assert.equal(assets[1].destination, "public/player-portraits/lec-team-example-player-one-portrait-2026.webp");
+  assert.ok(assets.every((entry) => validateApprovedSource(entry)));
+});
+
 test("importApprovedAsset rejects non-image responses before normalization", async () => {
   let normalizationCalls = 0;
   await assert.rejects(
@@ -60,6 +88,43 @@ test("importApprovedAsset rejects non-image responses before normalization", asy
     /supported raster image/
   );
   assert.equal(normalizationCalls, 0);
+});
+
+test("importApprovedAsset resolves an approved Leaguepedia file page before downloading bytes", async () => {
+  const source = fs.readFileSync(path.resolve(__dirname, "../../../public/team-crests/gen.png"));
+  const requested = [];
+  const entry = approved({
+    sourcePage: "https://lol.fandom.com/wiki/File:GZ%201Jiang%202026%20Split%201.png",
+    sourceUrl: "https://lol.fandom.com/wiki/Special:Redirect/file/GZ%201Jiang%202026%20Split%201.png",
+  });
+
+  const result = await importApprovedAsset(entry, {
+    rootDir: fs.mkdtempSync(path.join(os.tmpdir(), "asset-import-resolved-")),
+    fetchImpl: async (url) => {
+      requested.push(String(url));
+      if (String(url).startsWith("https://lol.fandom.com/api.php?")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            query: { pages: { 1: { imageinfo: [{ url: "https://static.wikia.nocookie.net/example/1jiang.png" }] } } },
+          }),
+        };
+      }
+      return {
+        ok: true,
+        status: 200,
+        url: String(url),
+        headers: { get: () => "image/png" },
+        arrayBuffer: async () => source,
+      };
+    },
+  });
+
+  assert.match(requested[0], /action=query/);
+  assert.match(requested[0], /titles=File%3AGZ\+1Jiang\+2026\+Split\+1\.png/);
+  assert.equal(requested[1], "https://static.wikia.nocookie.net/example/1jiang.png");
+  assert.equal(result.sourceUrl, "https://static.wikia.nocookie.net/example/1jiang.png");
 });
 
 test("importApprovedAsset creates deterministic verified portrait metadata", async () => {

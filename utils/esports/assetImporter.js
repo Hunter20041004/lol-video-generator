@@ -10,6 +10,73 @@ const { compareInventoryToManifests } = require("./assetInventory");
 
 const SOURCE_KINDS = new Set(["riot", "league", "team", "leaguepedia"]);
 
+function assetSlug(value) {
+  return String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function approvedFileCandidate(entry = {}) {
+  return (entry.candidateSources || []).find((source) =>
+    SOURCE_KINDS.has(source.sourceKind) && source.sourcePage && source.sourceUrl
+  ) || null;
+}
+
+function buildApprovedSourcesFromCoverage(coverage = {}, options = {}) {
+  const year = String(options.year || "2026");
+  const reviewedAt = String(options.reviewedAt || "");
+  const validFrom = `${year}-01-01`;
+  const validTo = `${year}-12-31`;
+  const records = [];
+
+  for (const team of coverage.missingTeams || []) {
+    const source = approvedFileCandidate(team);
+    if (!source) continue;
+    const stem = `${assetSlug(team.competitionId)}-${assetSlug(team.team)}-crest-${year}`;
+    records.push({
+      assetId: stem,
+      kind: "crest",
+      ...source,
+      reviewedAt,
+      team: team.team,
+      teamAliases: [],
+      region: team.region,
+      season: year,
+      validFrom,
+      validTo,
+      destination: `public/team-crests/${stem}.png`,
+      licenseNote: `Human-approved ${year} ${team.competitionId} team identity candidate hosted by Leaguepedia for editorial identification; trademarks remain with ${team.team}.`,
+    });
+  }
+
+  for (const player of coverage.missingPlayers || []) {
+    const source = approvedFileCandidate(player);
+    if (!source) continue;
+    const stem = `${assetSlug(player.competitionId)}-${assetSlug(player.team)}-${assetSlug(player.playerId)}-portrait-${year}`;
+    records.push({
+      assetId: stem,
+      kind: "portrait",
+      ...source,
+      reviewedAt,
+      playerId: player.playerId,
+      publicName: player.publicName,
+      playerAliases: [],
+      team: player.team,
+      teamAliases: [],
+      region: player.region,
+      season: year,
+      validFrom,
+      validTo,
+      destination: `public/player-portraits/${stem}.webp`,
+      licenseNote: `Human-approved ${year} ${player.competitionId} player portrait candidate hosted by Leaguepedia for editorial identification in the project owner's authorized video context.`,
+    });
+  }
+  return records;
+}
+
 function requireText(entry, field) {
   if (!String(entry?.[field] || "").trim()) throw new Error(`Approved asset source requires ${field}.`);
 }
@@ -57,10 +124,60 @@ function isRasterImage(bytes, contentType = "") {
   return ["image/png", "image/jpeg", "image/webp"].includes(type) && (png || jpeg || webp);
 }
 
+function leaguepediaFileName(entry = {}) {
+  for (const value of [entry.sourcePage, entry.sourceUrl]) {
+    try {
+      const url = new URL(String(value || ""));
+      const decodedPath = decodeURIComponent(url.pathname);
+      const marker = decodedPath.includes("/wiki/File:") ? "/wiki/File:" : "/wiki/Special:Redirect/file/";
+      if (decodedPath.includes(marker)) return decodedPath.split(marker)[1];
+    } catch {}
+  }
+  return "";
+}
+
+async function resolveLeaguepediaFileUrl(entry, fetchImpl = fetch) {
+  const fileName = leaguepediaFileName(entry);
+  if (!fileName) throw new Error("Approved Leaguepedia source must identify a File page.");
+  const url = new URL("https://lol.fandom.com/api.php");
+  for (const [key, value] of Object.entries({
+    action: "query",
+    format: "json",
+    prop: "imageinfo",
+    iiprop: "url",
+    titles: `File:${fileName}`,
+  })) url.searchParams.set(key, value);
+  const response = await fetchImpl(url.toString(), {
+    headers: {
+      Accept: "application/json",
+      Referer: "https://lol.fandom.com/",
+      "User-Agent": "Mozilla/5.0 (compatible; LoLVideoGenerator/1.0; editorial asset importer)",
+    },
+  });
+  if (!response?.ok) throw new Error(`Leaguepedia file resolution failed with HTTP ${response?.status || "unknown"}.`);
+  const json = await response.json();
+  const page = Object.values(json?.query?.pages || {})[0];
+  const resolved = page?.imageinfo?.[0]?.url;
+  let resolvedUrl;
+  try { resolvedUrl = new URL(String(resolved || "")); } catch { throw new Error(`Leaguepedia file URL was not found for ${fileName}.`); }
+  if (resolvedUrl.protocol !== "https:") throw new Error("Leaguepedia file URL must remain HTTPS.");
+  return resolvedUrl.toString();
+}
+
 async function importApprovedAsset(entry, options = {}) {
   validateApprovedSource(entry);
   const fetchImpl = options.fetchImpl || fetch;
-  const response = await fetchImpl(entry.sourceUrl, { redirect: "follow" });
+  const sourceUrl = entry.sourceKind === "leaguepedia" && leaguepediaFileName(entry)
+    ? await (options.resolveSourceUrl || resolveLeaguepediaFileUrl)(entry, fetchImpl)
+    : entry.sourceUrl;
+  const response = await fetchImpl(sourceUrl, {
+    redirect: "follow",
+    headers: {
+      Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+      Referer: entry.sourcePage,
+      "User-Agent": "Mozilla/5.0 (compatible; LoLVideoGenerator/1.0; editorial asset importer)",
+    },
+  });
   if (!response?.ok) throw new Error(`Asset download failed with HTTP ${response?.status || "unknown"}.`);
   if (response.url && new URL(response.url).protocol !== "https:") throw new Error("Asset redirect must remain HTTPS.");
   const bytes = Buffer.from(await response.arrayBuffer());
@@ -97,7 +214,7 @@ async function importApprovedAsset(entry, options = {}) {
       season: entry.season,
       validFrom: entry.validFrom,
       validTo: entry.validTo,
-      sourceUrl: response.url || entry.sourceUrl,
+      sourceUrl: response.url || sourceUrl,
       sourcePage: entry.sourcePage,
       sourceKind: entry.sourceKind,
       licenseNote: entry.licenseNote,
@@ -159,8 +276,10 @@ function verifyEsportsAssetLibrary(options = {}) {
 }
 
 module.exports = {
+  buildApprovedSourcesFromCoverage,
   importApprovedAsset,
   isRasterImage,
+  resolveLeaguepediaFileUrl,
   validateApprovedSource,
   verifyEsportsAssetLibrary,
 };
