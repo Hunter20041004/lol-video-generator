@@ -47,3 +47,28 @@ test("preflightEsportsIdentityAssets does not hide integrity failures", () => {
     /SHA-256 mismatch/
   );
 });
+
+test("preflightEsportsIdentityAssets resolves crests with canonical names instead of display abbreviations", () => {
+  const requestedTeams = [];
+  const assets = preflightEsportsIdentityAssets({
+    seriesContext: {
+      season: "2026",
+      matchDate: "2026-08-27",
+      teamA: "BF",
+      teamB: "NR",
+      teamAIdentity: "BNK FEARX",
+      teamBIdentity: "Nongshim RedForce",
+    },
+    proof: { player: { playerId: "taeyoon", name: "Taeyoon", team: "BNK FEARX" } },
+  }, {
+    resolvePlayerPortrait: () => ({ publicPath: "/player-portraits/taeyoon.webp" }),
+    resolveTeamCrest: ({ team }) => {
+      requestedTeams.push(team);
+      return { team, publicPath: `/team-crests/${team}.png` };
+    },
+  });
+
+  assert.deepEqual(requestedTeams, ["BNK FEARX", "Nongshim RedForce"]);
+  assert.equal(assets.teams.teamA.team, "BNK FEARX");
+  assert.equal(assets.teams.teamB.team, "Nongshim RedForce");
+});

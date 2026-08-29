@@ -9,6 +9,8 @@ function preflightEsportsIdentityAssets(viewModel = {}, deps = {}) {
     season: context.season || "2026",
     matchDate: context.matchDate || "",
   };
+  const teamAIdentity = context.teamAIdentity || context.teamA;
+  const teamBIdentity = context.teamBIdentity || context.teamB;
   const requests = [
     {
       missing: { kind: "portrait", playerId: player.playerId, publicName: player.name, team: player.team, ...common },
@@ -20,12 +22,12 @@ function preflightEsportsIdentityAssets(viewModel = {}, deps = {}) {
       }),
     },
     {
-      missing: { kind: "teamA", team: context.teamA, ...common },
-      resolve: () => deps.resolveTeamCrest({ team: context.teamA, ...common }),
+      missing: { kind: "teamA", team: teamAIdentity, ...common },
+      resolve: () => deps.resolveTeamCrest({ team: teamAIdentity, ...common }),
     },
     {
-      missing: { kind: "teamB", team: context.teamB, ...common },
-      resolve: () => deps.resolveTeamCrest({ team: context.teamB, ...common }),
+      missing: { kind: "teamB", team: teamBIdentity, ...common },
+      resolve: () => deps.resolveTeamCrest({ team: teamBIdentity, ...common }),
     },
   ];
   const resolved = [];

@@ -286,6 +286,8 @@ function buildPostMatchReadViewModel({
       matchDate: String(series.date || "").slice(0, 10),
       teamA: shortTeamLabel(sourceTeamA, series.teamAAbbreviation),
       teamB: shortTeamLabel(sourceTeamB, series.teamBAbbreviation),
+      teamAIdentity: sourceTeamA,
+      teamBIdentity: sourceTeamB,
       score,
       gameCount: Array.isArray(series.games) ? series.games.length : Number(series.games || 0),
       scopeLabel,

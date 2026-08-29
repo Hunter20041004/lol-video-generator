@@ -69,6 +69,19 @@ test("post-match read carries the series date into asset identity context", () =
   assert.equal(viewModel.seriesContext.season, "2026");
 });
 
+test("post-match read preserves canonical team names beside short display labels", () => {
+  const input = makeInput();
+  input.series.teamA = "BNK FEARX";
+  input.series.teamB = "Nongshim RedForce";
+
+  const viewModel = buildPostMatchReadViewModel(input);
+
+  assert.equal(viewModel.seriesContext.teamA, "BF");
+  assert.equal(viewModel.seriesContext.teamB, "NR");
+  assert.equal(viewModel.seriesContext.teamAIdentity, "BNK FEARX");
+  assert.equal(viewModel.seriesContext.teamBIdentity, "Nongshim RedForce");
+});
+
 test("Mid matchup copy is role-aware and exposes its primary evidence", () => {
   const input = makeInput();
   const edgePlayer = { name: "Chovy", team: "GEN", role: "Mid" };
