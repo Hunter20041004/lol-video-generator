@@ -45,7 +45,8 @@ FinalReadScene：只負責安全排版、背景處理與既有進場動效
 
 - `winnerTeam`：勝方完整隊名與畫面短標籤。
 - `scoreParts`：系列賽左分、分隔符、右分。
-- `headline`：由當場勝方與 recap 證據建立的結論文字。
+- `conclusion`：完整結論文字，供契約與內容驗證使用。
+- `conclusionParts`：同一份結論拆成 `lead` 與 `emphasis`，供畫面維持金色關鍵句層級；兩者串接必須等於 `conclusion`。
 - `recapReferences`：最多兩項可驗證證據，每項包含選手公開名稱、指標、顯示值與來源類型。
 
 任何公開選手名稱都沿用既有 `publicPlayer()` 規則，主標不帶括號原名。
@@ -128,4 +129,3 @@ FinalReadScene：只負責安全排版、背景處理與既有進場動效
 - 最後 1.5 秒背景與前景皆靜止。
 - preview 完成前不出現發布入口；canary 後 publish jobs 仍為 0。
 - 完整測試、建置、安全與瀏覽器閘門全綠後才能合併 `main`。
-
