@@ -264,6 +264,22 @@ test("post-match read proof data moves up with a static collision-safe grid", ()
   assert.doesNotMatch(scenes, /transition:\s*["'`]all/);
 });
 
+test("post-match read proof labels the actual series game count", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+
+  assert.match(scenes, /model\.seriesContext\?\.gameCount/);
+  assert.match(scenes, /\{seriesGameCount\}-GAME AVERAGE/);
+  assert.doesNotMatch(scenes, />2-GAME AVERAGE</);
+});
+
+test("embedded crest lockups reserve clear space inside the media frame", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+  const teamCrest = scenes.match(/const TeamCrest[\s\S]*?\) : null;/)?.[0] || "";
+
+  assert.match(teamCrest, /width: asset\.labelMode === "embedded" \? "88%" : "100%"/);
+  assert.match(teamCrest, /height: asset\.labelMode === "embedded" \? "88%" : "100%"/);
+});
+
 test("Remotion root player radar preview uses the approved GEN HLE post-match read", () => {
   const rootSource = fs.readFileSync(path.join(ROOT, "src/Root.jsx"), "utf8");
   const playerRadarBlock = rootSource.match(/const mockPlayerRadarData = \{[\s\S]*?\n\};\n\nconst mockEsportsH2HRadarData = \{/);

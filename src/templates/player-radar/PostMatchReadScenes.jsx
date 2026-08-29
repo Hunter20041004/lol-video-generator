@@ -54,8 +54,8 @@ const TeamCrest = ({ asset, team, dim = false }) => asset?.publicPath ? (
       <Img
         src={assetSrc(asset.publicPath)}
         style={{
-          width: "100%",
-          height: "100%",
+          width: asset.labelMode === "embedded" ? "88%" : "100%",
+          height: asset.labelMode === "embedded" ? "88%" : "100%",
           objectFit: "contain",
           filter: dim
             ? "saturate(.84) brightness(.9)"
@@ -156,6 +156,7 @@ export const PlayerProofScene = ({ model, localFrame, reducedMotion }) => {
   const proof = model.proof || {};
   const player = proof.player || {};
   const secondaryEvidence = proof.secondaryEvidence || [];
+  const seriesGameCount = Number(model.seriesContext?.gameCount) || 1;
   const portrait = model.assets?.proof?.playerPortrait;
   const champions = model.assets?.proof?.champions || [];
   return (
@@ -169,7 +170,7 @@ export const PlayerProofScene = ({ model, localFrame, reducedMotion }) => {
           <span style={{ font: `800 23px ${NUMBER_FONT}`, color: COLORS.gold, letterSpacing: 4 }}>DATA MVP CANDIDATE</span>
           <h2 style={{ font: `900 ${playerHandleFontSize(player.name)}px/.82 ${NUMBER_FONT}`, letterSpacing: -5, margin: "24px 0 0", whiteSpace: "nowrap" }}>{player.name}</h2>
           {player.originalName ? <span style={{ display: "block", font: `800 ${originalNameFontSize(player.originalName)}px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 2.5, marginTop: 20, textTransform: "uppercase", whiteSpace: "nowrap" }}>{player.originalName}</span> : null}
-          <span style={{ display: "block", font: `800 23px ${NUMBER_FONT}`, color: COLORS.cyan, letterSpacing: 4, marginTop: player.originalName ? 22 : 30 }}>2-GAME AVERAGE</span>
+          <span style={{ display: "block", font: `800 23px ${NUMBER_FONT}`, color: COLORS.cyan, letterSpacing: 4, marginTop: player.originalName ? 22 : 30 }}>{seriesGameCount}-GAME AVERAGE</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 34, borderTop: "2px solid rgba(244,234,213,.18)", paddingTop: 34, marginTop: PLAYER_PROOF_DATA_OFFSET }}>
           <div><strong style={{ font: `900 88px/.9 ${NUMBER_FONT}`, color: COLORS.gold }}>{player.rawStats?.csm}</strong><span style={{ display: "block", font: `800 20px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 3, marginTop: 12 }}>CS / MIN</span></div>
