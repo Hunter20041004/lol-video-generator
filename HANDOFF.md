@@ -1,16 +1,17 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-28 由 Codex 更新。全球一級賽事素材庫已完成核准匯入與分支驗證，待本輪合併、推送與主線驗證。
+> 2026-08-28 由 Codex 更新。全球一級賽事素材庫已合併 `main` 並完成主線與常駐網址驗證，待 push 與 GitHub checks。
 
 ## 本輪狀態
 
 - 2026-08-28 全球一級賽事素材庫已完成使用者核准批次：LCK、LPL、LEC、LCS、CBLOL、LCP 共匯入 425 個有明確 Leaguepedia 檔案頁的候選（371 張選手照、54 個隊徽），連同既有素材後 manifest 為 373 個選手身分、58 個隊徽身分、431 個唯一檔案。`assets:verify` 實測總容量 20,846,381 bytes、最大單檔 357,615 bytes；2026-08-28 清冊 62 隊覆蓋 58、438 個選手×隊伍身分覆蓋 373。無候選的 4 隊徽與 65 選手身分依產品拍板保持 render 硬阻擋，正式清單在 `config/esports-asset-unresolved-2026.json`，不得用錯隊、錯制服或舊圖代替。
 - Leaguepedia 的 `Special:Redirect/file` 對匿名程式下載回 HTTP 403；importer 已用 TDD 改為先向 MediaWiki `imageinfo` 解析 HTTPS 靜態圖，再下載、Sharp 正規化、驗證格式／SHA-256／尺寸。以 LCP 1Jiang 真實邊界校準為 748×621 WebP、45,858 bytes、SHA-256 `c5ec178c68ec726275710800a5a667e765840b262a3a1b4344f27b0346a5ce60`。批次下載上限同時 4 筆，輸出順序與 manifest 寫入保持穩定。
-- 分支品質閘門已完成：`npm ci` audit 0、TDD doctor 通過、coverage 604 tests／598 pass／6 個明確外部 skip／0 fail（line 94.30%、branch 80.56%、function 96.13%）、Next 26 routes build 通過、Remotion QA 6/6、Playwright 4/4、素材逐檔驗證通過。Next build 保留既有 3 個 `playerPortraitManifest.js` dynamic filesystem tracing warnings，沒有新增 build failure。
+- 主線品質閘門已完成：`npm ci` audit 0、TDD doctor 通過、coverage 605 tests／599 pass／6 個明確外部 skip／0 fail（line 94.30%、branch 80.61%、function 96.13%）、Next 26 routes build 通過、Remotion QA 6/6、Playwright 4/4、素材逐檔驗證通過。Next build 保留既有 3 個 `playerPortraitManifest.js` dynamic filesystem tracing warnings，沒有新增 build failure。
 - 工作台全球掃描與素材缺口畫面完成兩輪自檢；最終桌面／手機圖為 `.screenshots/global-tier-one-assets-round2/desktop.png` 與 `.screenshots/global-tier-one-assets-round2/mobile.png`，375px `scrollWidth = clientWidth = 375`、產品 console error 0。候選拍板頁另以桌面／手機兩輪驗證，第二輪 0 error、7/7 拍板 builder 與 494 列搜尋均可用。
 - 真實 tier-one contract 第一版因每局都抓 players＋team stats，在前五區通過後觸發 Leaguepedia 15 分鐘 rate limit；已改為每個賽事日期用一筆 match query 驗證已完成系列，再用一局 player query 驗證 10 人五路。冷卻到期後真實邊界 10 tests／9 pass／Worlds 2026 依 8/28 尚未開賽明確 skip／0 fail：LCK、LPL、LEC、LCS、CBLOL、LCP、First Stand、MSI 均找到已完成系列與 10 位選手五路資料。
 - 2026-08-27 BNK FEARX vs Nongshim RedForce 真實 UI canary 首次揭露來源完整隊名在畫面層被縮為 `BF`／`NR` 後又誤拿來查素材；以兩個垂直 TDD 切片保留 `teamAIdentity`／`teamBIdentity`，隊徽 preflight 改用完整身分、畫面仍保留短碼。聚焦 18/18 通過後，實際掃描顯示 3-1、Taeyoon，25 秒預覽顯示「媒體驗證已通過」，瀏覽器 console error 0。
 - 最終真實預覽為 `public/renders/render_1787971292701.mp4`（ignored runtime），SHA-256 `4b9b28c6f40fbd29c3b5d41275864ab6f972973036e00066a16de78ce44ea3eb`、8,574,235 bytes；H.264／AAC、1080×1920、30fps、25.045333 秒。畫面僅出現「確認發布」入口，未點擊；publish queue 與 daily runs 均不存在，publish jobs 0。
+- 常駐 `http://localhost:49761` 合併後驗收另發現 `next dev --webpack` 會在 MP4 寫入 `public/renders` 時自動刷新頁面，API 雖 200 但使用者看不到完成狀態；依 Next 16 本機文件改回預設 Turbopack，並新增啟動契約測試。LaunchAgent 重啟後實際掃描與預覽停留在「媒體驗證已通過」，影片 `render_1787973102151.mp4` 為 25.045333 秒、8,573,621 bytes、SHA-256 `5898949f44ba5261424743e2a7f7ba7be3424d66f66d44a5f2d0aaa56b609958`，readyState 4、console error 0、publish jobs 0。
 
 - 2026-08-28 全球一級賽事素材庫施工計畫已寫入 `docs/superpowers/plans/2026-08-28-global-tier-one-esports-assets.md`：10 個垂直 TDD tasks 依序處理九項賽事登錄、單次精確日期查詢、日期感知素材 identity、聚合缺口、名單盤點、核准匯入／驗證、當前 LCK blocker、六區域素材填充、前端狀態與真實 canary／全套收尾。依使用者明確授權，計畫自我檢查後直接 inline 實作，不另停下選執行方式；禁止使用子代理。
 - 2026-08-28 產品負責人核可將素材與掃描範圍擴充為 Riot 2026 全球一級職業體系：LCK、LPL、LEC、LCS、CBLOL、LCP，以及 First Stand、MSI、Worlds。採用版本化本機完整素材庫、官方來源優先／Leaguepedia 備援、自動盤點缺口但人工核准入庫；正式名單含先發與替補，改名／轉隊依比賽日期解析，缺素材仍阻擋且一次回報完整缺口。正式規格為 `docs/superpowers/specs/2026-08-28-global-tier-one-esports-assets-design.md`；使用者明確授權規格完成後直接寫施工計畫並進入實作，不需再次停下拍板。
