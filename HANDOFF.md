@@ -1,9 +1,12 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-29 由 Codex 更新。全球一級賽事素材庫已在 `main` 上線；本輪已修復含撇號 GameId 造成的 Leaguepedia `MWException`，待 push 與遠端 checks。
+> 2026-08-29 由 Codex 更新。全球一級賽事素材庫已在 `main` 上線；本輪正在完成賽後判讀最後一幕的動態勝方隊徽背景，分支 canary 已通過，待完整品質閘門與整合。
 
 ## 本輪狀態
 
+- 2026-08-29 完成賽後判讀最後一幕的 preview-only 真實 canary：因 Leaguepedia 限流無法取得施工計畫原定 2026-08-27 snapshot，依既定備援改用本機已保存且素材完整的 `LCK · BNK FEARX vs HANJIN BRION · 3-2`；畫面正確使用 BF 勝方隊徽、`3–2`、Raptor `+184 DPM` 與 Taeyoon `10.26 CSM`，沒有固定 GEN／Chovy／Ruler。第二輪影片為 `public/renders/render_1788046934408.mp4`（ignored runtime），SHA-256 `11be0932db1d8ce563b450bce9d0e1e8487001d38a290680aa48bb64c917f093`；H.264／AAC、1080×1920、30fps、25.045333 秒、-17.0 LUFS、true peak -1.9 dBFS、leading silence 49.8125ms，媒體閘門通過。frame 705／749 的 SSIM `1.000000`、PSNR `91.385793 dB`，最後 1.5 秒視覺完全靜止。
+- 最終影片自檢圖為 `.screenshots/final-read-winner-crest-round2/final-1080x1920.png` 與 `.screenshots/final-read-winner-crest-round2/final-375x667.png`；第一輪發現結論「次領先」形成孤行，經垂直 TDD 將閱讀欄由 900px 收至 760px，第二輪的層次、留白、字體、霧金／青色／灰階、對齊、375px 可讀性、隊徽安全區、比分一致與動態名稱均通過。工作台最終圖為 `.screenshots/final-read-winner-crest-workbench-round2/desktop.png`、`mobile.png`；375px `scrollWidth = clientWidth = 375`、產品 console error 0，實際預覽停留於「媒體驗證已通過」且 video readyState 4。
+- Canary 前後安全封條一致：`.data/patch-content-db.json` 維持 254,084 bytes、SHA-256 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`；publish queue、daily runs 與 publish packages 均不存在，publish jobs／packages 0，未點擊確認發布。正式規格與施工計畫為 `docs/superpowers/specs/2026-08-29-final-read-winner-crest-background-design.md`、`docs/superpowers/plans/2026-08-29-final-read-winner-crest-background.md`。
 - 2026-08-29 完成賽後判讀選手證據幕的資訊密度與隊徽安全區調整：公開主標只顯示選手 handle，原名改為獨立副標；下方資料區上移 96px，新增 KDA／參團率／每分鐘經濟三項系列賽證據，並依實際局數顯示 `4-GAME AVERAGE`。51 個含文字的隊徽／品牌 lockup 已標記為 `embedded`，畫面不再疊加重複隊名且預留 88% 圖像安全區；無數據時維持省略，不捏造 0。正式規格與計畫分別為 `docs/superpowers/specs/2026-08-29-player-proof-layout-density-design.md`、`docs/superpowers/plans/2026-08-29-player-proof-layout-density.md`。
 - 真實 2026-08-27 BNK FEARX 3-1 Nongshim RedForce preview-only canary 為 `public/renders/render_1788021979451.mp4`（ignored runtime）：H.264／AAC、1080×1920、30fps、25.045333 秒、-17 LUFS、true peak -1.9 dB、leading silence 49.8125ms，publish jobs 0。最終影片畫面為 `.screenshots/player-proof-layout-round2/result-1080x1920.png`、`proof-1080x1920.png`、`result-375x667.png`、`proof-375x667.png`；隊徽、原名、4 場標示與三欄證據均無裁切。
 - 工作台兩輪桌面／手機自檢完成，最終圖為 `.screenshots/player-proof-workbench-round2/desktop.png` 與 `.screenshots/player-proof-workbench-round2/mobile.png`；375px `scrollWidth = clientWidth = 375`、console error 0。層次、留白、字體、單一霧金配色、對齊、響應式、空／載入狀態與既有微動效均通過；本輪沒有新增動效程式碼。
