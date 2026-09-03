@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const { aggregateSeries } = require("./seriesAggregator");
 const { fetchCompletedSeriesForDate } = require("./seriesFetcher");
-const { writeCandidateSnapshot } = require("./candidateStore");
+const { writeCandidateSnapshot, findLatestCompatibleSnapshot, isHistoricalDate, FALLBACK_MAX_AGE_MS } = require("./candidateStore");
 const { resolveActiveMode } = require("./config");
 
 function normalizeLanguages(languages = ["zh", "en"]) {
@@ -67,19 +67,40 @@ async function scanEsportsCandidates(options = {}, deps = {}) {
     throw new Error("useSample is not supported for esports candidates.");
   }
 
-  const now = deps.now || (() => new Date());
-  const createdAt = (now() instanceof Date ? now() : new Date(now())).toISOString();
+  const timestamp = new Date((deps.now || (() => new Date()))());
+  const now = () => timestamp;
+  const createdAt = timestamp.toISOString();
   const fetchSeriesCandidates = deps.fetchSeriesCandidates || fetchCompletedSeriesForDate;
   const activeMode = resolveActiveMode({
     ...(options.config || {}),
     activeMode: options.activeMode || "auto",
   }, resolveScanTime(options.date, now));
-  const rawCandidates = await fetchSeriesCandidates({
+  const criteria = {
     date: options.date,
-    activeMode,
-    tournamentScope: options.tournamentScope,
+    activeMode: activeMode.mode,
+    activeModeDetails: activeMode,
+    tournamentScope: options.tournamentScope || "configured",
     languages: normalizeLanguages(options.languages),
-  });
+  };
+  const historical = isHistoricalDate(options.date, now);
+  const cached = historical && findLatestCompatibleSnapshot(criteria, { now });
+  if (cached) return cachedResponse(cached, "fresh");
+  let rawCandidates;
+  try {
+    rawCandidates = await fetchSeriesCandidates({
+      date: options.date,
+      activeMode,
+      tournamentScope: options.tournamentScope,
+      languages: criteria.languages,
+    });
+  } catch (error) {
+    if (historical && error.code === "LEAGUEPEDIA_RATE_LIMITED") {
+      const fallback = findLatestCompatibleSnapshot(criteria, { now, maxAgeMs: FALLBACK_MAX_AGE_MS });
+      // Record fallback eligibility for preview without resetting the source timestamp.
+      if (fallback) return writeCandidateSnapshot(cachedResponse(fallback, "rate_limit"));
+    }
+    throw error;
+  }
   const candidates = (Array.isArray(rawCandidates) ? rawCandidates : []).map(normalizeCandidate);
   const snapshot = {
     scanId: createScanId(options, createdAt),
@@ -99,6 +120,13 @@ async function scanEsportsCandidates(options = {}, deps = {}) {
 
   writeCandidateSnapshot(snapshot);
   return snapshot;
+}
+
+function cachedResponse(snapshot, cacheReason) {
+  return {
+    ...snapshot,
+    sourceStatus: { ...snapshot.sourceStatus, status: "cached", cacheReason, cachedAt: snapshot.createdAt },
+  };
 }
 
 module.exports = {

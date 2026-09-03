@@ -69,6 +69,165 @@ function aggregatedSeries() {
   };
 }
 
+function savedScan(overrides = {}) {
+  return {
+    scanId: "saved-scan",
+    createdAt: "2026-06-21T08:00:00.000Z",
+    date: "2026-06-20",
+    activeMode: "daily",
+    activeModeDetails: { tournaments: ["LCK", "LPL"] },
+    languages: ["zh", "en"],
+    tournamentScope: "configured",
+    sourceStatus: { provider: "Leaguepedia", status: "ready", candidateCount: 1 },
+    candidates: [aggregatedSeries()],
+    ...overrides,
+  };
+}
+
+test("latest compatible candidate snapshot selects the newest complete exact match", async () => {
+  await withTempProject(async () => {
+    const store = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    const criteria = savedScan();
+    store.writeCandidateSnapshot(savedScan());
+    store.writeCandidateSnapshot(savedScan({ scanId: "latest", createdAt: "2026-06-21T09:00:00Z", languages: ["EN", "zh", "en"] }));
+    for (const [index, mismatch] of [
+      { date: "2026-06-19" }, { activeMode: "msi" }, { languages: ["zh"] },
+      { tournamentScope: "LCK" }, { activeModeDetails: { tournaments: ["LEC"] } },
+      { candidates: [] }, { candidates: [{ ...aggregatedSeries(), players: [] }] },
+      { sourceStatus: { status: "empty" } }, { createdAt: "bad-date" },
+      { createdAt: "2026-06-22T09:00:00Z" },
+    ].entries()) {
+      store.writeCandidateSnapshot(savedScan({ createdAt: "2026-06-21T09:30:00Z", ...mismatch, scanId: `mismatch-${index}` }));
+    }
+    const before = fs.readFileSync(store.STORE_PATH, "utf8");
+    const options = { now: () => new Date("2026-06-21T10:00:00Z") };
+    assert.equal(store.findLatestCompatibleSnapshot(criteria, options)?.scanId, "latest");
+    assert.equal(store.findLatestCompatibleSnapshot(criteria, { ...options, maxAgeMs: 1000 }), null);
+    assert.equal(fs.readFileSync(store.STORE_PATH, "utf8"), before);
+  });
+});
+
+test("historical fresh scans reuse saved data without fetching or rewriting provenance", async () => {
+  await withTempProject(async () => {
+    const store = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    const { scanEsportsCandidates } = require(path.join(ROOT, "utils/esports/candidateScanner.js"));
+    const options = { date: "2026-06-20", activeMode: "daily", languages: ["zh", "en"] };
+    const first = await scanEsportsCandidates(options, {
+      now: () => new Date("2026-06-21T08:00:00Z"),
+      fetchSeriesCandidates: async () => [aggregatedSeries()],
+    });
+    const before = fs.readFileSync(store.STORE_PATH, "utf8");
+    const second = await scanEsportsCandidates({ ...options, languages: ["EN", "zh", "en"] }, {
+      now: () => new Date("2026-06-21T09:00:00Z"),
+      fetchSeriesCandidates: async () => assert.fail("unexpected upstream query"),
+    });
+    assert.equal(second.scanId, first.scanId);
+    assert.equal(second.createdAt, first.createdAt);
+    assert.equal(second.sourceStatus.status, "cached");
+    assert.equal(second.sourceStatus.cacheReason, "fresh");
+    assert.equal(second.sourceStatus.cachedAt, first.createdAt);
+    assert.equal(fs.readFileSync(store.STORE_PATH, "utf8"), before);
+  });
+});
+
+test("rate limited historical scans return a seven-day fallback with original provenance", async () => {
+  await withTempProject(async () => {
+    const { scanEsportsCandidates } = require(path.join(ROOT, "utils/esports/candidateScanner.js"));
+    const options = { date: "2026-06-20", activeMode: "daily" };
+    const first = await scanEsportsCandidates(options, {
+      now: () => new Date("2026-06-21T08:00:00Z"),
+      fetchSeriesCandidates: async () => [aggregatedSeries()],
+    });
+    const fallback = await scanEsportsCandidates(options, {
+      now: () => new Date("2026-06-23T08:00:00Z"),
+      fetchSeriesCandidates: async () => { throw Object.assign(new Error("limited"), { code: "LEAGUEPEDIA_RATE_LIMITED" }); },
+    });
+    assert.equal(fallback.scanId, first.scanId);
+    assert.equal(fallback.createdAt, first.createdAt);
+    assert.deepEqual(fallback.candidates, first.candidates);
+    assert.equal(fallback.sourceStatus.status, "cached");
+    assert.equal(fallback.sourceStatus.cacheReason, "rate_limit");
+    assert.equal(fallback.sourceStatus.cachedAt, first.createdAt);
+  });
+});
+
+test("real persisted cooldown fallback remains readable by preview after process restart", async () => {
+  await withTempProject(async (dir) => {
+    const { execFileSync } = require("node:child_process");
+    const store = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    const { scanEsportsCandidates } = require(path.join(ROOT, "utils/esports/candidateScanner.js"));
+    const cooldown = require(path.join(ROOT, "utils/esports/sourceCooldown.js"));
+    const nowMs = Date.now();
+    const date = new Date(nowMs - 3 * 86400000).toISOString().slice(0, 10);
+    const options = { date, activeMode: "daily" };
+    const original = await scanEsportsCandidates(options, {
+      now: () => new Date(nowMs - 2 * 86400000),
+      fetchSeriesCandidates: async () => [{ ...aggregatedSeries(), date }],
+    });
+    assert.throws(() => store.readCandidateSnapshot(original.scanId), /expired/);
+    cooldown.recordSourceCooldown("leaguepedia", { nowMs, cooldownMs: 60000 });
+    const cooldownBefore = fs.readFileSync(cooldown.storePath(), "utf8");
+    const fallback = await scanEsportsCandidates(options);
+    assert.equal(fallback.sourceStatus.cacheReason, "rate_limit");
+    // A separate process uses the exact default reader used by the preview runner.
+    const reread = JSON.parse(execFileSync(process.execPath, ["-e",
+      `process.stdout.write(JSON.stringify(require(${JSON.stringify(path.join(ROOT, "utils/esports/candidateStore.js"))}).readCandidateSnapshot(${JSON.stringify(original.scanId)})))`,
+    ], { cwd: dir, encoding: "utf8" }));
+    assert.deepEqual(reread, fallback);
+    assert.equal(reread.createdAt, original.createdAt);
+    assert.equal(fs.readFileSync(cooldown.storePath(), "utf8"), cooldownBefore);
+    const again = await scanEsportsCandidates(options);
+    assert.equal(again.scanId, fallback.scanId);
+    assert.throws(() => store.readCandidateSnapshot(original.scanId, { maxAgeMs: 86400000 }), /expired/);
+    assert.throws(() => store.readCandidateSnapshot(original.scanId, { now: () => new Date(nowMs + 6 * 86400000) }), /expired/);
+  });
+});
+
+test("cache safety guards keep ongoing dates, upstream errors and invalid fallbacks blocked", async () => {
+  await withTempProject(async () => {
+    const store = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    const { scanEsportsCandidates } = require(path.join(ROOT, "utils/esports/candidateScanner.js"));
+    const options = { date: "2026-06-20", activeMode: "daily" };
+    const clock = (date) => () => new Date(date);
+    const now = clock("2026-06-21T08:00:00Z");
+    const first = await scanEsportsCandidates(options, { now, fetchSeriesCandidates: async () => [aggregatedSeries()] });
+    const limited = Object.assign(new Error("limited"), { code: "LEAGUEPEDIA_RATE_LIMITED" });
+    const upstream = Object.assign(new Error("upstream"), { code: "LEAGUEPEDIA_UPSTREAM_ERROR" });
+    await assert.rejects(() => scanEsportsCandidates(options, {
+      now: clock("2026-06-23T08:00:00Z"), fetchSeriesCandidates: async () => { throw upstream; },
+    }), (error) => error === upstream);
+    for (const date of ["2026-06-20", "2026-06-19"]) {
+      await assert.rejects(() => scanEsportsCandidates(options, {
+        now: clock(`${date}T09:00:00Z`), fetchSeriesCandidates: async () => { throw limited; },
+      }), (error) => error === limited);
+    }
+    await assert.rejects(() => scanEsportsCandidates(options, {
+      now: clock("2026-06-29T08:00:00Z"), fetchSeriesCandidates: async () => { throw limited; },
+    }), (error) => error === limited);
+    const sourceStatus = { ...first.sourceStatus, status: "cached", cacheReason: "rate_limit", cachedAt: first.createdAt };
+    for (const [index, invalid] of [
+      { candidates: [] }, { date: "2026-06-23" }, { date: "2026-06-24" },
+      { date: "2026-02-30" }, { sourceStatus: { ...sourceStatus, cacheReason: "fresh" } },
+      { sourceStatus: { ...sourceStatus, cachedAt: "2026-06-23T08:00:00Z" } },
+    ].entries()) {
+      const snapshot = { ...first, sourceStatus, ...invalid, scanId: `invalid-${index}` };
+      store.writeCandidateSnapshot(snapshot);
+      assert.throws(() => store.readCandidateSnapshot(snapshot.scanId, { now: clock("2026-06-23T08:00:00Z") }), /expired/);
+    }
+  });
+});
+
+test("snapshot reader rejects invalid and future source timestamps", async () => {
+  await withTempProject(async () => {
+    const store = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    for (const createdAt of ["invalid", "2026-06-25T08:00:00Z"]) {
+      const scan = savedScan({ createdAt, sourceStatus: { status: "cached", cacheReason: "rate_limit", cachedAt: createdAt } });
+      store.writeCandidateSnapshot(scan);
+      assert.throws(() => store.readCandidateSnapshot(scan.scanId, { now: () => new Date("2026-06-23T08:00:00Z") }), /expired/);
+    }
+  });
+});
+
 test("scanEsportsCandidates stores a scanId snapshot with candidates and recommended MVP", async () => {
   await withTempProject(async () => {
     const { scanEsportsCandidates } = require(path.join(ROOT, "utils/esports/candidateScanner.js"));

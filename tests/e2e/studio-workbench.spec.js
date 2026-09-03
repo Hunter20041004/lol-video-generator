@@ -1,5 +1,34 @@
 const { test, expect } = require("@playwright/test");
 
+test("cached scan explains provenance and previews the original saved scan", async ({ page }) => {
+  let cacheReason = "rate_limit";
+  let previewRequest;
+  await page.route("**/api/esports/candidates", (route) => route.fulfill({ json: {
+    success: true, scanId: "original-saved-scan",
+    sourceStatus: { status: "cached", cacheReason, cachedAt: "2026-08-29T08:00:00.000Z" },
+    candidates: [{ seriesId: "bf-bro", league: "LCK", teamA: "BNK FEARX", teamB: "HANJIN BRION", seriesScore: "3-2" }],
+  } }));
+  await page.route("**/api/esports/player-radar", (route) => {
+    previewRequest = route.request().postDataJSON();
+    return route.fulfill({ json: { success: true, videos: [], validationReports: [] } });
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "尋找已完成賽事" }).click();
+  const status = page.getByRole("status").filter({ hasText: "使用已保存的賽事資料" });
+  await expect(status).toBeVisible();
+  await expect(status).toContainText("Leaguepedia 暫時限制請求");
+  await expect(status.locator("time")).toHaveAttribute("datetime", "2026-08-29T08:00:00.000Z");
+  await expect(status.locator("time")).toContainText("2026");
+  await page.getByRole("button", { name: "產生影片預覽" }).click();
+  await expect.poll(() => previewRequest?.scanId).toBe("original-saved-scan");
+  expect(previewRequest.mode).toBe("preview");
+  cacheReason = "fresh";
+  await page.getByRole("button", { name: "尋找已完成賽事" }).click();
+  await expect(status).not.toContainText("Leaguepedia 暫時限制請求");
+  await page.locator("#esports-date").fill("2026-08-27");
+  await expect(status).toHaveCount(0);
+});
+
 test("esports workflow previews before publishing the same artifact", async ({ page }) => {
   let previewRequest;
   let publishRequest;

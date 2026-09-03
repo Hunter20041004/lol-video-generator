@@ -161,6 +161,22 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
 
         {scan && (
           <div className="studio-step-block">
+            {scan.sourceStatus?.status === "cached" && (
+              <WorkflowStatus>
+                <strong className="block">使用已保存的賽事資料</strong>
+                {scan.sourceStatus.cacheReason === "rate_limit" && (
+                  <span className="block">Leaguepedia 暫時限制請求；這份資料仍可產生預覽。</span>
+                )}
+                {Number.isFinite(Date.parse(scan.sourceStatus.cachedAt)) && (
+                  <span className="block">資料取得時間：<time dateTime={scan.sourceStatus.cachedAt}>
+                    {new Date(scan.sourceStatus.cachedAt).toLocaleString("zh-TW", {
+                      year: "numeric", month: "numeric", day: "numeric",
+                      hour: "2-digit", minute: "2-digit", timeZoneName: "short",
+                    })}
+                  </time></span>
+                )}
+              </WorkflowStatus>
+            )}
             <div className="studio-field">
               <label><span>02</span>選擇系列賽</label>
               {scan.candidates?.length ? (
