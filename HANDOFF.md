@@ -1,8 +1,12 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-08-29 由 Codex 更新。全球一級賽事素材庫已在 `main` 上線；本輪正在完成賽後判讀最後一幕的動態勝方隊徽背景，分支 canary 已通過，待完整品質閘門與整合。
+> 2026-09-03 由 Codex 更新。歷史賽事掃描快取、七天限流備援與核准的套件安全修補已整合 main、推送並更新原本機常駐網址；真實掃描與預覽驗收通過。
 
 ## 本輪狀態
+
+- 最終整合：source `2798c03d3701a850e8d17bf401c801bf364447ea` 已 fast-forward 至 main 並確認遠端相同。主線乾淨安裝、TDD doctor、632 tests／626 pass／6 外部 skip／0 fail（line 94.36%、branch 80.98%、function 96.48%）、Next build、audit 0、Remotion 6/6、Playwright 5/5 全數通過；日誌 `/tmp/lol-cache-main-{install,doctor,coverage,build,audit-final,renderqa,e2e}.log`。source CI `33806297632`、CodeQL `33806296183` 成功，Dependabot open alerts 0（以 fixed alert 校準查詢）。以下早期「待整合／阻擋」條目均為歷史紀錄。
+- 原常駐網址 `http://localhost:49761/` 已重啟更新，HTTP 200。2026-08-28 真實掃描取得 `scan-2026-08-28-ece30bcb3b`，createdAt `2026-09-03T21:08:55.074Z`；重複掃描回傳相同 scanId／取得時間、cached fresh 狀態，Cargo log 增量 0。BNK FEARX vs HANJIN BRION 3-2 的預覽成功，媒體驗證通過、video readyState 4、25.045333 秒、console errors/warnings 0。產物 `public/renders/render_1788469773279.mp4`，8,599,350 bytes、SHA-256 `888431073a4d29275e579a5651a897a07118c5675e77b472d70b4b8809f94eac`。本次算圖約 9 分鐘，未重送請求；算圖效能非本輪修正範圍。
+- 最終安全封條：內容 DB SHA-256 仍為 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`，publish queue／daily runs／publish packages 仍不存在，未發布。主線既有 lockfile 的 36 筆 libc metadata 移除完整還原且不納入提交；AGENTS.md／CLAUDE.md 未追蹤檔保留，保護用 stash 與隔離工作區保留。最終 UI 截圖位於 `.worktrees/leaguepedia-scan-cache/.screenshots/scan-cache-round2/desktop.png` 與 `mobile.png`。本次收尾文件另作 docs-only commit 並檢查遠端 checks，不建立新的正式站。
 
 - 2026-09-03 原有套件安全修補已由使用者核准並完成：fast-uri 3.1.5→3.1.7、browserslist 4.28.2→4.28.8，僅同步後者必要的五個瀏覽器資料相依；package.json 未改。移除 npm 更新附帶的無關 WASM bundled metadata，保留最小 lockfile diff。新增兩項測試，先重現 scheme-relative IDN host 不一致，再更新通過；browserslist patched-version guard 亦先紅後綠，並實際解析 chrome 120。
 - 安全更新後分支全部閘門通過：乾淨 npm ci、TDD doctor、632 tests／626 pass／6 外部 skip／0 fail；coverage line 94.36%、branch 80.93%、function 96.48%；Next build 成功（既知 3 tracing warnings）、audit 0、Remotion 6/6、Playwright 5/5。最新證據 `/tmp/lol-cache-final-{install,doctor,coverage,build,audit,renderqa,e2e}.log`。下方「整合阻擋」為已解除的歷史紀錄；接下來整合 main 並重跑閘門／原網址，尚未宣稱上線。
@@ -149,7 +153,7 @@
 - PostCSS `8.5.23`
 - nanoid `3.3.18`
 - Undici `7.29.0`
-- fast-uri `3.1.5`
+- fast-uri `3.1.7`
 
 ## 驗證證據
 

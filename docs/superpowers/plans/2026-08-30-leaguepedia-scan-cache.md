@@ -15,9 +15,9 @@
 - [x] Browser status and original scanId preview flow; two desktop/mobile screenshot rounds; real 25-second preview using the original August 29 saved data.
 - [x] TDD doctor, coverage (630 total / 624 pass / 6 external skip), Next build, Remotion QA 6/6, Playwright 5/5.
 - [x] Security gate: user approved targeted updates; fast-uri 3.1.7 and browserslist 4.28.8 now pass audit with zero vulnerabilities. Full branch gates rerun: 632 tests / 626 pass / 6 external skip, build, render 6/6, browser 5/5.
-- [ ] Commits, main integration, main gates, push/CI and permanent URL rollout. Branch is ready; main verification remains.
+- [x] Commits, main integration, main gates, push/CI and permanent URL rollout. Source 2798c03 is on remote main; main gates passed (632 total / 626 pass / 6 external skip), CI 33806297632 and CodeQL 33806296183 succeeded. Permanent URL fresh reuse and real preview passed; final evidence is in HANDOFF.md.
 
-The detailed steps below describe the original sequence; the execution checklist above is authoritative for completion. Task commits are consolidated until the audit blocker is resolved, preserving one verified deliverable. Browser interaction testing replaced the originally planned static-string assertion; seven-day preview persistence was added after the user's explicit approval.
+The detailed steps below describe the original sequence; the execution checklist above is authoritative for completion. Task commits were consolidated into 2798c03 after resolving the audit blocker, preserving one verified deliverable. Browser interaction testing replaced the originally planned static-string assertion; seven-day preview persistence was added after the user's explicit approval.
 
 ## Global Constraints
 
@@ -73,7 +73,7 @@ node --test --test-name-pattern="latest compatible candidate snapshot" tests/uni
 node --test tests/unit/esports/candidates.test.js
 ```
 
-- [ ] **Step 5: Commit Task 1**
+- [x] **Step 5: Commit Task 1** (consolidated into 2798c03)
 
 ```bash
 git add utils/esports/candidateStore.js tests/unit/esports/candidates.test.js
@@ -108,7 +108,7 @@ Store a two-day-old compatible snapshot, make the fetch dependency throw `code =
 
 Catch only `LEAGUEPEDIA_RATE_LIMITED`; search the 7-day fallback window; rethrow every other error and rate-limit errors without a compatible snapshot.
 
-- [ ] **Step 5: Run the full candidates test file and commit**
+- [x] **Step 5: Run the full candidates test file and commit** (consolidated into 2798c03)
 
 ```bash
 node --test tests/unit/esports/candidates.test.js
@@ -147,7 +147,7 @@ Start the isolated dev server, copy the ignored candidate snapshot store, and tr
 
 During the active cooldown, confirm a compatible stored date returns HTTP 200 without adding Cargo queries to the server log. Confirm content DB hash is unchanged and publish queue, daily runs, and publish packages remain 0.
 
-- [ ] **Step 5: Run full quality gates and update HANDOFF**
+- [x] **Step 5: Run full quality gates and update HANDOFF**
 
 ```bash
 npm run tdd:doctor
@@ -158,6 +158,6 @@ npm run qa:render
 npx playwright test --reporter=line
 ```
 
-- [ ] **Step 6: Commit, fast-forward main, rerun gates, push, and verify the permanent URL**
+- [x] **Step 6: Commit, fast-forward main, rerun gates, push, and verify the permanent URL**
 
 Restart `com.cengweiting.lol-video-generator.dev`, repeat the historical-date scan at `http://localhost:49761/`, require cached status, HTTP 200, console error 0, and no new Leaguepedia Cargo query. Push `main`, verify remote SHA, then require CI and CodeQL success for the final SHA.
