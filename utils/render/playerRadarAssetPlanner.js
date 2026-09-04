@@ -84,8 +84,14 @@ async function resolvePlayerRadarAssets(viewModel = {}, {
     teamB: renderTeamCrest(preflight.teams.teamB),
   } : undefined;
   const winnerIdentity = viewModel.finalRead?.winnerTeam?.identity;
-  const winnerCrest = [preflight.teams.teamA, preflight.teams.teamB]
-    .find((crest) => normalizeIdentity(crest.team) === normalizeIdentity(winnerIdentity));
+  const context = viewModel.seriesContext || {};
+  const winnerKey = normalizeIdentity(winnerIdentity);
+  const winnerMatches = [
+    { identity: context.teamAIdentity || context.teamA, crest: preflight.teams.teamA },
+    { identity: context.teamBIdentity || context.teamB, crest: preflight.teams.teamB },
+  ].filter(({ identity, crest }) => winnerKey
+    && [identity, crest.team].some((name) => normalizeIdentity(name) === winnerKey));
+  const winnerCrest = winnerMatches.length === 1 ? winnerMatches[0].crest : null;
   if (!winnerCrest) {
     throw new Error(`Post Match Read winner crest unavailable for ${winnerIdentity || "missing"}.`);
   }

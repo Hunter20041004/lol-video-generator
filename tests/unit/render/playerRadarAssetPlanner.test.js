@@ -70,6 +70,52 @@ test("resolvePlayerRadarAssets exposes the verified winning-team crest", async (
   assert.equal(resolved.finalRead.winnerCrest.labelMode, "embedded");
 });
 
+test("winner full identity reuses the verified HLE crest despite its canonical short name", async () => {
+  const viewModel = makeViewModel();
+  viewModel.seriesContext.teamBIdentity = "Hanwha Life Esports";
+  viewModel.finalRead.winnerTeam = { name: "HLE", identity: "Hanwha Life Esports" };
+  const resolved = await resolvePlayerRadarAssets(viewModel, {
+    cacheRemoteImageUrlImpl: async () => "/render-assets/official.png",
+    resolvePlayerPortraitImpl: makePortrait,
+  });
+  assert.equal(resolved.finalRead.winnerCrest.team, "HLE");
+  assert.equal(resolved.finalRead.winnerCrest.publicPath, "/team-crests/hle.png");
+  assert.equal(resolved.finalRead.winnerCrest.sha256, resolved.teams.teamB.sha256);
+});
+
+test("winner mapping handles either series slot and canonical names using real crest files", async () => {
+  for (const [slot, identity, canonical, path] of [
+    ["teamA", "Gen.G", "GEN", "/team-crests/gen.png"],
+    ["teamA", "Hanwha Life Esports", "HLE", "/team-crests/hle.png"],
+    ["teamB", "Hanwha Life Esports", "HLE", "/team-crests/hle.png"],
+  ]) {
+    for (const winnerIdentity of [identity, canonical]) {
+      const model = makeViewModel();
+      model.seriesContext = { season: "2026", matchDate: "2026-09-02",
+        teamA: slot === "teamA" ? identity : "GEN", teamB: slot === "teamB" ? identity : "BNK FEARX" };
+      model.finalRead.winnerTeam.identity = winnerIdentity;
+      const resolved = await resolvePlayerRadarAssets(model, {
+        cacheRemoteImageUrlImpl: async () => "/render-assets/official.png",
+        resolvePlayerPortraitImpl: makePortrait,
+      });
+      assert.equal(resolved.finalRead.winnerCrest.publicPath, path);
+      assert.equal(resolved.finalRead.winnerCrest.sha256, resolved.teams[slot].sha256);
+    }
+  }
+});
+
+test("winner mapping rejects missing, ambiguous and outside-series identities", async () => {
+  for (const identity of ["", "Unknown Team", "BNK FEARX", "HLE"]) {
+    const model = makeViewModel();
+    if (identity === "HLE") model.seriesContext.teamA = "Hanwha Life Esports";
+    model.finalRead.winnerTeam.identity = identity;
+    await assert.rejects(() => resolvePlayerRadarAssets(model, {
+      cacheRemoteImageUrlImpl: async () => "/render-assets/official.png",
+      resolvePlayerPortraitImpl: makePortrait,
+    }), /winner crest unavailable/);
+  }
+});
+
 test("resolvePlayerRadarAssets blocks a winner identity outside the verified series teams", async () => {
   const viewModel = makeViewModel();
   viewModel.finalRead = { winnerTeam: { name: "Unknown", identity: "Unknown Team" } };
