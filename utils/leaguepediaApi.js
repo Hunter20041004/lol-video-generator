@@ -116,6 +116,23 @@ function createLeaguepediaUpstreamError(message) {
   return error;
 }
 
+// Only fixed categories enter logs: upstream text/headers can contain credentials.
+function logCargoDiagnostic(response, stage, message, errorCode = null) {
+  const contentType = String(response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+  const retryAfter = response.headers.get('retry-after');
+  const retrySeconds = /^\d{1,8}$/.test(retryAfter || '') ? Number(retryAfter) : null;
+  console.warn('[Leaguepedia diagnostic] ' + JSON.stringify({
+    timestamp: new Date().toISOString(),
+    stage,
+    httpStatus: Number.isInteger(response.status) ? response.status : null,
+    errorCode: ['ratelimited', 'internal_api_error_MWException', 'permissiondenied', 'readapidenied'].includes(errorCode)
+      ? errorCode : errorCode === null ? null : 'other',
+    rateLimitSignal: isLeaguepediaRateLimit(message),
+    contentType: contentType === 'application/json' ? 'json' : contentType === 'text/html' ? 'html' : 'other',
+    retryAfterSeconds: retrySeconds,
+  }));
+}
+
 /**
  * Authenticates against the lol.fandom.com MediaWiki API as a bot.
  * Idempotent — second concurrent caller awaits the same in-flight promise.
@@ -287,6 +304,7 @@ async function cargoQuery(params) {
 
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
+      logCargoDiagnostic(res, 'http', errText);
       if (res.status === 429 || isLeaguepediaRateLimit(errText)) {
         const cooldown = recordSourceCooldown(LEAGUEPEDIA_SOURCE, { reason: 'rate_limit' });
         throw createSourceCooldownError(
@@ -302,6 +320,7 @@ async function cargoQuery(params) {
 
     if (json.error) {
       const message = `Leaguepedia API returned error: ${json.error.info || JSON.stringify(json.error)}`;
+      logCargoDiagnostic(res, 'mediawiki', message, json.error.code ?? null);
       if (isLeaguepediaRateLimit(message)) {
         const cooldown = recordSourceCooldown(LEAGUEPEDIA_SOURCE, { reason: 'rate_limit' });
         throw createSourceCooldownError(LEAGUEPEDIA_SOURCE, cooldown, message);
