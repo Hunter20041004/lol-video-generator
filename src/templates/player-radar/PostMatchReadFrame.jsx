@@ -22,9 +22,12 @@ const Corner = ({ top, left, right, bottom }) => (
 export const PostMatchReadFrame = ({ model, sceneTag, children }) => {
   const context = model.seriesContext || {};
   const isFlow = sceneTag === "GAME_FLOW";
+  const gameCountLabel = Number.isInteger(context.gameCount) && context.gameCount > 0
+    ? ` · 共 ${context.gameCount} 局`
+    : "";
   const leftLabel = isFlow
     ? `遊戲過程 · GAME ${model.gameFlow?.gameNumber || 1}`
-    : `${model.branding?.publicTitle || "賽後判讀"} · ${context.league || "LCK"} BO3`;
+    : `${model.branding?.publicTitle || "賽後判讀"} · ${context.league || "LCK"}${gameCountLabel}`;
   return (
     <AbsoluteFill style={{
       background: "radial-gradient(circle at 52% 0%, #142B37 0%, #07141D 30%, #03080C 72%)",
