@@ -7,33 +7,25 @@ const {
   persistEnv,
 } = require("../../../../../../utils/publishing/metaAuth");
 const { validateMetaCallbackRequest } = require("../../../../../../utils/publishing/metaOAuthFlow");
+const { renderMetaAuthPage } = require("../../../../../../utils/publishing/metaAuthPage");
 
-function esc(value = "") {
-  return String(value).replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-  }[char]));
-}
+const html = (body, status = 200) => new NextResponse(body, {
+  status,
+  headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+});
 
 export async function GET(request) {
   let callback;
   try {
     callback = validateMetaCallbackRequest(request.url, "threads");
   } catch {
-    return NextResponse.json({ error: "Invalid or expired OAuth state." }, { status: 400 });
+    return html(renderMetaAuthPage({ platform: "threads", status: "invalid-state" }), 400);
   }
   const { code, providerError: error } = callback;
   const locale = normalizeLocale(callback.locale);
 
   if (error) {
-    return new NextResponse(
-      `<html><body style="font-family:monospace;padding:40px;background:#07111f;color:#ff6b6b">
-        <h2>Threads authorization was not completed.</h2><p>Please restart the connection from Studio.</p></body></html>`,
-      { headers: { "Content-Type": "text/html" }, status: 400 }
-    );
+    return html(renderMetaAuthPage({ platform: "threads", status: "provider-error" }), 400);
   }
 
   if (!code) {
@@ -53,21 +45,8 @@ export async function GET(request) {
     process.env[`THREADS_${suffix}_USER_ID`] = profile.id;
     process.env[`THREADS_${suffix}_ACCESS_TOKEN`] = accessToken;
 
-    return new NextResponse(
-      `<html><body style="font-family:monospace;padding:40px;background:#07111f;color:#c89b3c">
-        <h2>Threads ${suffix} Connected</h2>
-        <p>Saved to <code>.env.local</code>.</p>
-        <p>Connected: <strong>${esc(profile.username || profile.id)}</strong></p>
-        <p style="color:#7ec8e3">Restart Next.js after connecting both locales so runtime env picks up the tokens.</p>
-        <a href="/" style="color:#c89b3c">Back to Studio</a>
-      </body></html>`,
-      { headers: { "Content-Type": "text/html" } }
-    );
+    return html(renderMetaAuthPage({ platform: "threads", status: "success", account: profile.username || profile.id }));
   } catch (err) {
-    return new NextResponse(
-      `<html><body style="font-family:monospace;padding:40px;background:#07111f;color:#ff6b6b">
-        <h2>Threads connection failed.</h2><p>Please restart the connection from Studio.</p></body></html>`,
-      { headers: { "Content-Type": "text/html" }, status: 500 }
-    );
+    return html(renderMetaAuthPage({ platform: "threads", status: "connection-error" }), 500);
   }
 }

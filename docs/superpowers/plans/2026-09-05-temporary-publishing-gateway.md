@@ -78,3 +78,12 @@
 ## Self-review
 
 Spec coverage: challenge, callback ordering, allowlisted gateway, range media, tunnel lifecycle, readiness, user operation and publication gate are each mapped. No placeholders, new dependency, inferred permanent URL or automatic post. The gateway and OAuth challenge can be rejected independently in review and have real boundary tests.
+
+## Execution evidence
+
+- Tasks 1–4 complete through vertical RED→GREEN. Public gateway module tests plus the complete publishing unit group pass; real HTTP boundaries cover callback header stripping, MP4 HEAD/Range, traversal and symlink rejection.
+- Real Quick Tunnel canary passed externally: root 404; callback without valid state 400; MP4 HEAD 200 `video/mp4`; range request 206 with exactly two bytes. Canary tunnel was stopped and its temporary hostname is not reusable.
+- Main final gates: doctor; 654 tests, 648 pass, 6 external skip, 0 fail; Next build; audit 0; six Remotion stills; five Playwright flows. Logs: `/tmp/lol-gateway-main-final-{verify,audit,render,e2e}.log`.
+- Auth error page round 1 found a one-character mobile orphan; word-breaking RED→GREEN fixed it. Round 2 screenshots: `.screenshots/meta-auth-round2-desktop.png` and `.screenshots/meta-auth-round2-mobile.png`.
+- Content DB hash remains `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`; publishing stores absent. `.env` and `.env.local` are ignored and chmod 600. No account reconnection or publication occurred.
+- Task 5 user operations remain: collect the two expected public usernames, prepare a fresh temporary hostname, then guide one Meta callback update/login at a time. Final publication still requires an exact artifact/platform/account/caption confirmation.
