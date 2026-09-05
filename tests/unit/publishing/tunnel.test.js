@@ -225,6 +225,7 @@ test("updateEnvFileValue can write to the active project env path", () => {
 
     const envText = fs.readFileSync(path.join(cwd, ".env.local"), "utf8");
     assert.match(envText, /PUBLIC_MEDIA_BASE_URL=https:\/\/active-dir\.trycloudflare\.com/);
+    assert.equal(fs.statSync(path.join(cwd, ".env.local")).mode & 0o777, 0o600);
   } finally {
     process.chdir(originalCwd);
     fs.rmSync(cwd, { recursive: true, force: true });
@@ -282,13 +283,18 @@ test("ensurePublicMediaBaseUrl starts a new tunnel and updates env when current 
   fs.writeFileSync(path.join(cwd, ".env.local"), "PUBLIC_MEDIA_BASE_URL=https://dead.trycloudflare.com\n", "utf8");
   process.env.PUBLIC_MEDIA_BASE_URL = "https://dead.trycloudflare.com";
 
+  let cloudflaredTarget;
   const result = await ensurePublicMediaBaseUrl({
     action: "publish",
     platforms: ["threads"],
     sampleVideoUrl: "/renders/clip.mp4",
     cwd,
     fetchImpl: async (url) => (String(url).includes("fresh-tunnel") ? okResponse() : failedResponse(502)),
-    spawnImpl: fakeCloudflaredSpawn("https://fresh-tunnel.trycloudflare.com"),
+    startPublicGatewayImpl: async () => ({ origin: "http://127.0.0.1:48123", close: async () => {} }),
+    spawnImpl: (command, args) => {
+      cloudflaredTarget = args[2];
+      return fakeCloudflaredSpawn("https://fresh-tunnel.trycloudflare.com")(command, args);
+    },
     tunnelTimeoutMs: 1000,
   });
 
@@ -296,6 +302,7 @@ test("ensurePublicMediaBaseUrl starts a new tunnel and updates env when current 
   assert.equal(result.refreshed, true);
   assert.equal(result.healthAttempts, 1);
   assert.equal(result.previousBaseUrl, "https://dead.trycloudflare.com");
+  assert.equal(cloudflaredTarget, "http://127.0.0.1:48123");
   assert.equal(process.env.PUBLIC_MEDIA_BASE_URL, "https://fresh-tunnel.trycloudflare.com");
   assert.match(fs.readFileSync(path.join(cwd, ".env.local"), "utf8"), /fresh-tunnel/);
   fs.rmSync(cwd, { recursive: true, force: true });

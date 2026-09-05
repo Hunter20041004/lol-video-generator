@@ -48,6 +48,7 @@ Requires an Instagram Professional account connected to Meta developer permissio
 ```bash
 INSTAGRAM_ZH_USER_ID=
 INSTAGRAM_ZH_ACCESS_TOKEN=
+INSTAGRAM_ZH_EXPECTED_USERNAME=
 INSTAGRAM_EN_USER_ID=
 INSTAGRAM_EN_ACCESS_TOKEN=
 ```
@@ -64,6 +65,7 @@ Connect each account through the OAuth routes:
 ```bash
 THREADS_ZH_USER_ID=
 THREADS_ZH_ACCESS_TOKEN=
+THREADS_ZH_EXPECTED_USERNAME=
 THREADS_EN_USER_ID=
 THREADS_EN_ACCESS_TOKEN=
 ```
@@ -89,6 +91,20 @@ npm run publish:run
 npm run publish:run -- --platform instagram --locale zh
 npm run publish:run -- --platform threads --locale en
 ```
+
+## Temporary safe connection (no owned domain)
+
+Keep Studio local. This command starts a loopback-only allowlist gateway, then points a free Quick Tunnel at that gateway instead of at Studio:
+
+```bash
+npm run publishing:prepare -- --video /renders/<verified-file>.mp4
+```
+
+Keep that terminal running. Copy only the two printed callback URLs into the matching Instagram and Threads Meta app settings. The public origin permits only the two OAuth callback GET routes and safe MP4 GET/HEAD requests; `/`, Studio pages, publishing APIs, and all other paths return 404.
+
+After the callback URLs are registered, restart Studio so it reads the new local `.env.local`, then start each connection from the printed localhost URL. OAuth state expires after ten minutes and works once. Never paste an app secret, access token, authorization code, or `.env.local` content into chat.
+
+The free hostname can change after this command exits. If it changes, repeat preparation and update both Meta callback settings. A fixed owned domain remains the long-term option.
 
 ## Instagram + Threads Performance Tracking
 

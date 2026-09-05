@@ -4,6 +4,7 @@ const {
   getInstagramAppConfig,
   normalizeLocale,
 } = require("../../../../../utils/publishing/metaAuth");
+const { createOAuthChallenge } = require("../../../../../utils/publishing/oauthChallengeStore");
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -17,5 +18,6 @@ export async function GET(request) {
     );
   }
 
-  return NextResponse.redirect(buildInstagramAuthUrl(locale));
+  const { state } = createOAuthChallenge({ platform: "instagram", locale });
+  return NextResponse.redirect(buildInstagramAuthUrl(locale, state));
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 const { buildThreadsAuthUrl, getThreadsAppConfig, normalizeLocale } = require("../../../../../utils/publishing/metaAuth");
+const { createOAuthChallenge } = require("../../../../../utils/publishing/oauthChallengeStore");
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -13,5 +14,6 @@ export async function GET(request) {
     );
   }
 
-  return NextResponse.redirect(buildThreadsAuthUrl(locale));
+  const { state } = createOAuthChallenge({ platform: "threads", locale });
+  return NextResponse.redirect(buildThreadsAuthUrl(locale, state));
 }

@@ -3,6 +3,7 @@ const path = require("path");
 const dns = require("dns");
 const https = require("https");
 const { spawn } = require("child_process");
+const { startPublicGateway } = require("./publicGateway");
 
 const TRYCLOUDFLARE_URL_REGEX = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/i;
 const PUBLIC_URL_PLATFORMS = new Set(["instagram", "threads"]);
@@ -200,7 +201,14 @@ function updateEnvFileValue({
     if (nextLines.length > 0 && nextLines[nextLines.length - 1] !== "") nextLines.push("");
     nextLines.push(line);
   }
-  fs.writeFileSync(/* turbopackIgnore: true */ envPath, `${nextLines.join("\n").replace(/\n+$/, "")}\n`, "utf8");
+  const temporary = `${envPath}.${process.pid}.tmp`;
+  fs.writeFileSync(
+    /* turbopackIgnore: true */ temporary,
+    `${nextLines.join("\n").replace(/\n+$/, "")}\n`,
+    { encoding: "utf8", mode: 0o600 }
+  );
+  fs.renameSync(temporary, envPath);
+  fs.chmodSync(envPath, 0o600);
   return envPath;
 }
 
@@ -210,6 +218,9 @@ function stopManagedTunnel() {
     managed.kill("SIGTERM");
   }
   globalThis.__HVS_TRYCLOUDFLARE_PROCESS__ = null;
+  const gateway = globalThis.__HVS_PUBLIC_GATEWAY__;
+  globalThis.__HVS_PUBLIC_GATEWAY__ = null;
+  if (gateway) gateway.close().catch(() => {});
 }
 
 function startTryCloudflareTunnel({
@@ -256,6 +267,38 @@ function startTryCloudflareTunnel({
   });
 }
 
+async function startTemporaryPublishingTunnel({
+  studioOrigin = "http://localhost:3000",
+  spawnImpl = spawn,
+  startPublicGatewayImpl = startPublicGateway,
+  timeoutMs = 25000,
+} = {}) {
+  stopManagedTunnel();
+  const gateway = await startPublicGatewayImpl({ studioOrigin });
+  globalThis.__HVS_PUBLIC_GATEWAY__ = gateway;
+  try {
+    const tunnel = await startTryCloudflareTunnel({ localUrl: gateway.origin, spawnImpl, timeoutMs });
+    return {
+      baseUrl: tunnel.baseUrl,
+      gatewayOrigin: gateway.origin,
+      async stop() {
+        if (!tunnel.process.killed) tunnel.process.kill("SIGTERM");
+        if (globalThis.__HVS_TRYCLOUDFLARE_PROCESS__ === tunnel.process) {
+          globalThis.__HVS_TRYCLOUDFLARE_PROCESS__ = null;
+        }
+        if (globalThis.__HVS_PUBLIC_GATEWAY__ === gateway) {
+          globalThis.__HVS_PUBLIC_GATEWAY__ = null;
+        }
+        await gateway.close();
+      },
+    };
+  } catch (error) {
+    globalThis.__HVS_PUBLIC_GATEWAY__ = null;
+    await gateway.close().catch(() => {});
+    throw error;
+  }
+}
+
 async function ensurePublicMediaBaseUrl({
   action = "queue",
   platforms = [],
@@ -264,6 +307,7 @@ async function ensurePublicMediaBaseUrl({
   localUrl = "http://localhost:3000",
   fetchImpl = fetch,
   spawnImpl = spawn,
+  startPublicGatewayImpl = startPublicGateway,
   updateEnv = true,
   healthTimeoutMs = 10000,
   healthAttempts = 12,
@@ -292,16 +336,16 @@ async function ensurePublicMediaBaseUrl({
   let lastTunnelBaseUrl = "";
 
   for (let attempt = 1; attempt <= maxTunnelAttempts; attempt += 1) {
-    stopManagedTunnel();
-    const tunnel = await startTryCloudflareTunnel({
-      localUrl,
+    const managed = await startTemporaryPublishingTunnel({
+      studioOrigin: localUrl,
       spawnImpl,
+      startPublicGatewayImpl,
       timeoutMs: tunnelTimeoutMs,
     });
-    lastTunnelBaseUrl = tunnel.baseUrl;
+    lastTunnelBaseUrl = managed.baseUrl;
 
     const refreshedHealth = await waitForPublicMediaUrlHealthy({
-      baseUrl: tunnel.baseUrl,
+      baseUrl: managed.baseUrl,
       videoUrl: sampleVideoUrl,
       fetchImpl,
       timeoutMs: healthTimeoutMs,
@@ -309,10 +353,10 @@ async function ensurePublicMediaBaseUrl({
       retryDelayMs: healthRetryDelayMs,
     });
     if (refreshedHealth.ok) {
-      process.env.PUBLIC_MEDIA_BASE_URL = tunnel.baseUrl;
+      process.env.PUBLIC_MEDIA_BASE_URL = managed.baseUrl;
       if (updateEnv) {
         const envPath = path.join(cwd || process.cwd(), ".env.local");
-        updateEnvFileValue({ envPath, key: "PUBLIC_MEDIA_BASE_URL", value: tunnel.baseUrl });
+        updateEnvFileValue({ envPath, key: "PUBLIC_MEDIA_BASE_URL", value: managed.baseUrl });
       }
 
       return {
@@ -320,7 +364,7 @@ async function ensurePublicMediaBaseUrl({
         refreshed: true,
         previousBaseUrl: currentBaseUrl,
         previousFailure: currentHealth.reason,
-        baseUrl: tunnel.baseUrl,
+        baseUrl: managed.baseUrl,
         sampleUrl: refreshedHealth.url,
         healthAttempts: refreshedHealth.attempts,
         tunnelAttempts: attempt,
@@ -346,6 +390,7 @@ module.exports = {
   isPublicMediaUrlHealthy,
   needsPublicMediaUrl,
   startTryCloudflareTunnel,
+  startTemporaryPublishingTunnel,
   stopManagedTunnel,
   updateEnvFileValue,
   waitForPublicMediaUrlHealthy,

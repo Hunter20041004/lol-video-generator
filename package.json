@@ -16,6 +16,7 @@
     "publish:run": "node scripts/publishQueue.js run",
     "publish:due": "node scripts/publishQueue.js run --due",
     "publish:scheduler": "node scripts/publishScheduler.js",
+    "publishing:prepare": "node scripts/prepareMetaConnection.js",
     "insights:sync": "node scripts/insightsSync.js",
     "media:cleanup": "node scripts/cleanupMedia.js",
     "insights:scheduler": "node scripts/insightsScheduler.js",

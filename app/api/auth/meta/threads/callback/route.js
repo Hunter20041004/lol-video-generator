@@ -6,6 +6,7 @@ const {
   assertExpectedThreadsUsername,
   persistEnv,
 } = require("../../../../../../utils/publishing/metaAuth");
+const { validateMetaCallbackRequest } = require("../../../../../../utils/publishing/metaOAuthFlow");
 
 function esc(value = "") {
   return String(value).replace(/[&<>"']/g, (char) => ({
@@ -18,16 +19,20 @@ function esc(value = "") {
 }
 
 export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const code = searchParams.get("code");
-  const error = searchParams.get("error");
-  const locale = normalizeLocale((searchParams.get("state") || "threads:zh").split(":").pop());
+  let callback;
+  try {
+    callback = validateMetaCallbackRequest(request.url, "threads");
+  } catch {
+    return NextResponse.json({ error: "Invalid or expired OAuth state." }, { status: 400 });
+  }
+  const { code, providerError: error } = callback;
+  const locale = normalizeLocale(callback.locale);
 
   if (error) {
     return new NextResponse(
       `<html><body style="font-family:monospace;padding:40px;background:#07111f;color:#ff6b6b">
-        <h2>Meta Threads OAuth Error</h2><pre>${esc(error)}</pre></body></html>`,
-      { headers: { "Content-Type": "text/html" } }
+        <h2>Threads authorization was not completed.</h2><p>Please restart the connection from Studio.</p></body></html>`,
+      { headers: { "Content-Type": "text/html" }, status: 400 }
     );
   }
 
@@ -61,7 +66,7 @@ export async function GET(request) {
   } catch (err) {
     return new NextResponse(
       `<html><body style="font-family:monospace;padding:40px;background:#07111f;color:#ff6b6b">
-        <h2>Threads Token Exchange Failed</h2><pre>${esc(err.message)}</pre></body></html>`,
+        <h2>Threads connection failed.</h2><p>Please restart the connection from Studio.</p></body></html>`,
       { headers: { "Content-Type": "text/html" }, status: 500 }
     );
   }

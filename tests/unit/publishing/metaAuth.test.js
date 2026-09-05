@@ -31,14 +31,14 @@ test("builds Instagram Login URL with current business scopes", () => {
   process.env.INSTAGRAM_APP_ID = "instagram-app";
   process.env.META_REDIRECT_BASE_URL = "http://localhost:3000/";
 
-  const url = new URL(metaAuth.buildInstagramAuthUrl("zh-TW"));
+  const url = new URL(metaAuth.buildInstagramAuthUrl("zh-TW", "instagram.zh.random-state"));
   const scopes = url.searchParams.get("scope").split(",");
 
   assert.equal(url.origin, "https://www.instagram.com");
   assert.equal(url.pathname, "/oauth/authorize");
   assert.equal(url.searchParams.get("client_id"), "instagram-app");
   assert.equal(url.searchParams.get("redirect_uri"), "http://localhost:3000/api/auth/meta/instagram/callback");
-  assert.equal(url.searchParams.get("state"), "instagram:zh");
+  assert.equal(url.searchParams.get("state"), "instagram.zh.random-state");
   assert.equal(url.searchParams.get("force_reauth"), "true");
   assert.deepEqual(scopes, [
     "instagram_business_basic",
@@ -63,7 +63,7 @@ test("builds Threads OAuth URL with publishing scopes", () => {
   process.env.THREADS_APP_ID = "threads-app";
   process.env.META_REDIRECT_BASE_URL = "http://localhost:3000";
 
-  const url = new URL(metaAuth.buildThreadsAuthUrl("en"));
+  const url = new URL(metaAuth.buildThreadsAuthUrl("en", "threads.en.random-state"));
   const scopes = url.searchParams.get("scope").split(",");
 
   assert.equal(url.origin, "https://threads.net");
@@ -71,13 +71,19 @@ test("builds Threads OAuth URL with publishing scopes", () => {
   assert.equal(url.searchParams.get("client_id"), "threads-app");
   assert.equal(url.searchParams.get("app_id"), "threads-app");
   assert.equal(url.searchParams.get("platform_app_id"), "threads-app");
-  assert.equal(url.searchParams.get("state"), "threads:en");
+  assert.equal(url.searchParams.get("state"), "threads.en.random-state");
   assert.deepEqual(scopes, [
     "threads_basic",
     "threads_content_publish",
     "threads_manage_insights",
     "threads_delete",
   ]);
+});
+
+test("OAuth URL builders reject missing state instead of using a predictable default", () => {
+  process.env.META_APP_ID = "meta-app";
+  assert.throws(() => metaAuth.buildInstagramAuthUrl("zh"), /OAuth state is required/);
+  assert.throws(() => metaAuth.buildThreadsAuthUrl("zh"), /OAuth state is required/);
 });
 
 test("falls back to Meta app credentials when Threads app credentials are not configured", () => {
@@ -217,6 +223,19 @@ test("rejects Instagram profiles that do not match locale-specific expected user
   );
 });
 
+test("account verification refuses to save a connection without an expected username", () => {
+  delete process.env.INSTAGRAM_ZH_EXPECTED_USERNAME;
+  delete process.env.THREADS_ZH_EXPECTED_USERNAME;
+  assert.throws(
+    () => metaAuth.assertExpectedInstagramUsername("zh", "some.account"),
+    /Instagram zh expected username is not configured/
+  );
+  assert.throws(
+    () => metaAuth.assertExpectedThreadsUsername("zh", "some.account"),
+    /Threads zh expected username is not configured/
+  );
+});
+
 test("rejects Threads profiles that do not match locale-specific expected usernames", () => {
   process.env.THREADS_ZH_EXPECTED_USERNAME = "hextech.vs.cn";
   process.env.THREADS_EN_EXPECTED_USERNAME = "hextech.vs";
@@ -273,6 +292,7 @@ test("persists only non-empty env values to .env.local", () => {
     assert.match(content, /^INSTAGRAM_ZH_USER_ID=1789$/m);
     assert.match(content, /^THREADS_ZH_USER_ID=threads-1$/m);
     assert.doesNotMatch(content, /^INSTAGRAM_ZH_ACCESS_TOKEN=/m);
+    assert.equal(fs.statSync(path.join(tempDir, ".env.local")).mode & 0o777, 0o600);
   } finally {
     process.chdir(originalCwd);
     fs.rmSync(tempDir, { recursive: true, force: true });

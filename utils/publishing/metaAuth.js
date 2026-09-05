@@ -63,23 +63,27 @@ function getThreadsRedirectUri() {
   return `${getBaseUrl()}/api/auth/meta/threads/callback`;
 }
 
-function buildInstagramAuthUrl(locale = "zh") {
+function requiredState(state) {
+  const value = String(state || "").trim();
+  if (!value) throw new Error("OAuth state is required.");
+  return value;
+}
+
+function buildInstagramAuthUrl(locale = "zh", state) {
   const { appId } = getInstagramAppConfig();
-  const state = `instagram:${normalizeLocale(locale)}`;
   const params = new URLSearchParams({
     client_id: appId,
     redirect_uri: getInstagramRedirectUri(),
     response_type: "code",
     scope: INSTAGRAM_SCOPES.join(","),
-    state,
+    state: requiredState(state),
     force_reauth: "true",
   });
   return `https://www.instagram.com/oauth/authorize?${params.toString()}`;
 }
 
-function buildThreadsAuthUrl(locale = "zh") {
+function buildThreadsAuthUrl(locale = "zh", state) {
   const { appId } = getThreadsAppConfig();
-  const state = `threads:${normalizeLocale(locale)}`;
   const params = new URLSearchParams({
     client_id: appId,
     app_id: appId,
@@ -87,7 +91,7 @@ function buildThreadsAuthUrl(locale = "zh") {
     redirect_uri: getThreadsRedirectUri(),
     response_type: "code",
     scope: THREADS_SCOPES.join(","),
-    state,
+    state: requiredState(state),
   });
   return `https://threads.net/oauth/authorize?${params.toString()}`;
 }
@@ -178,7 +182,10 @@ function getExpectedInstagramUsername(locale = "zh") {
 function assertExpectedInstagramUsername(locale, actualUsername) {
   const expected = getExpectedInstagramUsername(locale);
   const actual = normalizeUsername(actualUsername);
-  if (expected && actual !== expected) {
+  if (!expected) {
+    throw new Error(`Instagram ${normalizeLocale(locale)} expected username is not configured`);
+  }
+  if (actual !== expected) {
     throw new Error(`Expected Instagram ${normalizeLocale(locale)} account ${expected}, got ${actual || "unknown"}`);
   }
 }
@@ -191,7 +198,10 @@ function getExpectedThreadsUsername(locale = "zh") {
 function assertExpectedThreadsUsername(locale, actualUsername) {
   const expected = getExpectedThreadsUsername(locale);
   const actual = normalizeUsername(actualUsername);
-  if (expected && actual !== expected) {
+  if (!expected) {
+    throw new Error(`Threads ${normalizeLocale(locale)} expected username is not configured`);
+  }
+  if (actual !== expected) {
     throw new Error(`Expected Threads ${normalizeLocale(locale)} account ${expected}, got ${actual || "unknown"}`);
   }
 }
@@ -209,7 +219,10 @@ function persistEnv(values) {
   for (const [key, value] of Object.entries(values)) {
     if (value) content = upsertEnv(content, key, value);
   }
-  fs.writeFileSync(envPath, content, "utf8");
+  const temporary = `${envPath}.${process.pid}.tmp`;
+  fs.writeFileSync(temporary, content, { encoding: "utf8", mode: 0o600 });
+  fs.renameSync(temporary, envPath);
+  fs.chmodSync(envPath, 0o600);
 }
 
 module.exports = {
