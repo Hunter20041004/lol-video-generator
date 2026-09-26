@@ -82,6 +82,18 @@ test("post-match read preserves canonical team names beside short display labels
   assert.equal(viewModel.seriesContext.teamBIdentity, "Nongshim RedForce");
 });
 
+test("post-match read uses the verified canonical HLE label for Hanwha Life Esports", () => {
+  const input = makeInput();
+  input.series.teamB = "Hanwha Life Esports";
+  input.series.winningTeam = "Hanwha Life Esports";
+
+  const viewModel = buildPostMatchReadViewModel(input);
+
+  assert.equal(viewModel.seriesContext.teamB, "HLE");
+  assert.equal(viewModel.resultHook.displayOrder[1], "HLE");
+  assert.equal(viewModel.finalRead.winnerTeam.name, "HLE");
+});
+
 test("Mid matchup copy is role-aware and exposes its primary evidence", () => {
   const input = makeInput();
   const edgePlayer = { name: "Chovy", team: "GEN", role: "Mid" };

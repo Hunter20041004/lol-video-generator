@@ -1,4 +1,5 @@
 const REQUIRED_ROLES = Object.freeze(["Top", "Jungle", "Mid", "Adc", "Support"]);
+const TEAM_CREST_MANIFEST = require("../../config/esports-team-crests.json");
 
 const POST_MATCH_READ_STORYBOARD = Object.freeze([
   { tag: "RESULT_HOOK", durationInFrames: 120 },
@@ -189,6 +190,13 @@ function buildRatioHook(reason = {}, locale = "zh") {
 
 function shortTeamLabel(team = "", abbreviation = "") {
   if (String(abbreviation).trim()) return String(abbreviation).trim();
+  const normalizedTeam = String(team).trim().toLowerCase();
+  const verifiedIdentity = TEAM_CREST_MANIFEST.crests.find((entry) =>
+    [entry.team, ...(entry.teamAliases || [])]
+      .map((candidate) => String(candidate).trim().toLowerCase())
+      .includes(normalizedTeam)
+  );
+  if (/^[A-Z0-9]{2,4}$/.test(verifiedIdentity?.team || "")) return verifiedIdentity.team;
   const cleaned = String(team)
     .replace(/\b(?:Team|Esports|Challengers)\b/gi, " ")
     .trim();

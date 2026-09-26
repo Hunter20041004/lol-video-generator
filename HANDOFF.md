@@ -4,6 +4,11 @@
 
 ## 本輪狀態
 
+- 2026-09-26 產片到發布 readiness 已解除登入與內容阻擋（仍未發布）：Instagram／Threads OAuth 均連到 `@hextech.vs.cn`，並分別以 Meta 正式唯讀 profile API 核實；token 與 user id 只存在 ignored、mode 600 的 `.env.local`。登入循環根因是 Instagram URL 帶 `force_reauth=true`，導致使用者選其他帳號後再次被帶回已記住的帳號／CAPTCHA；已用回歸測試移除。OAuth state 仍維持 256-bit、雜湊保存、10 分鐘、單次使用、平台／語言綁定，callback 錯誤頁不洩露 provider 原文。
+- `Hanwha Life Esports` 顯示成 `HL` 的內容缺陷已以 TDD 修正：`shortTeamLabel()` 現在先使用已驗證隊徽 manifest 的 canonical 短名，只在 canonical 值確為 2–4 位大寫代碼時採用，避免把其他含 `Esports` 的隊名誤縮。新影片 `public/renders/render_1790433967341.mp4`，SHA-256 `68efcd865d341c0b1bef5427cc59f39cbcb8f32fd85541294ba3f016fd494fe4`；H.264/AAC、1080×1920、30fps、25.045333 秒。1 秒與 23 秒真實影格確認開頭／結尾皆為 `HLE`；公開 MP4 曾以 HEAD 200 驗證，之後已停止臨時 tunnel，正式發布前由系統為此影片另開新安全網址即可，不需重新 OAuth。
+- Instagram／Threads 中文文案與新影片 preflight 通過：Top 對位、Gumayusi 數據 MVP 候選，caption 長度 159／147，兩份檔案皆存在。publish queue、daily runs、publish packages 均不存在；未建立 Meta container 或遠端貼文。完整閘門：195/195 聚焦、650 pass／6 外部契約 skip／0 fail、Next 16.3.6 build、Remotion 6/6、Playwright 5/5、`npm audit --audit-level=high` 0 vulnerabilities；Next 16.3.0→16.3.6、Sharp 0.35.3→0.35.4 修補一個 critical 與一個 high advisory。常駐 LaunchAgent 已恢復，`http://localhost:49761/` 使用修補後版本。下一步只剩【使用者操作】確認要發布的平台與最終文案；不得在確認前發布。
+- 安全封條：`.data/patch-content-db.json` SHA-256 仍為 `ff407d384b33d95c82ade5923f6ab174182cd08d4a7194e48d0e8e623130fef0`；publish queue、daily runs、publish packages 均不存在或為空，沒有建立 Meta container 或遠端貼文。發布邊界 139/139 tests 通過，含工作區現有的 fresh-tunnel DNS fallback 未提交修改；該修改與 `package-lock.json`、`AGENTS.md`、`CLAUDE.md` 均非本次 QA 所寫，不得覆蓋或混入。
+
 - 2026-09-05 免費臨時發布通道已整合本機 main：OAuth state 改為 256-bit 隨機 nonce、只存 SHA-256、10 分鐘、單次使用、平台／語言綁定；callback 在讀取 provider code/error 與交換 token 前先 consume，失敗頁不顯示原始 provider 內容。未設定 `INSTAGRAM_ZH_EXPECTED_USERNAME`／`THREADS_ZH_EXPECTED_USERNAME` 時，帳號核實硬阻擋且 preparation script 不開公開通道。`.env`／`.env.local` 實際權限已由 644 收緊為 600（內容未改、兩檔均 ignored）。
 - 新增 loopback-only public gateway：只允許 Instagram／Threads callback GET 與安全單層 MP4 GET/HEAD/Range；root、Studio、其他 API、非 GET callback、traversal、子目錄、非 MP4、symlink 全回 404。真實 Quick Tunnel canary `cache-complex-jpeg-telling.trycloudflare.com` 曾驗證 root 404、無 state callback 400、MP4 HEAD 200 video/mp4、Range 206/2 bytes，隨即停止；目前 cloudflared process 0，舊網址不可重用。正式操作使用 `npm run publishing:prepare -- --video /renders/<verified>.mp4` 並保持 terminal 存活。
 - 主線最終驗證：doctor、654 tests／648 pass／6 外部 skip／0 fail、Next build、audit 0、Remotion 6/6、Playwright 5/5 通過；證據 `/tmp/lol-gateway-main-final-{verify,audit,render,e2e}.log`。Playwright 首次因 49761 常駐 Next dev lock 無法開第二個同目錄 dev server，暫停 LaunchAgent 後重跑 5/5，再 bootstrap；原 `http://localhost:49761/` HTTP 200。Meta error page 兩輪截圖最終 `.screenshots/meta-auth-round2-desktop.png`／`meta-auth-round2-mobile.png`，手機孤字換行已修正，層次／留白／字體／配色／對齊／375px／錯誤與 focus／微動效均通過。
@@ -171,8 +176,8 @@
 
 ## 依賴版本
 
-- Next `16.3.0`
-- Sharp `0.35.3`
+- Next `16.3.6`
+- Sharp `0.35.4`
 - PostCSS `8.5.23`
 - nanoid `3.3.18`
 - Undici `7.29.0`

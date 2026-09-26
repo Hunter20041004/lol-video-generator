@@ -77,7 +77,6 @@ function buildInstagramAuthUrl(locale = "zh", state) {
     response_type: "code",
     scope: INSTAGRAM_SCOPES.join(","),
     state: requiredState(state),
-    force_reauth: "true",
   });
   return `https://www.instagram.com/oauth/authorize?${params.toString()}`;
 }

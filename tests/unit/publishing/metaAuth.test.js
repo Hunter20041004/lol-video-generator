@@ -26,7 +26,7 @@ function jsonResponse(body, ok = true, status = 200) {
 
 test.afterEach(resetEnv);
 
-test("builds Instagram Login URL with current business scopes", () => {
+test("builds Instagram Login URL without forcing a second credential challenge", () => {
   process.env.META_APP_ID = "meta-app";
   process.env.INSTAGRAM_APP_ID = "instagram-app";
   process.env.META_REDIRECT_BASE_URL = "http://localhost:3000/";
@@ -39,7 +39,7 @@ test("builds Instagram Login URL with current business scopes", () => {
   assert.equal(url.searchParams.get("client_id"), "instagram-app");
   assert.equal(url.searchParams.get("redirect_uri"), "http://localhost:3000/api/auth/meta/instagram/callback");
   assert.equal(url.searchParams.get("state"), "instagram.zh.random-state");
-  assert.equal(url.searchParams.get("force_reauth"), "true");
+  assert.equal(url.searchParams.has("force_reauth"), false);
   assert.deepEqual(scopes, [
     "instagram_business_basic",
     "instagram_business_content_publish",
