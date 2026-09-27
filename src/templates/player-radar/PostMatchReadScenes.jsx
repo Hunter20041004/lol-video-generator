@@ -52,6 +52,12 @@ const HeroFace = ({ asset, playerName = "", dim = false }) => asset?.squareSrc ?
 );
 const SceneLabel = ({ children }) => <div style={{ font: `800 24px ${NUMBER_FONT}`, color: COLORS.rune, letterSpacing: 6, textTransform: "uppercase" }}>{children}</div>;
 const Verdict = ({ children, maxWidth = 820 }) => <div style={{ maxWidth, font: `900 58px/1.28 ${TEXT_FONT}`, letterSpacing: -3, color: COLORS.moon }}>{children}</div>;
+const DataCell = ({ label, value, tone = COLORS.rune, compact = false }) => (
+  <div style={{ minWidth: 0, padding: compact ? "18px 20px" : "24px 26px", clipPath: CUT_CORNER, border: `1px solid ${tone}55`, background: "linear-gradient(145deg,rgba(13,32,42,.9),rgba(7,20,28,.72))" }}>
+    <div style={{ color: tone, font: `800 ${compact ? 17 : 20}px ${NUMBER_FONT}`, letterSpacing: 3 }}>{label}</div>
+    <div style={{ marginTop: 8, color: COLORS.moon, font: `900 ${compact ? 46 : 62}px/.9 ${NUMBER_FONT}`, whiteSpace: "nowrap" }}>{value ?? "—"}</div>
+  </div>
+);
 
 const TeamIdentity = ({ asset, team, score, winner }) => (
   <div data-team={team} data-winner-side={winner ? "true" : "false"} style={{ width: 390, minHeight: 460, padding: "42px 24px 36px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", clipPath: CUT_CORNER, background: winner ? "linear-gradient(180deg,rgba(200,155,60,.2),rgba(13,32,42,.78))" : "rgba(13,32,42,.68)", border: `1px solid ${winner ? COLORS.gold : "rgba(107,124,134,.32)"}` }}>
@@ -65,12 +71,15 @@ const TeamIdentity = ({ asset, team, score, winner }) => (
 export const MatchupBroadcastScene = ({ model, localFrame, reducedMotion, phase }) => {
   const matchup = model.matchup || {};
   const result = model.resultHook || {};
+  const hook = model.hook || {};
   const assets = model.assets?.matchup || {};
   const teamAssets = model.assets?.teams || {};
   const score = result.scoreParts || { left: "2", separator: "–", right: "0" };
   const resultPhase = phase === "result";
   const metric = matchup.primaryEvidence?.metric || "";
   const delta = matchup.primaryEvidence?.delta;
+  const winnerValue = matchup.primaryEvidence?.winnerValue;
+  const loserValue = matchup.primaryEvidence?.loserValue;
   if (resultPhase) {
     const teamA = result.displayOrder?.[0] || model.seriesContext?.teamA || "";
     const teamB = result.displayOrder?.[1] || model.seriesContext?.teamB || "";
@@ -82,7 +91,12 @@ export const MatchupBroadcastScene = ({ model, localFrame, reducedMotion, phase 
           <div style={{ font: `800 30px ${NUMBER_FONT}`, color: COLORS.rune, letterSpacing: 7, writingMode: "vertical-rl" }}>SERIES RESULT</div>
           <TeamIdentity asset={teamAssets.teamB} team={teamB} score={score.right} winner={winner === teamB} />
         </div>
-        <div style={{ ...enterStyle(localFrame, 14, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 1180, right: SAFE_X }}>
+        <div data-result-signal="verified" style={{ ...enterStyle(localFrame, 8, 10, reducedMotion), position: "absolute", left: SAFE_X, right: SAFE_X, top: 850, display: "grid", gridTemplateColumns: "1fr 1.4fr 1fr", gap: 14 }}>
+          <DataCell label={teamA || "TEAM A"} value={hook.leftRaw ?? score.left} compact />
+          <DataCell label={`DECISIVE SIGNAL · ${hook.metric || "SERIES"}`} value={hook.displayValue || `${score.left}${score.separator}${score.right}`} tone={COLORS.gold} compact />
+          <DataCell label={teamB || "TEAM B"} value={hook.rightRaw ?? score.right} compact />
+        </div>
+        <div style={{ ...enterStyle(localFrame, 14, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 1190, right: SAFE_X }}>
           <div style={{ width: 96, height: 2, marginBottom: 34, background: COLORS.gold }} />
           <Verdict>{result.resultClaim}</Verdict>
         </div>
@@ -96,10 +110,15 @@ export const MatchupBroadcastScene = ({ model, localFrame, reducedMotion, phase 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}><div style={{ width: 56, height: 64, clipPath: HEXAGON, display: "grid", placeItems: "center", background: COLORS.rune, color: COLORS.void, font: `900 18px ${NUMBER_FONT}` }}>{String(matchup.role || "VS").slice(0, 3)}</div><div style={{ width: 2, height: 150, background: `linear-gradient(${COLORS.rune},${COLORS.gold})` }} /><div style={{ font: `800 23px ${NUMBER_FONT}`, color: COLORS.steel, letterSpacing: 5 }}>VS</div></div>
         <div style={{ ...enterStyle(localFrame, 6, 10, reducedMotion), textAlign: "right" }}><HeroFace asset={assets.opponent} playerName={matchup.opponentPlayer?.name} dim /><div style={{ marginTop: 20, font: `900 40px ${NUMBER_FONT}`, color: COLORS.steel }}>{matchup.opponentPlayer?.name}</div></div>
       </div>
-      <div style={{ ...enterStyle(localFrame, 16, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 760, right: SAFE_X }} data-primary-metric={metric}>
+      <div data-duel-comparison="visible" style={{ ...enterStyle(localFrame, 12, 10, reducedMotion), position: "absolute", left: SAFE_X, right: SAFE_X, top: 690, display: "grid", gridTemplateColumns: "1fr 1fr 1.2fr", gap: 14 }}>
+        <DataCell label={`${matchup.edgePlayer?.name || "EDGE"} · ${metric}`} value={winnerValue ?? "—"} tone={COLORS.gold} compact />
+        <DataCell label={`${matchup.opponentPlayer?.name || "OPP"} · ${metric}`} value={loserValue ?? "—"} compact />
+        <DataCell label="ROLE SCAN" value={matchup.scopeClaim || matchup.scopeLabel || "VERIFIED"} tone={COLORS.steel} compact />
+      </div>
+      <div style={{ ...enterStyle(localFrame, 16, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 920, right: SAFE_X }} data-primary-metric={metric}>
         <SceneLabel>{matchup.role || "MATCHUP"} · SERIES AVERAGE</SceneLabel>
-        <div style={{ display: "flex", alignItems: "baseline", marginTop: 28 }}><strong style={{ font: `900 240px/.8 ${NUMBER_FONT}`, color: COLORS.moon }}>{Number.isFinite(Number(delta)) ? `+${delta}` : "—"}</strong><span style={{ font: `900 56px ${NUMBER_FONT}`, color: COLORS.gold, marginLeft: 20 }}>{metric}</span></div>
-        <div style={{ marginTop: 92 }}><Verdict>{matchup.claim}</Verdict></div>
+        <div style={{ display: "flex", alignItems: "baseline", marginTop: 22 }}><strong style={{ font: `900 164px/.8 ${NUMBER_FONT}`, color: COLORS.moon }}>{Number.isFinite(Number(delta)) ? `+${delta}` : "—"}</strong><span style={{ font: `900 48px ${NUMBER_FONT}`, color: COLORS.gold, marginLeft: 20 }}>{metric}</span></div>
+        <div style={{ marginTop: 62 }}><Verdict>{matchup.claim}</Verdict></div>
       </div>
     </AbsoluteFill>
   );
@@ -114,6 +133,7 @@ const ObjectiveNode = ({ label, value, tone, lockProgress = 1 }) => (
 );
 export const EarlyControlScene = ({ model, localFrame, reducedMotion }) => {
   const flow = model.gameFlow || {};
+  const teamFinals = Array.isArray(flow.teamFinals) ? flow.teamFinals : [];
   const copy = FLOW_COPY[sceneLocale(model)];
   const firstObjectiveLock = broadcastLockProgress({ frame: localFrame, start: 8, duration: 6, reducedMotion });
   const secondObjectiveLock = broadcastLockProgress({ frame: localFrame, start: 14, duration: 6, reducedMotion });
@@ -128,29 +148,35 @@ export const EarlyControlScene = ({ model, localFrame, reducedMotion }) => {
         </div>
         <div style={{ marginTop: 56, font: `800 24px ${NUMBER_FONT}`, color: COLORS.steel, letterSpacing: 5 }}>{flow.earlyResourceTeam} · {copy.earlyEvidence}</div>
       </div>
-      <div style={{ position: "absolute", left: SAFE_X, right: 150, top: 1150 }}><div style={{ width: 92, height: 2, marginBottom: 34, background: COLORS.rune }} /><Verdict>{copy.earlyClaim(flow.earlyResourceTeam)}</Verdict></div>
+      <div data-team-objective-matrix="visible" style={{ position: "absolute", left: SAFE_X, right: 92, top: 820, padding: "22px 26px", clipPath: CUT_CORNER, border: `1px solid rgba(10,200,185,.28)`, background: "rgba(7,20,28,.82)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.2fr repeat(4, 1fr)", color: COLORS.steel, font: `800 16px ${NUMBER_FONT}`, letterSpacing: 2 }}><span>TEAM</span><span>GRUBS</span><span>HERALD</span><span>BARON</span><span>TOWERS</span></div>
+        {teamFinals.slice(0, 2).map((team) => <div key={team.team} style={{ display: "grid", gridTemplateColumns: "1.2fr repeat(4, 1fr)", alignItems: "center", marginTop: 18, paddingTop: 16, borderTop: `1px solid rgba(107,124,134,.22)`, color: team.team === flow.earlyResourceTeam ? COLORS.goldBright : COLORS.moon, font: `900 29px ${NUMBER_FONT}` }}><span>{team.team}</span><span>{team.voidGrubs ?? "—"}</span><span>{team.riftHeralds ?? "—"}</span><span>{team.barons ?? "—"}</span><span>{team.towers ?? "—"}</span></div>)}
+      </div>
+      <div style={{ position: "absolute", left: SAFE_X, right: 150, top: 1240 }}><div style={{ width: 92, height: 2, marginBottom: 34, background: COLORS.rune }} /><Verdict>{copy.earlyClaim(flow.earlyResourceTeam)}</Verdict></div>
     </AbsoluteFill>
   );
 };
 export const MapConversionScene = ({ model, localFrame, reducedMotion }) => {
   const flow = model.gameFlow || {};
   const copy = FLOW_COPY[sceneLocale(model)];
-  const showGold = localFrame >= 120;
-  const evidence = showGold ? `+${Number(flow.goldDelta || 0).toLocaleString()}` : flow.towerScore;
-  const label = showGold ? copy.gold : copy.towers;
   return (
     <AbsoluteFill data-broadcast-component="map-conversion">
       <MapBackdrop model={model} opacity={0.22} />
       <div style={{ position: "absolute", left: 115, top: 475, width: 720, height: 2, background: `linear-gradient(90deg,${COLORS.rune},${COLORS.gold})` }} />
       <div style={{ position: "absolute", left: 92, top: 447, width: 56, height: 64, clipPath: HEXAGON, background: COLORS.rune }} />
       <div style={{ position: "absolute", left: 810, top: 447, width: 56, height: 64, clipPath: HEXAGON, background: COLORS.gold }} />
-      <div style={{ ...enterStyle(localFrame, 2, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 270, right: SAFE_X }}>
-        <div data-evidence-slot="primary" data-evidence-kind={showGold ? "gold" : "towers"} style={{ marginTop: 220, padding: "48px 58px", width: 720, clipPath: CUT_CORNER, border: `1px solid rgba(200,155,60,.42)`, background: "rgba(13,32,42,.74)" }}>
-          <div style={{ font: `900 270px/.78 ${NUMBER_FONT}`, color: COLORS.moon }}>{evidence}</div>
-          <div style={{ marginTop: 34, font: `800 28px ${NUMBER_FONT}`, color: COLORS.gold, letterSpacing: 5 }}>{flow.finalMapTeam} · {label}</div>
+      <div data-conversion-dashboard="visible" style={{ ...enterStyle(localFrame, 2, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 535, right: 90 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+          <DataCell label={`${flow.finalMapTeam || "TEAM"} · ${copy.towers}`} value={flow.towerScore || "—"} tone={COLORS.gold} />
+          <DataCell label={`${flow.finalMapTeam || "TEAM"} · ${copy.gold}`} value={`+${Number(flow.goldDelta || 0).toLocaleString()}`} />
+        </div>
+        <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: 18 }}>
+          <DataCell label="BARONS → TOWERS" value={flow.conversion?.displayValue || "—"} tone={COLORS.goldBright} compact />
+          <DataCell label="BARONS" value={flow.conversion?.barons ?? "—"} compact />
+          <DataCell label="TOWERS" value={flow.conversion?.towers ?? "—"} compact />
         </div>
       </div>
-      <div style={{ position: "absolute", left: SAFE_X, right: 150, top: 1210 }}><Verdict>{flow.conclusion}</Verdict></div>
+      <div style={{ position: "absolute", left: SAFE_X, right: 150, top: 1150 }}><Verdict>{flow.conclusion}</Verdict></div>
     </AbsoluteFill>
   );
 };
@@ -162,7 +188,6 @@ export const PlayerProofScene = ({ model, localFrame, reducedMotion }) => {
   const secondaryEvidence = proof.secondaryEvidence || [];
   const locale = sceneLocale(model);
   const primary = Number.isFinite(Number(player.rawStats?.csm)) ? { displayValue: player.rawStats.csm, metric: "CS / MIN" } : secondaryEvidence[0];
-  const secondary = secondaryEvidence[Math.min(Math.floor(localFrame / 70), Math.max(secondaryEvidence.length - 1, 0))];
   const teamKey = player.team === model.seriesContext?.teamB ? "teamB" : "teamA";
   const teamCrest = model.assets?.teams?.[teamKey];
   const champions = model.assets?.proof?.champions || [];
@@ -179,9 +204,11 @@ export const PlayerProofScene = ({ model, localFrame, reducedMotion }) => {
         <div style={{ marginTop: 22, display: "flex", alignItems: "center", gap: 18, color: COLORS.steel, font: `800 24px ${NUMBER_FONT}`, letterSpacing: 5 }}><span>{player.team}</span><span style={{ width: 8, height: 9, clipPath: HEXAGON, background: COLORS.gold }} /><span>{player.role}</span></div>
         <div data-primary-metric={primary?.metric || ""} style={{ marginTop: 150 }}><div style={{ font: `900 210px/.78 ${NUMBER_FONT}`, color: COLORS.moon }}>{primary?.displayValue ?? "—"}</div><div style={{ marginTop: 26, font: `800 28px ${NUMBER_FONT}`, color: COLORS.gold, letterSpacing: 5 }}>{primary?.metric || ""}</div></div>
       </div>
-      {secondary ? <div data-secondary-evidence={secondary.metric} style={{ ...enterStyle(localFrame % 70, 3, 8, reducedMotion), position: "absolute", left: SAFE_X, top: 1040, padding: "22px 32px", width: 330, clipPath: CUT_CORNER, background: "rgba(13,32,42,.82)", border: `1px solid rgba(10,200,185,.35)` }}><div style={{ font: `900 70px ${NUMBER_FONT}` }}>{secondary.displayValue}</div><div style={{ font: `800 22px ${NUMBER_FONT}`, color: COLORS.rune, letterSpacing: 4 }}>{SECONDARY_EVIDENCE_LABELS[locale][secondary.metric] || secondary.metric}</div></div> : null}
+      <div data-player-stat-matrix="visible" style={{ position: "absolute", left: SAFE_X, right: 76, top: 1015, display: "grid", gridTemplateColumns: `repeat(${Math.max(secondaryEvidence.length, 1)}, minmax(0, 1fr))`, gap: 16 }}>
+        {secondaryEvidence.map((secondary, index) => <div key={`${secondary.metric}-${index}`} data-secondary-evidence={secondary.metric} style={{ ...enterStyle(localFrame, 12 + (index * 3), 8, reducedMotion), padding: "20px 26px", clipPath: CUT_CORNER, background: "rgba(13,32,42,.86)", border: `1px solid ${index === 0 ? "rgba(200,155,60,.4)" : "rgba(10,200,185,.35)"}` }}><div style={{ font: `900 62px ${NUMBER_FONT}` }}>{secondary.displayValue}</div><div style={{ font: `800 19px ${NUMBER_FONT}`, color: index === 0 ? COLORS.gold : COLORS.rune, letterSpacing: 3 }}>{SECONDARY_EVIDENCE_LABELS[locale][secondary.metric] || secondary.metric}</div></div>)}
+      </div>
       <div style={{ position: "absolute", left: SAFE_X, top: 1460, display: "flex", gap: 16 }}>{champions.slice(0, 4).map((champion) => champion.src ? <Img key={champion.championName} alt={champion.championName} src={assetSrc(champion.src)} style={{ width: 76, height: 76, objectFit: "cover", clipPath: CUT_CORNER, border: `1px solid rgba(200,155,60,.36)` }} /> : null)}</div>
-      <div style={{ position: "absolute", left: 460, right: 90, top: 1200 }}><Verdict>{proof.claim}</Verdict></div>
+      <div style={{ position: "absolute", left: 460, right: 90, top: 1260 }}><Verdict>{proof.claim}</Verdict></div>
     </AbsoluteFill>
   );
 };
@@ -191,7 +218,6 @@ export const FinalReadScene = ({ model, localFrame, reducedMotion }) => {
   const references = model.finalRead?.recapReferences || [];
   const conclusionParts = model.finalRead?.conclusionParts || { lead: "", emphasis: "" };
   const winnerCrest = model.assets?.finalRead?.winnerCrest;
-  const activeReference = references[Math.min(Math.floor(localFrame / 45), Math.max(references.length - 1, 0))];
   const readingHold = localFrame >= 90;
   return (
     <AbsoluteFill data-broadcast-component="victory-lockup" data-reading-hold={readingHold ? "true" : "false"}>
@@ -201,7 +227,9 @@ export const FinalReadScene = ({ model, localFrame, reducedMotion }) => {
       </div>
       <div style={{ position: "absolute", left: SAFE_X, right: 70, top: 850 }}>
         <Verdict maxWidth={900}>{conclusionParts.lead}<br /><span style={{ color: COLORS.goldBright }}>{conclusionParts.emphasis}</span></Verdict>
-        {!readingHold && activeReference ? <div data-recap-evidence="visible" style={{ ...enterStyle(localFrame % 45, 2, 8, reducedMotion), marginTop: 190, padding: "24px 30px", width: 380, clipPath: CUT_CORNER, border: `1px solid rgba(10,200,185,.32)`, background: "rgba(13,32,42,.74)" }}><strong style={{ font: `900 82px ${NUMBER_FONT}` }}>{activeReference.displayValue}</strong><span style={{ display: "block", marginTop: 8, font: `800 21px ${NUMBER_FONT}`, color: COLORS.rune, letterSpacing: 4 }}>{activeReference.label}</span></div> : null}
+        <div data-final-evidence-stack="visible" style={{ marginTop: 120, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+          {references.slice(0, 2).map((reference, index) => <div key={`${reference.label}-${index}`} data-recap-evidence="visible" style={{ ...enterStyle(localFrame, 10 + (index * 4), 8, reducedMotion), padding: "24px 30px", clipPath: CUT_CORNER, border: `1px solid ${index === 0 ? "rgba(200,155,60,.4)" : "rgba(10,200,185,.32)"}`, background: "rgba(13,32,42,.78)" }}><strong style={{ font: `900 74px ${NUMBER_FONT}` }}>{reference.displayValue}</strong><span style={{ display: "block", marginTop: 8, font: `800 19px ${NUMBER_FONT}`, color: index === 0 ? COLORS.gold : COLORS.rune, letterSpacing: 3 }}>{reference.label}</span></div>)}
+        </div>
       </div>
     </AbsoluteFill>
   );

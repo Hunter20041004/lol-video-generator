@@ -274,12 +274,12 @@ test("post-match read crest assets never add a duplicate text label", () => {
   assert.match(teamCrest, /data-fallback="team-crest"/);
 });
 
-test("post-match read proof rotates secondary evidence in one calm position", () => {
+test("post-match read proof keeps secondary evidence visible in one calm matrix", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
 
-  assert.match(scenes, /Math\.floor\(localFrame \/ 70\)/);
-  assert.match(scenes, /enterStyle\(localFrame % 70, 3, 8, reducedMotion\)/);
-  assert.doesNotMatch(scenes, /gridTemplateColumns: `repeat/);
+  assert.match(scenes, /data-player-stat-matrix="visible"/);
+  assert.match(scenes, /secondaryEvidence\.map/);
+  assert.match(scenes, /gridTemplateColumns: `repeat/);
   assert.doesNotMatch(scenes, /transition:\s*["'`]all/);
 });
 
@@ -303,7 +303,8 @@ test("final read scene uses dynamic winner copy and evidence labels", () => {
   const finalScene = scenes.match(/export const FinalReadScene[\s\S]*?\n};/)?.[0] || "";
 
   assert.match(finalScene, /model\.finalRead\?\.conclusionParts/);
-  assert.match(finalScene, /activeReference\.label/);
+  assert.match(finalScene, /references\.slice\(0, 2\)\.map/);
+  assert.match(finalScene, /reference\.label/);
   assert.doesNotMatch(finalScene, /GEN 的勝點|CHOVY|RULER/);
 });
 

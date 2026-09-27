@@ -87,3 +87,37 @@ test("frame uses the LoL broadcast visual world instead of the darkroom proof st
   assert.match(html, /aria-label="故事進度 1\/6"/);
   assert.doesNotMatch(html, /#E94B35|film-grain|proof-mark/i);
 });
+
+test("frame keeps a dense verified series telemetry rail visible across scenes", async () => {
+  const Frame = await loadFrame();
+  const html = renderToStaticMarkup(React.createElement(Frame, {
+    model: {
+      branding: { publicTitle: "賽後判讀" },
+      seriesContext: {
+        league: "LCK",
+        season: "2026",
+        matchDate: "2026-09-26",
+        gameCount: 5,
+        teamA: "T1",
+        teamB: "HLE",
+        score: "2-3",
+      },
+      matchup: { primaryEvidence: { metric: "GPM", delta: 72 } },
+      gameFlow: { gameNumber: 2, towerScore: "8–4", goldDelta: 8917 },
+      proof: { player: { name: "Ruler", rawStats: { csm: 9.88 } } },
+    },
+    sceneTag: "MAP_CONVERSION",
+  }));
+
+  assert.match(html, /data-series-telemetry="visible"/);
+  assert.match(html, /LCK/);
+  assert.match(html, /2026-09-26/);
+  assert.match(html, /5 GAMES/);
+  assert.match(html, /data-story-rail="6-scenes"/);
+  assert.match(html, /04\s*\/\s*06/);
+  assert.match(html, /data-evidence-ticker="persistent"/);
+  assert.match(html, /\+72/);
+  assert.match(html, /8–4/);
+  assert.match(html, /\+8,917/);
+  assert.match(html, /9\.88/);
+});
