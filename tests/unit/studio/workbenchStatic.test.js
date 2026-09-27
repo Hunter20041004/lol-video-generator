@@ -32,6 +32,14 @@ test('esports workflow scans candidates and renders an explicit preview before p
   assert.match(workflow, /全球一級賽事中沒有找到已完成且資料完整的賽事/);
 });
 
+test('esports workflow describes the approved 40-second post-match video', () => {
+  const workflow = read('app/components/studio/EsportsWorkflow.jsx');
+
+  assert.match(workflow, /40 秒賽後解析/);
+  assert.match(workflow, /正在渲染 40 秒影片/);
+  assert.doesNotMatch(workflow, /25 秒|25秒/);
+});
+
 test('version workflow uses one selected item and preview-first content factory routes', () => {
   const workflow = read('app/components/studio/VersionWorkflow.jsx');
 

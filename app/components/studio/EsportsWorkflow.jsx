@@ -141,7 +141,7 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
         <div className="studio-section-heading">
           <span>ESPORTS VIDEO</span>
           <h1>賽事影片</h1>
-          <p>從已完成的賽事中選一場，產生 25 秒賽後解析，再決定是否發布。</p>
+          <p>從已完成的賽事中選一場，產生 40 秒賽後解析，再決定是否發布。</p>
         </div>
 
         <div className="studio-field">
@@ -200,7 +200,7 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
             )}
             <Button variant="outline" className="studio-primary-action" onClick={createPreview} disabled={!seriesId || busyAction !== "" || portfolioReadOnly}>
               <Sparkles aria-hidden="true" />
-              {busyAction === "preview" ? "正在渲染 25 秒影片…" : "產生影片預覽"}
+              {busyAction === "preview" ? "正在渲染 40 秒影片…" : "產生影片預覽"}
             </Button>
           </div>
         )}
