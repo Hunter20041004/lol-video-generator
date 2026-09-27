@@ -1,13 +1,12 @@
 import React from "react";
 import { AbsoluteFill, Img } from "remotion";
 import { resolveRenderAssetSrc } from "../../video-system/renderAssetSrc";
-import { motionProgress } from "./postMatchReadMotion";
+import { broadcastLockProgress, motionProgress } from "./postMatchReadMotion";
+import { BROADCAST_COLORS as COLORS, BROADCAST_FONTS as FONTS, CUT_CORNER, HEXAGON } from "./postMatchReadVisuals";
 
-const COLORS = { bg: "#080909", paper: "#F1ECE2", red: "#E94B35", muted: "#77736C" };
-const NUMBER_FONT = "'Barlow Condensed Post Match Read', sans-serif";
-const TEXT_FONT = "'Noto Sans TC Post Match Read', sans-serif";
+const NUMBER_FONT = FONTS.number;
+const TEXT_FONT = FONTS.text;
 const SAFE_X = 70;
-const PROOF_MARK = "/render-assets/post-match-read/proof-mark.png";
 const SECONDARY_EVIDENCE_LABELS = {
   zh: { KDA: "KDA", "KP%": "參戰率", GPM: "每分鐘經濟" },
   en: { KDA: "KDA", "KP%": "PARTICIPATION", GPM: "GOLD / MIN" },
@@ -33,23 +32,35 @@ const enterStyle = (localFrame, start, duration, reducedMotion) => {
   const motion = motionProgress({ frame: localFrame, start, duration, reducedMotion });
   return { opacity: motion.opacity, transform: `translate3d(0, ${motion.translateY}%, 0) scale(${motion.scale})` };
 };
-const ProofMark = ({ style = {} }) => <Img src={assetSrc(PROOF_MARK)} style={{ position: "absolute", objectFit: "contain", ...style }} />;
-const Atmosphere = ({ asset, position = "center", opacity = 0.42 }) => asset?.atmosphereSrc ? (
-  <Img src={assetSrc(asset.atmosphereSrc)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: position, opacity, filter: "grayscale(1) contrast(1.18) brightness(.48)" }} />
-) : null;
 const TeamCrest = ({ asset, team, dim = false }) => asset?.publicPath ? (
-  <div style={{ width: 220, height: 220, display: "grid", placeItems: "center", opacity: dim ? 0.42 : 0.96 }}>
-    <Img src={assetSrc(asset.publicPath)} style={{ width: "82%", height: "82%", objectFit: "contain", filter: "grayscale(1) contrast(1.18)" }} />
-    {asset.labelMode === "embedded" ? null : <span style={{ font: `900 34px ${NUMBER_FONT}`, letterSpacing: 4, color: dim ? COLORS.muted : COLORS.paper }}>{team}</span>}
+  <div style={{ width: 220, height: 220, display: "grid", placeItems: "center", opacity: dim ? 0.5 : 1 }}>
+    <Img src={assetSrc(asset.publicPath)} style={{ width: "82%", height: "82%", objectFit: "contain", filter: dim ? "saturate(.45) brightness(.72)" : "saturate(.9) brightness(.96)" }} />
   </div>
-) : null;
-const HeroFace = ({ asset, dim = false }) => asset?.squareSrc ? (
-  <div style={{ width: dim ? 242 : 286, height: dim ? 242 : 286, overflow: "hidden", borderBottom: `6px solid ${dim ? COLORS.muted : COLORS.red}` }}>
-    <Img src={assetSrc(asset.squareSrc)} style={{ width: "100%", height: "100%", objectFit: "cover", filter: `grayscale(1) contrast(1.16) brightness(${dim ? 0.55 : 0.9})` }} />
+) : (
+  <div data-fallback="team-crest" style={{ width: 180, height: 208, clipPath: HEXAGON, display: "grid", placeItems: "center", border: `1px solid ${dim ? "rgba(107,124,134,.42)" : COLORS.gold}`, color: dim ? COLORS.steel : COLORS.goldBright, font: `900 54px ${NUMBER_FONT}` }}>
+    {String(team || "?").slice(0, 3).toUpperCase()}
   </div>
-) : null;
-const SceneLabel = ({ children }) => <div style={{ font: `800 24px ${NUMBER_FONT}`, color: COLORS.red, letterSpacing: 6, textTransform: "uppercase" }}>{children}</div>;
-const Verdict = ({ children, maxWidth = 820 }) => <div style={{ maxWidth, font: `900 58px/1.28 ${TEXT_FONT}`, letterSpacing: -3, color: COLORS.paper }}>{children}</div>;
+);
+const HeroFace = ({ asset, playerName = "", dim = false }) => asset?.squareSrc ? (
+  <div data-champion={asset.championName || "verified-champion"} style={{ width: dim ? 252 : 306, height: dim ? 252 : 306, padding: 8, overflow: "hidden", clipPath: CUT_CORNER, background: dim ? "rgba(107,124,134,.28)" : `linear-gradient(145deg,${COLORS.gold},${COLORS.rune})` }}>
+    <Img alt={asset.championName || ""} src={assetSrc(asset.squareSrc)} style={{ width: "100%", height: "100%", objectFit: "cover", clipPath: CUT_CORNER, filter: dim ? "saturate(.48) brightness(.62)" : "saturate(.9) brightness(.92)" }} />
+  </div>
+) : (
+  <div data-fallback="identity" style={{ width: dim ? 252 : 306, height: dim ? 252 : 306, display: "grid", placeItems: "center", clipPath: CUT_CORNER, border: `1px solid ${dim ? "rgba(107,124,134,.5)" : COLORS.gold}`, background: "rgba(13,32,42,.8)", color: dim ? COLORS.steel : COLORS.goldBright, font: `900 92px ${NUMBER_FONT}` }}>
+    {String(playerName || "?").slice(0, 1).toUpperCase()}
+  </div>
+);
+const SceneLabel = ({ children }) => <div style={{ font: `800 24px ${NUMBER_FONT}`, color: COLORS.rune, letterSpacing: 6, textTransform: "uppercase" }}>{children}</div>;
+const Verdict = ({ children, maxWidth = 820 }) => <div style={{ maxWidth, font: `900 58px/1.28 ${TEXT_FONT}`, letterSpacing: -3, color: COLORS.moon }}>{children}</div>;
+
+const TeamIdentity = ({ asset, team, score, winner }) => (
+  <div data-team={team} data-winner-side={winner ? "true" : "false"} style={{ width: 390, minHeight: 460, padding: "42px 24px 36px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", clipPath: CUT_CORNER, background: winner ? "linear-gradient(180deg,rgba(200,155,60,.2),rgba(13,32,42,.78))" : "rgba(13,32,42,.68)", border: `1px solid ${winner ? COLORS.gold : "rgba(107,124,134,.32)"}` }}>
+    <TeamCrest asset={asset} team={team} dim={!winner} />
+    <div style={{ font: `900 54px ${NUMBER_FONT}`, letterSpacing: 7, color: winner ? COLORS.goldBright : COLORS.steel }}>{team}</div>
+    <div style={{ font: `900 164px/.72 ${NUMBER_FONT}`, color: winner ? COLORS.moon : COLORS.steel }}>{score}</div>
+    {winner ? <div style={{ width: 42, height: 48, clipPath: HEXAGON, background: COLORS.gold }} /> : <div style={{ width: 42, height: 48 }} />}
+  </div>
+);
 
 export const MatchupBroadcastScene = ({ model, localFrame, reducedMotion, phase }) => {
   const matchup = model.matchup || {};
@@ -60,46 +71,64 @@ export const MatchupBroadcastScene = ({ model, localFrame, reducedMotion, phase 
   const resultPhase = phase === "result";
   const metric = matchup.primaryEvidence?.metric || "";
   const delta = matchup.primaryEvidence?.delta;
-  if (resultPhase) return (
-    <AbsoluteFill>
-      <Atmosphere asset={assets.edge} position="58% center" opacity={0.2} />
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(8,9,9,.2),#080909 72%)" }} />
-      <div style={{ ...enterStyle(localFrame, -1, 10, reducedMotion), position: "absolute", top: 190, left: SAFE_X, right: SAFE_X }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", font: `900 390px/.76 ${NUMBER_FONT}`, color: COLORS.paper, letterSpacing: -18 }}><span>{score.left}</span><span style={{ fontSize: 150, color: COLORS.red, margin: "0 34px" }}>{score.separator}</span><span>{score.right}</span></div>
-      </div>
-      <div style={{ ...enterStyle(localFrame, 14, 10, reducedMotion), position: "absolute", top: 680, left: 88, right: 88, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <TeamCrest asset={teamAssets.teamA} team={model.seriesContext?.teamA} />
-        <span style={{ font: `800 25px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 5 }}>SERIES RESULT</span>
-        <TeamCrest asset={teamAssets.teamB} team={model.seriesContext?.teamB} dim />
-      </div>
-      <div style={{ position: "absolute", left: SAFE_X, top: 1120, right: 260 }}><Verdict>{result.resultClaim}</Verdict><ProofMark style={{ left: -20, top: 104, width: 620, height: 220 }} /></div>
-    </AbsoluteFill>
-  );
+  if (resultPhase) {
+    const teamA = result.displayOrder?.[0] || model.seriesContext?.teamA || "";
+    const teamB = result.displayOrder?.[1] || model.seriesContext?.teamB || "";
+    const winner = model.finalRead?.winnerTeam?.name || result.winnerTeam?.name || result.winnerTeam || teamB;
+    return (
+      <AbsoluteFill data-broadcast-component="scoreboard" data-winner={winner}>
+        <div style={{ ...enterStyle(localFrame, -1, 10, reducedMotion), position: "absolute", top: 210, left: 94, right: 94, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <TeamIdentity asset={teamAssets.teamA} team={teamA} score={score.left} winner={winner === teamA} />
+          <div style={{ font: `800 30px ${NUMBER_FONT}`, color: COLORS.rune, letterSpacing: 7, writingMode: "vertical-rl" }}>SERIES RESULT</div>
+          <TeamIdentity asset={teamAssets.teamB} team={teamB} score={score.right} winner={winner === teamB} />
+        </div>
+        <div style={{ ...enterStyle(localFrame, 14, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 1180, right: SAFE_X }}>
+          <div style={{ width: 96, height: 2, marginBottom: 34, background: COLORS.gold }} />
+          <Verdict>{result.resultClaim}</Verdict>
+        </div>
+      </AbsoluteFill>
+    );
+  }
   return (
-    <AbsoluteFill>
-      <div style={{ position: "absolute", top: 250, left: SAFE_X, right: SAFE_X, display: "flex", alignItems: "end", justifyContent: "space-between" }}>
-        <div style={enterStyle(localFrame, 2, 10, reducedMotion)}><HeroFace asset={assets.edge} /><div style={{ marginTop: 18, font: `900 48px ${NUMBER_FONT}` }}>{matchup.edgePlayer?.name}</div></div>
-        <div style={{ paddingBottom: 74, font: `800 23px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 5 }}>VS</div>
-        <div style={{ ...enterStyle(localFrame, 6, 10, reducedMotion), textAlign: "right" }}><HeroFace asset={assets.opponent} dim /><div style={{ marginTop: 18, font: `900 40px ${NUMBER_FONT}`, color: COLORS.muted }}>{matchup.opponentPlayer?.name}</div></div>
+    <AbsoluteFill data-broadcast-component="matchup" data-role={matchup.role || "MATCHUP"}>
+      <div style={{ position: "absolute", top: 230, left: SAFE_X, right: SAFE_X, height: 420, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={enterStyle(localFrame, 2, 10, reducedMotion)}><HeroFace asset={assets.edge} playerName={matchup.edgePlayer?.name} /><div style={{ marginTop: 20, font: `900 48px ${NUMBER_FONT}`, letterSpacing: 2 }}>{matchup.edgePlayer?.name}</div></div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}><div style={{ width: 56, height: 64, clipPath: HEXAGON, display: "grid", placeItems: "center", background: COLORS.rune, color: COLORS.void, font: `900 18px ${NUMBER_FONT}` }}>{String(matchup.role || "VS").slice(0, 3)}</div><div style={{ width: 2, height: 150, background: `linear-gradient(${COLORS.rune},${COLORS.gold})` }} /><div style={{ font: `800 23px ${NUMBER_FONT}`, color: COLORS.steel, letterSpacing: 5 }}>VS</div></div>
+        <div style={{ ...enterStyle(localFrame, 6, 10, reducedMotion), textAlign: "right" }}><HeroFace asset={assets.opponent} playerName={matchup.opponentPlayer?.name} dim /><div style={{ marginTop: 20, font: `900 40px ${NUMBER_FONT}`, color: COLORS.steel }}>{matchup.opponentPlayer?.name}</div></div>
       </div>
-      <div style={{ ...enterStyle(localFrame, 16, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 760, right: SAFE_X }}>
+      <div style={{ ...enterStyle(localFrame, 16, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 760, right: SAFE_X }} data-primary-metric={metric}>
         <SceneLabel>{matchup.role || "MATCHUP"} · SERIES AVERAGE</SceneLabel>
-        <div style={{ display: "flex", alignItems: "baseline", marginTop: 28 }}><strong style={{ font: `900 240px/.8 ${NUMBER_FONT}`, color: COLORS.paper }}>{Number.isFinite(Number(delta)) ? `+${delta}` : "—"}</strong><span style={{ font: `900 56px ${NUMBER_FONT}`, color: COLORS.red, marginLeft: 20 }}>{metric}</span></div>
+        <div style={{ display: "flex", alignItems: "baseline", marginTop: 28 }}><strong style={{ font: `900 240px/.8 ${NUMBER_FONT}`, color: COLORS.moon }}>{Number.isFinite(Number(delta)) ? `+${delta}` : "—"}</strong><span style={{ font: `900 56px ${NUMBER_FONT}`, color: COLORS.gold, marginLeft: 20 }}>{metric}</span></div>
         <div style={{ marginTop: 92 }}><Verdict>{matchup.claim}</Verdict></div>
       </div>
     </AbsoluteFill>
   );
 };
 
-const MapBackdrop = ({ model }) => model.assets?.mapSrc ? <Img src={assetSrc(model.assets.mapSrc)} style={{ position: "absolute", right: -150, top: 260, width: 900, height: 900, objectFit: "contain", opacity: 0.18, filter: "grayscale(1) contrast(1.35)" }} /> : null;
+const MapBackdrop = ({ model, opacity = 0.24 }) => model.assets?.mapSrc ? <Img alt="Summoner's Rift" src={assetSrc(model.assets.mapSrc)} style={{ position: "absolute", right: -140, top: 220, width: 920, height: 920, objectFit: "contain", opacity, filter: "saturate(.7) hue-rotate(8deg) brightness(.72) contrast(1.16)" }} /> : null;
+const ObjectiveNode = ({ label, value, tone, lockProgress = 1 }) => (
+  <div style={{ display: "grid", gridTemplateColumns: "94px 1fr", alignItems: "center", gap: 24, opacity: 0.55 + (lockProgress * 0.45) }}>
+    <div style={{ width: 94, height: 108, clipPath: HEXAGON, display: "grid", placeItems: "center", background: tone, color: COLORS.void, font: `900 54px ${NUMBER_FONT}`, transform: `scale(${0.94 + (lockProgress * 0.06)})` }}>{value}</div>
+    <div><div style={{ font: `900 34px ${NUMBER_FONT}`, letterSpacing: 4, color: COLORS.moon }}>{label}</div><div style={{ marginTop: 8, width: 160, height: 2, background: tone }} /></div>
+  </div>
+);
 export const EarlyControlScene = ({ model, localFrame, reducedMotion }) => {
   const flow = model.gameFlow || {};
   const copy = FLOW_COPY[sceneLocale(model)];
+  const firstObjectiveLock = broadcastLockProgress({ frame: localFrame, start: 8, duration: 6, reducedMotion });
+  const secondObjectiveLock = broadcastLockProgress({ frame: localFrame, start: 14, duration: 6, reducedMotion });
   return (
-    <AbsoluteFill>
-      <MapBackdrop model={model} />
-      <div style={{ ...enterStyle(localFrame, 3, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 290, right: SAFE_X }}><SceneLabel>EARLY CONTROL</SceneLabel><div style={{ marginTop: 78, font: `900 300px/.76 ${NUMBER_FONT}`, color: COLORS.paper }}>{flow.earlyResources?.displayValue}</div><div style={{ marginTop: 34, font: `800 28px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 5 }}>{copy.earlyEvidence}</div></div>
-      <div style={{ position: "absolute", left: SAFE_X, right: 170, top: 1090 }}><Verdict>{copy.earlyClaim(flow.earlyResourceTeam)}</Verdict><ProofMark style={{ left: -30, top: 120, width: 650, height: 230 }} /></div>
+    <AbsoluteFill data-broadcast-component="rift-objectives">
+      <MapBackdrop model={model} opacity={0.3} />
+      <div style={{ position: "absolute", inset: "250px 55px 580px 420px", clipPath: CUT_CORNER, border: `1px solid rgba(10,200,185,.28)`, background: "linear-gradient(145deg,rgba(7,20,28,.08),rgba(10,200,185,.06))" }} />
+      <div style={{ ...enterStyle(localFrame, 3, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 270, width: 650 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 58 }}>
+          <ObjectiveNode label="VOID GRUBS" value={flow.earlyResources?.voidGrubs ?? "—"} tone={COLORS.rune} lockProgress={firstObjectiveLock} />
+          <ObjectiveNode label="RIFT HERALD" value={flow.earlyResources?.riftHeralds ?? "—"} tone={COLORS.gold} lockProgress={secondObjectiveLock} />
+        </div>
+        <div style={{ marginTop: 56, font: `800 24px ${NUMBER_FONT}`, color: COLORS.steel, letterSpacing: 5 }}>{flow.earlyResourceTeam} · {copy.earlyEvidence}</div>
+      </div>
+      <div style={{ position: "absolute", left: SAFE_X, right: 150, top: 1150 }}><div style={{ width: 92, height: 2, marginBottom: 34, background: COLORS.rune }} /><Verdict>{copy.earlyClaim(flow.earlyResourceTeam)}</Verdict></div>
     </AbsoluteFill>
   );
 };
@@ -110,10 +139,18 @@ export const MapConversionScene = ({ model, localFrame, reducedMotion }) => {
   const evidence = showGold ? `+${Number(flow.goldDelta || 0).toLocaleString()}` : flow.towerScore;
   const label = showGold ? copy.gold : copy.towers;
   return (
-    <AbsoluteFill>
-      <MapBackdrop model={model} />
-      <div style={{ ...enterStyle(localFrame, 2, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 300, right: SAFE_X }}><SceneLabel>MAP CONVERSION</SceneLabel><div style={{ marginTop: 88, font: `900 270px/.78 ${NUMBER_FONT}`, color: COLORS.paper }}>{evidence}</div><div style={{ marginTop: 34, font: `800 28px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 5 }}>{flow.finalMapTeam} · {label}</div></div>
-      <div style={{ position: "absolute", left: SAFE_X, right: 150, top: 1090 }}><Verdict>{flow.conclusion}</Verdict></div>
+    <AbsoluteFill data-broadcast-component="map-conversion">
+      <MapBackdrop model={model} opacity={0.22} />
+      <div style={{ position: "absolute", left: 115, top: 475, width: 720, height: 2, background: `linear-gradient(90deg,${COLORS.rune},${COLORS.gold})` }} />
+      <div style={{ position: "absolute", left: 92, top: 447, width: 56, height: 64, clipPath: HEXAGON, background: COLORS.rune }} />
+      <div style={{ position: "absolute", left: 810, top: 447, width: 56, height: 64, clipPath: HEXAGON, background: COLORS.gold }} />
+      <div style={{ ...enterStyle(localFrame, 2, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 270, right: SAFE_X }}>
+        <div data-evidence-slot="primary" data-evidence-kind={showGold ? "gold" : "towers"} style={{ marginTop: 220, padding: "48px 58px", width: 720, clipPath: CUT_CORNER, border: `1px solid rgba(200,155,60,.42)`, background: "rgba(13,32,42,.74)" }}>
+          <div style={{ font: `900 270px/.78 ${NUMBER_FONT}`, color: COLORS.moon }}>{evidence}</div>
+          <div style={{ marginTop: 34, font: `800 28px ${NUMBER_FONT}`, color: COLORS.gold, letterSpacing: 5 }}>{flow.finalMapTeam} · {label}</div>
+        </div>
+      </div>
+      <div style={{ position: "absolute", left: SAFE_X, right: 150, top: 1210 }}><Verdict>{flow.conclusion}</Verdict></div>
     </AbsoluteFill>
   );
 };
@@ -126,13 +163,25 @@ export const PlayerProofScene = ({ model, localFrame, reducedMotion }) => {
   const locale = sceneLocale(model);
   const primary = Number.isFinite(Number(player.rawStats?.csm)) ? { displayValue: player.rawStats.csm, metric: "CS / MIN" } : secondaryEvidence[0];
   const secondary = secondaryEvidence[Math.min(Math.floor(localFrame / 70), Math.max(secondaryEvidence.length - 1, 0))];
+  const teamKey = player.team === model.seriesContext?.teamB ? "teamB" : "teamA";
+  const teamCrest = model.assets?.teams?.[teamKey];
+  const champions = model.assets?.proof?.champions || [];
   return (
-    <AbsoluteFill>
-      {portrait?.publicPath ? <Img src={assetSrc(portrait.publicPath)} style={{ position: "absolute", right: -80, top: 240, width: 780, height: 1120, objectFit: "contain", objectPosition: "right top", filter: "grayscale(1) contrast(1.14) brightness(.72)" }} /> : null}
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,#080909 0 30%,rgba(8,9,9,.72) 48%,rgba(8,9,9,.08) 78%),linear-gradient(180deg,transparent 54%,#080909 82%)" }} />
-      <div style={{ ...enterStyle(localFrame, 5, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 300, width: 610 }}><SceneLabel>{proof.label || (locale === "en" ? "DATA MVP CANDIDATE" : "數據 MVP 候選")}</SceneLabel><div style={{ marginTop: 24, font: `900 150px/.82 ${NUMBER_FONT}`, letterSpacing: -5 }}>{player.name}</div><div style={{ marginTop: 180, font: `900 210px/.78 ${NUMBER_FONT}`, color: COLORS.paper }}>{primary?.displayValue ?? "—"}</div><div style={{ marginTop: 26, font: `800 28px ${NUMBER_FONT}`, color: COLORS.red, letterSpacing: 5 }}>{primary?.metric || ""}</div></div>
-      {secondary ? <div style={{ ...enterStyle(localFrame % 70, 3, 8, reducedMotion), position: "absolute", left: SAFE_X, top: 1190 }}><div style={{ font: `900 70px ${NUMBER_FONT}` }}>{secondary.displayValue}</div><div style={{ font: `800 22px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 4 }}>{SECONDARY_EVIDENCE_LABELS[locale][secondary.metric] || secondary.metric}</div></div> : null}
-      <div style={{ position: "absolute", left: SAFE_X, right: 120, top: 1480 }}><Verdict>{proof.claim}</Verdict></div>
+    <AbsoluteFill data-broadcast-component="player-card" data-player-team={player.team || ""}>
+      <div data-portrait-stage="compact" style={{ position: "absolute", right: 58, top: 220, width: 610, height: 720, clipPath: CUT_CORNER, border: `1px solid rgba(200,155,60,.45)`, background: "linear-gradient(160deg,rgba(13,32,42,.5),rgba(10,200,185,.08))", overflow: "hidden" }}>
+        {portrait?.publicPath ? <Img alt={player.name || ""} src={assetSrc(portrait.publicPath)} style={{ position: "absolute", right: -80, top: 38, width: 820, height: "auto", filter: "saturate(.78) contrast(1.08) brightness(.76)" }} /> : null}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,rgba(7,20,28,.62),transparent 45%),linear-gradient(180deg,transparent 62%,#07141C 96%)" }} />
+        {teamCrest?.publicPath ? <Img alt={player.team || ""} src={assetSrc(teamCrest.publicPath)} style={{ position: "absolute", right: 34, top: 34, width: 120, height: 120, objectFit: "contain" }} /> : null}
+      </div>
+      <div style={{ ...enterStyle(localFrame, 5, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 280, width: 610 }}>
+        <SceneLabel>{proof.label || (locale === "en" ? "DATA MVP CANDIDATE" : "數據 MVP 候選")}</SceneLabel>
+        <div style={{ marginTop: 22, font: `900 142px/.82 ${NUMBER_FONT}`, letterSpacing: -4 }}>{player.name}</div>
+        <div style={{ marginTop: 22, display: "flex", alignItems: "center", gap: 18, color: COLORS.steel, font: `800 24px ${NUMBER_FONT}`, letterSpacing: 5 }}><span>{player.team}</span><span style={{ width: 8, height: 9, clipPath: HEXAGON, background: COLORS.gold }} /><span>{player.role}</span></div>
+        <div data-primary-metric={primary?.metric || ""} style={{ marginTop: 150 }}><div style={{ font: `900 210px/.78 ${NUMBER_FONT}`, color: COLORS.moon }}>{primary?.displayValue ?? "—"}</div><div style={{ marginTop: 26, font: `800 28px ${NUMBER_FONT}`, color: COLORS.gold, letterSpacing: 5 }}>{primary?.metric || ""}</div></div>
+      </div>
+      {secondary ? <div data-secondary-evidence={secondary.metric} style={{ ...enterStyle(localFrame % 70, 3, 8, reducedMotion), position: "absolute", left: SAFE_X, top: 1040, padding: "22px 32px", width: 330, clipPath: CUT_CORNER, background: "rgba(13,32,42,.82)", border: `1px solid rgba(10,200,185,.35)` }}><div style={{ font: `900 70px ${NUMBER_FONT}` }}>{secondary.displayValue}</div><div style={{ font: `800 22px ${NUMBER_FONT}`, color: COLORS.rune, letterSpacing: 4 }}>{SECONDARY_EVIDENCE_LABELS[locale][secondary.metric] || secondary.metric}</div></div> : null}
+      <div style={{ position: "absolute", left: SAFE_X, top: 1460, display: "flex", gap: 16 }}>{champions.slice(0, 4).map((champion) => champion.src ? <Img key={champion.championName} alt={champion.championName} src={assetSrc(champion.src)} style={{ width: 76, height: 76, objectFit: "cover", clipPath: CUT_CORNER, border: `1px solid rgba(200,155,60,.36)` }} /> : null)}</div>
+      <div style={{ position: "absolute", left: 460, right: 90, top: 1200 }}><Verdict>{proof.claim}</Verdict></div>
     </AbsoluteFill>
   );
 };
@@ -145,10 +194,15 @@ export const FinalReadScene = ({ model, localFrame, reducedMotion }) => {
   const activeReference = references[Math.min(Math.floor(localFrame / 45), Math.max(references.length - 1, 0))];
   const readingHold = localFrame >= 90;
   return (
-    <AbsoluteFill>
-      {winnerCrest?.publicPath ? <Img src={assetSrc(winnerCrest.publicPath)} style={{ position: "absolute", right: -80, top: 180, width: 650, height: 650, objectFit: "contain", opacity: .12, filter: "grayscale(1)" }} /> : null}
-      <div style={{ ...enterStyle(localFrame, 2, 10, reducedMotion), position: "absolute", left: SAFE_X, top: 220, font: `900 250px/.8 ${NUMBER_FONT}`, color: "rgba(241,236,226,.2)" }}>{score.left}{score.separator}{score.right}</div>
-      <div style={{ position: "absolute", left: SAFE_X, right: 80, top: 760 }}><SceneLabel>THE FINAL READ</SceneLabel><div style={{ marginTop: 52 }}><Verdict maxWidth={880}>{conclusionParts.lead}<br /><span style={{ color: COLORS.paper }}>{conclusionParts.emphasis}</span></Verdict></div><ProofMark style={{ left: -38, top: 190, width: 720, height: 250 }} />{!readingHold && activeReference ? <div style={{ ...enterStyle(localFrame % 45, 2, 8, reducedMotion), marginTop: 230 }}><strong style={{ font: `900 86px ${NUMBER_FONT}` }}>{activeReference.displayValue}</strong><span style={{ display: "block", marginTop: 10, font: `800 21px ${NUMBER_FONT}`, color: COLORS.muted, letterSpacing: 4 }}>{activeReference.label}</span></div> : null}</div>
+    <AbsoluteFill data-broadcast-component="victory-lockup" data-reading-hold={readingHold ? "true" : "false"}>
+      <div style={{ ...enterStyle(localFrame, 2, 10, reducedMotion), position: "absolute", left: 82, right: 82, top: 205, height: 540, clipPath: CUT_CORNER, border: `1px solid rgba(200,155,60,.52)`, background: "linear-gradient(145deg,rgba(200,155,60,.14),rgba(13,32,42,.76))", display: "grid", gridTemplateColumns: "320px 1fr", alignItems: "center", padding: "34px 46px" }}>
+        <div style={{ width: 286, height: 330, clipPath: HEXAGON, display: "grid", placeItems: "center", background: "rgba(7,20,28,.82)", border: `1px solid ${COLORS.gold}` }}>{winnerCrest?.publicPath ? <Img alt={model.finalRead?.winnerTeam?.name || "winner"} src={assetSrc(winnerCrest.publicPath)} style={{ width: "72%", height: "72%", objectFit: "contain" }} /> : <span style={{ color: COLORS.gold, font: `900 76px ${NUMBER_FONT}` }}>{model.finalRead?.winnerTeam?.name || "WIN"}</span>}</div>
+        <div style={{ paddingLeft: 46 }}><div style={{ color: COLORS.gold, font: `800 23px ${NUMBER_FONT}`, letterSpacing: 7 }}>SERIES VICTORY</div><div style={{ marginTop: 18, color: COLORS.moon, font: `900 118px/.82 ${NUMBER_FONT}` }}>{model.finalRead?.winnerTeam?.name || ""}</div><div style={{ marginTop: 30, color: COLORS.steel, font: `900 96px/.8 ${NUMBER_FONT}` }}>{score.left}{score.separator}{score.right}</div></div>
+      </div>
+      <div style={{ position: "absolute", left: SAFE_X, right: 70, top: 850 }}>
+        <Verdict maxWidth={900}>{conclusionParts.lead}<br /><span style={{ color: COLORS.goldBright }}>{conclusionParts.emphasis}</span></Verdict>
+        {!readingHold && activeReference ? <div data-recap-evidence="visible" style={{ ...enterStyle(localFrame % 45, 2, 8, reducedMotion), marginTop: 190, padding: "24px 30px", width: 380, clipPath: CUT_CORNER, border: `1px solid rgba(10,200,185,.32)`, background: "rgba(13,32,42,.74)" }}><strong style={{ font: `900 82px ${NUMBER_FONT}` }}>{activeReference.displayValue}</strong><span style={{ display: "block", marginTop: 8, font: `800 21px ${NUMBER_FONT}`, color: COLORS.rune, letterSpacing: 4 }}>{activeReference.label}</span></div> : null}
+      </div>
     </AbsoluteFill>
   );
 };

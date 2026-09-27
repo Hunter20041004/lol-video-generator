@@ -205,7 +205,8 @@ test("Esports recap rows can use per-scene points and headings for deeper analys
 test("post-match read template uses six beats across five distinct visual spaces", () => {
   const entry = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
-  const source = `${entry}\n${scenes}`;
+  const visuals = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/postMatchReadVisuals.js"), "utf8");
+  const source = `${entry}\n${scenes}\n${visuals}`;
 
   for (const required of [
     "MatchupBroadcastScene", "EarlyControlScene", "MapConversionScene", "PlayerProofScene", "FinalReadScene",
@@ -236,13 +237,15 @@ test("post-match read result hook exposes the score on the opening frame", () =>
 
 test("post-match read result hook identifies teams with crests instead of champion faces", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
-  const resultBranch = scenes.match(/if \(resultPhase\) return \(([\s\S]*?)\);\n  return/)?.[1] || "";
-  const teamCrest = scenes.match(/const TeamCrest[\s\S]*?\) : null;/)?.[0] || "";
+  const resultBranch = scenes.match(/if \(resultPhase\) \{([\s\S]*?)\n  \}\n  return/)?.[1] || "";
+  const teamCrest = scenes.match(/const TeamCrest[\s\S]*?;\nconst HeroFace/)?.[0] || "";
 
-  assert.match(resultBranch, /<TeamCrest asset=\{teamAssets\.teamA\}/);
-  assert.match(resultBranch, /<TeamCrest asset=\{teamAssets\.teamB\}/);
+  assert.match(resultBranch, /<TeamIdentity asset=\{teamAssets\.teamA\}/);
+  assert.match(resultBranch, /<TeamIdentity asset=\{teamAssets\.teamB\}/);
+  assert.match(teamCrest, /<Img src=\{assetSrc\(asset\.publicPath\)\}/);
   assert.doesNotMatch(resultBranch, /<Face\b/);
-  assert.match(teamCrest, /grayscale\(1\)/);
+  assert.doesNotMatch(teamCrest, /grayscale\(/);
+  assert.match(teamCrest, /data-fallback="team-crest"/);
 });
 
 test("post-match read player proof renders separated identity and secondary evidence", () => {
@@ -262,13 +265,13 @@ test("post-match read scene chrome follows the render locale", () => {
   assert.match(scenes, /PARTICIPATION/);
 });
 
-test("post-match read crests suppress duplicate labels for embedded wordmarks", () => {
+test("post-match read crest assets never add a duplicate text label", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
-  const teamCrest = scenes.match(/const TeamCrest[\s\S]*?\) : null;/)?.[0] || "";
+  const teamCrest = scenes.match(/const TeamCrest[\s\S]*?;\nconst HeroFace/)?.[0] || "";
 
-  assert.match(teamCrest, /asset\.labelMode === "embedded"/);
-  assert.match(teamCrest, /asset\.labelMode === "embedded" \? null/);
+  assert.doesNotMatch(teamCrest, /asset\.labelMode/);
   assert.match(teamCrest, /objectFit: "contain"/);
+  assert.match(teamCrest, /data-fallback="team-crest"/);
 });
 
 test("post-match read proof rotates secondary evidence in one calm position", () => {
@@ -289,7 +292,7 @@ test("post-match read frame labels the actual series game count", () => {
 
 test("embedded crest lockups reserve clear space inside the media frame", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
-  const teamCrest = scenes.match(/const TeamCrest[\s\S]*?\) : null;/)?.[0] || "";
+  const teamCrest = scenes.match(/const TeamCrest[\s\S]*?;\nconst HeroFace/)?.[0] || "";
 
   assert.match(teamCrest, /width: "82%"/);
   assert.match(teamCrest, /height: "82%"/);
@@ -308,7 +311,7 @@ test("final read conclusion reserves a balanced reading column", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
   const finalScene = scenes.match(/export const FinalReadScene[\s\S]*?\n};/)?.[0] || "";
 
-  assert.match(finalScene, /maxWidth=\{880\}/);
+  assert.match(finalScene, /maxWidth=\{900\}/);
 });
 
 test("map conversion swaps evidence without replaying an invisible entrance frame", () => {
@@ -319,13 +322,14 @@ test("map conversion swaps evidence without replaying an invisible entrance fram
   assert.doesNotMatch(mapScene, /enterStyle\(localFrame % 120/);
 });
 
-test("final read scene renders a quiet winner crest and shared score echo", () => {
+test("final read scene renders a gold winner lockup and shared score echo", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
   const finalScene = scenes.match(/export const FinalReadScene[\s\S]*?\n};/)?.[0] || "";
 
   assert.match(finalScene, /winnerCrest/);
   assert.match(finalScene, /score\.left/);
-  assert.match(finalScene, /opacity: \.12/);
+  assert.match(finalScene, /clipPath: HEXAGON/);
+  assert.match(finalScene, /border: `1px solid \$\{COLORS\.gold\}`/);
   assert.doesNotMatch(finalScene, /animationIterationCount|rotate\(|particle/i);
 });
 

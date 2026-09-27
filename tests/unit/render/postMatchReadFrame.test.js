@@ -69,3 +69,21 @@ test("English frame does not repeat POST MATCH READ in both header lines", async
   assert.equal((html.match(/POST MATCH READ/g) || []).length, 1);
   assert.match(html, /MATCH ANALYSIS/);
 });
+
+test("frame uses the LoL broadcast visual world instead of the darkroom proof style", async () => {
+  const Frame = await loadFrame();
+  const html = renderToStaticMarkup(React.createElement(Frame, {
+    model: {
+      branding: { publicTitle: "賽後判讀" },
+      seriesContext: { league: "LCK", teamA: "T1", teamB: "HLE", score: "2-3" },
+    },
+    sceneTag: "RESULT_HOOK",
+  }));
+
+  assert.match(html, /data-visual-world="lol-broadcast"/);
+  assert.match(html, /#07141C/i);
+  assert.match(html, /#C89B3C/i);
+  assert.match(html, /#0AC8B9/i);
+  assert.match(html, /aria-label="故事進度 1\/6"/);
+  assert.doesNotMatch(html, /#E94B35|film-grain|proof-mark/i);
+});

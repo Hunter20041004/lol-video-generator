@@ -19,6 +19,12 @@ test("post-match read limits each beat to two calm motion events", async () => {
   for (const events of Object.values(POST_MATCH_READ_MOTION_EVENTS)) {
     assert.equal(events.length <= 2, true);
   }
+  assert.deepEqual(POST_MATCH_READ_MOTION_EVENTS.RESULT_HOOK, ["score-lock", "winner-lock"]);
+  assert.deepEqual(POST_MATCH_READ_MOTION_EVENTS.MATCHUP_EDGE, ["matchup-rail", "evidence-lock"]);
+  assert.deepEqual(POST_MATCH_READ_MOTION_EVENTS.EARLY_CONTROL, ["rift-reveal", "objective-lock"]);
+  assert.deepEqual(POST_MATCH_READ_MOTION_EVENTS.MAP_CONVERSION, ["conversion-rail", "evidence-swap"]);
+  assert.deepEqual(POST_MATCH_READ_MOTION_EVENTS.PLAYER_PROOF, ["player-reveal", "stats-lock"]);
+  assert.deepEqual(POST_MATCH_READ_MOTION_EVENTS.FINAL_READ, ["victory-lock", "recap-lock"]);
 });
 
 test("motion uses a calm ease-out while reduced motion removes translation and scaling", async () => {
@@ -30,4 +36,15 @@ test("motion uses a calm ease-out while reduced motion removes translation and s
   assert.equal(normal.translateY > 0 && normal.translateY <= 4, true);
   assert.equal(normal.scale >= 0.96 && normal.scale <= 1, true);
   assert.deepEqual(reduced, { opacity: normal.opacity, translateY: 0, scale: 1 });
+});
+
+test("broadcast lock progress completes once and reduced motion renders the final state", async () => {
+  const { broadcastLockProgress } = await import("../../../src/templates/player-radar/postMatchReadMotion.js");
+
+  assert.equal(typeof broadcastLockProgress, "function");
+  assert.equal(broadcastLockProgress({ frame: 2, start: 4, duration: 6 }), 0);
+  const middle = broadcastLockProgress({ frame: 7, start: 4, duration: 6 });
+  assert.equal(middle > 0 && middle < 1, true);
+  assert.equal(broadcastLockProgress({ frame: 30, start: 4, duration: 6 }), 1);
+  assert.equal(broadcastLockProgress({ frame: 2, start: 4, duration: 6, reducedMotion: true }), 1);
 });
