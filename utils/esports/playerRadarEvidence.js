@@ -488,8 +488,8 @@ function assertSinglePlayerRadarEvidence(payload = {}) {
   }
   const totalFrames = storyboard.reduce((sum, scene) => sum + Number(scene.durationInFrames), 0);
   if (!storyboard.every((scene) => Number.isInteger(Number(scene.durationInFrames)) && Number(scene.durationInFrames) > 0)
-    || totalFrames !== 750) {
-    throw new Error("Player Radar postMatchRead storyboard must total 750 frames.");
+    || totalFrames !== 1200) {
+    throw new Error("Player Radar postMatchRead storyboard must total 1200 frames.");
   }
   validateGameFlowEvidence(payload.postMatchRead.gameFlow);
   validateFinalReadEvidence(payload.postMatchRead, proofSegment);

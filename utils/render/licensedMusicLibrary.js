@@ -68,10 +68,10 @@ function readEligibleTracks(rootDir, library) {
       const duration = Number(segment?.durationSeconds);
       const gain = Number(segment?.gain);
       const downbeats = Array.isArray(segment?.downbeats) ? segment.downbeats.map(Number) : [];
-      return segment?.id === "post-match-read-25s"
+      return segment?.id === "post-match-read-40s"
         && Number.isFinite(start)
         && Number.isFinite(duration)
-        && duration >= 25
+        && duration >= 40
         && Number.isFinite(gain)
         && gain > 0
         && Number(segment.fadeMilliseconds) >= 30

@@ -23,11 +23,11 @@ function run(command, args) {
 }
 
 for (const track of library.tracks) {
-  test(`licensed segment ${track.id} renders a verified 25-second production WAV`, () => {
+  test(`licensed segment ${track.id} renders a verified 40-second production WAV`, () => {
     const sourcePath = path.join(ROOT, track.sourcePath);
     const sourceHash = crypto.createHash("sha256").update(fs.readFileSync(sourcePath)).digest("hex");
     assert.equal(sourceHash, track.sha256);
-    const segment = track.safeSegments.find((candidate) => candidate.id === "post-match-read-25s");
+    const segment = track.safeSegments.find((candidate) => candidate.id === "post-match-read-40s");
     assert.ok(segment);
     assert.equal(segment.fadeMilliseconds >= 30, true);
     assert.equal(segment.maxLeadingSilenceMilliseconds <= 50, true);
@@ -40,7 +40,7 @@ for (const track of library.tracks) {
         "-v", "error", "-show_entries", "format=duration:stream=sample_rate,channels",
         "-of", "json", outputPath,
       ]));
-      assert.equal(Math.abs(Number(probe.format.duration) - 25) <= 0.01, true, probe.format.duration);
+      assert.equal(Math.abs(Number(probe.format.duration) - 40) <= 0.01, true, probe.format.duration);
       assert.equal(Number(probe.streams[0].sample_rate), 48000);
       assert.equal(Number(probe.streams[0].channels), 2);
 

@@ -12,21 +12,21 @@ const {
 test("buildPostMatchReadAudioPlan snaps scene cuts only to downbeats within six frames", () => {
   const plan = buildPostMatchReadAudioPlan({
     startSeconds: 0,
-    durationSeconds: 25,
-    downbeats: [124 / 30, 278 / 30, 515 / 30, 668 / 30],
+    durationSeconds: 40,
+    downbeats: [154 / 30, 358 / 30, 574 / 30, 808 / 30, 1054 / 30],
     gain: 0.5,
   }, "synthetic");
 
-  assert.deepEqual(plan.cutFrames, [0, 124, 270, 515, 660, 750]);
+  assert.deepEqual(plan.cutFrames, [0, 154, 358, 574, 808, 1054, 1200]);
   assert.equal(plan.cutFrames[0], 0);
-  assert.equal(plan.cutFrames.at(-1), 750);
-  assert.equal(plan.durationInFrames, 750);
+  assert.equal(plan.cutFrames.at(-1), 1200);
+  assert.equal(plan.durationInFrames, 1200);
 });
 
 test("34ms fades use one 30fps frame so the audible opening stays under 50ms", () => {
   const plan = buildPostMatchReadAudioPlan({
     startSeconds: 0,
-    durationSeconds: 25,
+    durationSeconds: 40,
     downbeats: [0, 3, 6, 9],
     gain: 0.5,
     fadeMilliseconds: 34,

@@ -136,7 +136,7 @@ test("buildPlayerRadarPayload auto-selects max matchup edge and MVP proof segmen
     assert.equal(payload.player.name, "T1 Jungle");
     assert.equal(payload.title, "賽後判讀");
     assert.equal(payload.postMatchRead.branding.publicTitle, "賽後判讀");
-    assert.deepEqual(payload.storyboard.map((scene) => scene.durationInFrames), [120, 150, 240, 150, 90]);
+    assert.deepEqual(payload.storyboard.map((scene) => scene.durationInFrames), [150, 210, 210, 240, 240, 150]);
     assert.equal(payload.proofSegment.labelType, "data-mvp-candidate");
     assert.equal(payload.postMatchRead.matchup.claimScope, "series-maximum");
     assert.match(payload.postMatchRead.matchup.scopeClaim, /最大/);
@@ -341,7 +341,8 @@ test("runPlayerRadarFromSnapshot renders one dual-read video per locale and queu
     assert.deepEqual(renderedPayloads[0].storyboard.map((scene) => scene.tag), [
       "RESULT_HOOK",
       "MATCHUP_EDGE",
-      "GAME_FLOW",
+      "EARLY_CONTROL",
+      "MAP_CONVERSION",
       "PLAYER_PROOF",
       "FINAL_READ",
     ]);

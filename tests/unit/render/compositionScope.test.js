@@ -202,14 +202,14 @@ test("Esports recap rows can use per-scene points and headings for deeper analys
   assert.match(source, /<RecapRows data=\{data\} theme=\{theme\} localFrame=\{active\.localFrame\} scene=\{active\.scene\} \/>/);
 });
 
-test("post-match read template uses five beats across four distinct visual spaces", () => {
+test("post-match read template uses six beats across five distinct visual spaces", () => {
   const entry = fs.readFileSync(path.join(ROOT, "src/templates/Template_PlayerRadar.jsx"), "utf8");
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
   const source = `${entry}\n${scenes}`;
 
   for (const required of [
-    "MatchupBroadcastScene", "GameFlowScene", "PlayerProofScene", "FinalReadScene",
-    "RESULT_HOOK", "MATCHUP_EDGE", "GAME_FLOW", "PLAYER_PROOF", "FINAL_READ",
+    "MatchupBroadcastScene", "EarlyControlScene", "MapConversionScene", "PlayerProofScene", "FinalReadScene",
+    "RESULT_HOOK", "MATCHUP_EDGE", "EARLY_CONTROL", "MAP_CONVERSION", "PLAYER_PROOF", "FINAL_READ",
     "freezePostMatchReadFrame", "Barlow Condensed Post Match Read", "Noto Sans TC Post Match Read",
   ]) assert.match(source, new RegExp(required));
   for (const forbidden of [
@@ -220,30 +220,46 @@ test("post-match read template uses five beats across four distinct visual space
   assert.match(entry, /const frame = freezePostMatchReadFrame\(rawFrame\)/);
 });
 
+test("post-match read matchup unit comes from its primary metric instead of hard-coded GPM", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+
+  assert.match(scenes, /matchup\.primaryEvidence\?\.metric/);
+  assert.equal(scenes.includes("replace(/\\s*GPM/, \"\")"), false);
+  assert.equal(scenes.includes(">GPM</span>"), false);
+});
+
 test("post-match read result hook exposes the score on the opening frame", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
 
-  assert.match(scenes, /enterStyle\(localFrame, -1, 12, reducedMotion\)/);
+  assert.match(scenes, /enterStyle\(localFrame, -1, 10, reducedMotion\)/);
 });
 
 test("post-match read result hook identifies teams with crests instead of champion faces", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
-  const resultBranch = scenes.match(/\{resultPhase \? \(([\s\S]*?)\) : \(/)?.[1] || "";
+  const resultBranch = scenes.match(/if \(resultPhase\) return \(([\s\S]*?)\);\n  return/)?.[1] || "";
   const teamCrest = scenes.match(/const TeamCrest[\s\S]*?\) : null;/)?.[0] || "";
 
   assert.match(resultBranch, /<TeamCrest asset=\{teamAssets\.teamA\}/);
   assert.match(resultBranch, /<TeamCrest asset=\{teamAssets\.teamB\}/);
   assert.doesNotMatch(resultBranch, /<Face\b/);
-  assert.doesNotMatch(teamCrest, /grayscale/);
+  assert.match(teamCrest, /grayscale\(1\)/);
 });
 
 test("post-match read player proof renders separated identity and secondary evidence", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
 
-  assert.match(scenes, /player\.originalName/);
   assert.match(scenes, /proof\.secondaryEvidence/);
-  assert.match(scenes, /KILL PART\./);
-  assert.match(scenes, /GOLD \/ MIN/);
+  assert.match(scenes, /參戰率/);
+  assert.match(scenes, /每分鐘經濟/);
+});
+
+test("post-match read scene chrome follows the render locale", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+
+  assert.match(scenes, /model\.locale === "en"/);
+  assert.match(scenes, /VOID GRUBS \+ HERALD/);
+  assert.match(scenes, /FINAL GOLD LEAD/);
+  assert.match(scenes, /PARTICIPATION/);
 });
 
 test("post-match read crests suppress duplicate labels for embedded wordmarks", () => {
@@ -255,29 +271,28 @@ test("post-match read crests suppress duplicate labels for embedded wordmarks", 
   assert.match(teamCrest, /objectFit: "contain"/);
 });
 
-test("post-match read proof data moves up with a static collision-safe grid", () => {
+test("post-match read proof rotates secondary evidence in one calm position", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
 
-  assert.match(scenes, /const PLAYER_PROOF_DATA_OFFSET = 304/);
-  assert.match(scenes, /marginTop: PLAYER_PROOF_DATA_OFFSET/);
-  assert.match(scenes, /gridTemplateColumns: `repeat\(\$\{secondaryEvidence\.length\}, minmax\(0, 1fr\)\)`/);
+  assert.match(scenes, /Math\.floor\(localFrame \/ 70\)/);
+  assert.match(scenes, /enterStyle\(localFrame % 70, 3, 8, reducedMotion\)/);
+  assert.doesNotMatch(scenes, /gridTemplateColumns: `repeat/);
   assert.doesNotMatch(scenes, /transition:\s*["'`]all/);
 });
 
-test("post-match read proof labels the actual series game count", () => {
-  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
-
-  assert.match(scenes, /model\.seriesContext\?\.gameCount/);
-  assert.match(scenes, /\{seriesGameCount\}-GAME AVERAGE/);
-  assert.doesNotMatch(scenes, />2-GAME AVERAGE</);
+test("post-match read frame labels the actual series game count", () => {
+  const frame = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadFrame.jsx"), "utf8");
+  assert.match(frame, /context\.gameCount/);
+  assert.match(frame, /共 \$\{context\.gameCount\} 局/);
+  assert.doesNotMatch(frame, /BO[135]/);
 });
 
 test("embedded crest lockups reserve clear space inside the media frame", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
   const teamCrest = scenes.match(/const TeamCrest[\s\S]*?\) : null;/)?.[0] || "";
 
-  assert.match(teamCrest, /width: asset\.labelMode === "embedded" \? "88%" : "100%"/);
-  assert.match(teamCrest, /height: asset\.labelMode === "embedded" \? "88%" : "100%"/);
+  assert.match(teamCrest, /width: "82%"/);
+  assert.match(teamCrest, /height: "82%"/);
 });
 
 test("final read scene uses dynamic winner copy and evidence labels", () => {
@@ -285,7 +300,7 @@ test("final read scene uses dynamic winner copy and evidence labels", () => {
   const finalScene = scenes.match(/export const FinalReadScene[\s\S]*?\n};/)?.[0] || "";
 
   assert.match(finalScene, /model\.finalRead\?\.conclusionParts/);
-  assert.match(finalScene, /reference\.label/);
+  assert.match(finalScene, /activeReference\.label/);
   assert.doesNotMatch(finalScene, /GEN 的勝點|CHOVY|RULER/);
 });
 
@@ -293,17 +308,24 @@ test("final read conclusion reserves a balanced reading column", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
   const finalScene = scenes.match(/export const FinalReadScene[\s\S]*?\n};/)?.[0] || "";
 
-  assert.match(finalScene, /maxWidth: 760/);
+  assert.match(finalScene, /maxWidth=\{880\}/);
 });
 
-test("final read scene renders a contained winner crest halo and shared score echo", () => {
+test("map conversion swaps evidence without replaying an invisible entrance frame", () => {
+  const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
+  const mapScene = scenes.match(/export const MapConversionScene[\s\S]*?\n};/)?.[0] || "";
+
+  assert.match(mapScene, /enterStyle\(localFrame, 2, 10, reducedMotion\)/);
+  assert.doesNotMatch(mapScene, /enterStyle\(localFrame % 120/);
+});
+
+test("final read scene renders a quiet winner crest and shared score echo", () => {
   const scenes = fs.readFileSync(path.join(ROOT, "src/templates/player-radar/PostMatchReadScenes.jsx"), "utf8");
   const finalScene = scenes.match(/export const FinalReadScene[\s\S]*?\n};/)?.[0] || "";
 
-  assert.match(scenes, /const WinnerCrestBackdrop/);
   assert.match(finalScene, /winnerCrest/);
-  assert.match(finalScene, /<WinnerCrestBackdrop/);
-  assert.match(finalScene, /score=\{score\}/);
+  assert.match(finalScene, /score\.left/);
+  assert.match(finalScene, /opacity: \.12/);
   assert.doesNotMatch(finalScene, /animationIterationCount|rotate\(|particle/i);
 });
 
@@ -324,7 +346,8 @@ test("Remotion root player radar preview uses the approved GEN HLE post-match re
   assert.match(source, /Seraphine/);
   assert.match(source, /\/team-crests\/gen\.png/);
   assert.match(source, /\/team-crests\/hle\.png/);
-  assert.match(source, /750|durationInFrames: 240/);
+  assert.match(source, /EARLY_CONTROL/);
+  assert.match(source, /MAP_CONVERSION/);
   assert.match(source, /postMatchRead:/);
   assert.match(source, /數據 MVP 候選/);
   assert.doesNotMatch(source, /\bMVP\b(?! 候選)/);

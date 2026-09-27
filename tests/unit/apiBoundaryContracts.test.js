@@ -43,11 +43,12 @@ function makeValidPlayerRadarAnalysis(overrides = {}) {
   const edgeScore = ((statByLabel(edgeRadarStats, "DPM").normalizedScore + statByLabel(edgeRadarStats, "KP%").normalizedScore) / 2)
     - ((statByLabel(loserRadarStats, "DPM").normalizedScore + statByLabel(loserRadarStats, "KP%").normalizedScore) / 2);
   const storyboard = [
-    { tag: "RESULT_HOOK", text: "GEN 2-0 T1", durationInFrames: 120 },
-    { tag: "MATCHUP_EDGE", text: "中路對位差距是系列賽最大斷層。", durationInFrames: 150 },
-    { tag: "GAME_FLOW", text: "T1 先拿巢蟲，GEN 靠 8-4 防禦塔把優勢轉成勝利。", durationInFrames: 240 },
-    { tag: "PLAYER_PROOF", text: "關鍵人物 GEN Mid，720 DPM。", durationInFrames: 150 },
-    { tag: "FINAL_READ", text: "對位差距與傷害輸出共同完成收尾。", durationInFrames: 90 },
+    { tag: "RESULT_HOOK", text: "GEN 2-0 T1", durationInFrames: 150 },
+    { tag: "MATCHUP_EDGE", text: "中路對位差距是系列賽最大斷層。", durationInFrames: 210 },
+    { tag: "EARLY_CONTROL", text: "T1 先拿巢蟲與預示者。", durationInFrames: 210 },
+    { tag: "MAP_CONVERSION", text: "GEN 靠 8-4 防禦塔把優勢轉成勝利。", durationInFrames: 240 },
+    { tag: "PLAYER_PROOF", text: "關鍵人物 GEN Mid，720 DPM。", durationInFrames: 240 },
+    { tag: "FINAL_READ", text: "對位差距與傷害輸出共同完成收尾。", durationInFrames: 150 },
   ];
   return {
     dataType: "PLAYER_RADAR",
@@ -141,7 +142,7 @@ test("player radar evidence requires the fixed post-match read model", () => {
   );
 });
 
-test("player radar evidence requires the fixed five-scene storyboard order", () => {
+test("player radar evidence requires the fixed six-scene storyboard order", () => {
   const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
   const base = makeValidPlayerRadarAnalysis();
   const wrongOrder = [base.postMatchRead.storyboard[1], base.postMatchRead.storyboard[0], ...base.postMatchRead.storyboard.slice(2)];
@@ -154,7 +155,7 @@ test("player radar evidence requires the fixed five-scene storyboard order", () 
   );
 });
 
-test("player radar evidence requires a 750-frame post-match read", () => {
+test("player radar evidence requires a 1200-frame post-match read", () => {
   const { assertPlayerRadarEvidence } = require(path.join(ROOT, "utils/esports/playerRadarEvidence.js"));
   const base = makeValidPlayerRadarAnalysis();
   const tooLong = base.postMatchRead.storyboard.map((scene, index) => index === 0
@@ -165,7 +166,7 @@ test("player radar evidence requires a 750-frame post-match read", () => {
     () => assertPlayerRadarEvidence(makeValidPlayerRadarAnalysis({
       postMatchRead: { ...base.postMatchRead, storyboard: tooLong },
     })),
-    /Player Radar postMatchRead storyboard must total 750 frames/
+    /Player Radar postMatchRead storyboard must total 1200 frames/
   );
 });
 

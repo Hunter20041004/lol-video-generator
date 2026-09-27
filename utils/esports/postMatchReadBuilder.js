@@ -2,11 +2,12 @@ const REQUIRED_ROLES = Object.freeze(["Top", "Jungle", "Mid", "Adc", "Support"])
 const TEAM_CREST_MANIFEST = require("../../config/esports-team-crests.json");
 
 const POST_MATCH_READ_STORYBOARD = Object.freeze([
-  { tag: "RESULT_HOOK", durationInFrames: 120 },
-  { tag: "MATCHUP_EDGE", durationInFrames: 150 },
-  { tag: "GAME_FLOW", durationInFrames: 240 },
-  { tag: "PLAYER_PROOF", durationInFrames: 150 },
-  { tag: "FINAL_READ", durationInFrames: 90 },
+  { tag: "RESULT_HOOK", durationInFrames: 150 },
+  { tag: "MATCHUP_EDGE", durationInFrames: 210 },
+  { tag: "EARLY_CONTROL", durationInFrames: 210 },
+  { tag: "MAP_CONVERSION", durationInFrames: 240 },
+  { tag: "PLAYER_PROOF", durationInFrames: 240 },
+  { tag: "FINAL_READ", durationInFrames: 150 },
 ]);
 
 const PUBLIC_COPY = Object.freeze({
@@ -261,12 +262,12 @@ function finalReadReference(source, player = {}, evidence = {}) {
 
 function finalReadCopy(winningTeam, locale) {
   if (locale === "en") {
-    const lead = `${winningTeam} did not win by taking more. Every lead became `;
-    const emphasis = "towers and damage.";
-    return { conclusion: `${lead}${emphasis}`, conclusionParts: { lead, emphasis } };
+    const lead = `${winningTeam} did not win by taking more.`;
+    const emphasis = "Every lead became towers and damage.";
+    return { conclusion: `${lead} ${emphasis}`, conclusionParts: { lead, emphasis } };
   }
-  const lead = `${winningTeam} 的勝點不是搶得多，而是把每次領先`;
-  const emphasis = "換成塔與輸出。";
+  const lead = `${winningTeam} 的勝點不是搶得多，`;
+  const emphasis = "而是把每次領先換成塔與輸出。";
   return { conclusion: `${lead}${emphasis}`, conclusionParts: { lead, emphasis } };
 }
 
@@ -323,6 +324,7 @@ function buildPostMatchReadViewModel({
   };
 
   return {
+    locale,
     branding: { publicTitle: copy.publicTitle, publicTitleEn: copy.publicTitleEn },
     seriesContext: {
       league: series.league || "",
@@ -370,7 +372,7 @@ function buildPostMatchReadViewModel({
         ? copy.hookQuestion(localizedRole)
         : scene.tag === "MATCHUP_EDGE"
           ? copy.matchupVerdict
-          : scene.tag === "GAME_FLOW"
+          : ["EARLY_CONTROL", "MAP_CONVERSION"].includes(scene.tag)
             ? copy.gameFlowVerdict
           : scene.tag === "PLAYER_PROOF"
             ? proofSegment.verdict || proofSegment.claim || ""

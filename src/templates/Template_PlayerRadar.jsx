@@ -5,7 +5,8 @@ import { buildTimeline, getActiveTimelineScene } from "../video-system/pacing";
 import { PostMatchReadFrame } from "./player-radar/PostMatchReadFrame";
 import {
   FinalReadScene,
-  GameFlowScene,
+  EarlyControlScene,
+  MapConversionScene,
   MatchupBroadcastScene,
   PlayerProofScene,
 } from "./player-radar/PostMatchReadScenes";
@@ -31,7 +32,8 @@ export const Template_PlayerRadar = ({ data }) => {
       <PostMatchReadFrame model={model} sceneTag={active.scene?.tag}>
         {active.scene?.tag === "RESULT_HOOK" && <MatchupBroadcastScene {...common} phase="result" />}
         {active.scene?.tag === "MATCHUP_EDGE" && <MatchupBroadcastScene {...common} phase="matchup" />}
-        {active.scene?.tag === "GAME_FLOW" && <GameFlowScene {...common} />}
+        {active.scene?.tag === "EARLY_CONTROL" && <EarlyControlScene {...common} />}
+        {active.scene?.tag === "MAP_CONVERSION" && <MapConversionScene {...common} />}
         {active.scene?.tag === "PLAYER_PROOF" && <PlayerProofScene {...common} />}
         {active.scene?.tag === "FINAL_READ" && <FinalReadScene {...common} />}
       </PostMatchReadFrame>

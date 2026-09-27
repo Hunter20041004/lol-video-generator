@@ -46,17 +46,26 @@ function makeInput() {
   };
 }
 
-test("post-match read storyboard is exactly five beats and 750 frames", () => {
+test("post-match read storyboard is exactly six beats and 1200 frames", () => {
   const viewModel = buildPostMatchReadViewModel(makeInput());
 
   assert.deepEqual(viewModel.storyboard.map(({ tag, durationInFrames }) => [tag, durationInFrames]), [
-    ["RESULT_HOOK", 120],
-    ["MATCHUP_EDGE", 150],
-    ["GAME_FLOW", 240],
-    ["PLAYER_PROOF", 150],
-    ["FINAL_READ", 90],
+    ["RESULT_HOOK", 150],
+    ["MATCHUP_EDGE", 210],
+    ["EARLY_CONTROL", 210],
+    ["MAP_CONVERSION", 240],
+    ["PLAYER_PROOF", 240],
+    ["FINAL_READ", 150],
   ]);
-  assert.equal(viewModel.storyboard.reduce((sum, scene) => sum + scene.durationInFrames, 0), 750);
+  assert.equal(viewModel.storyboard.reduce((sum, scene) => sum + scene.durationInFrames, 0), 1200);
+});
+
+test("post-match read keeps the requested locale in the render model", () => {
+  const english = makeInput();
+  english.locale = "en";
+
+  assert.equal(buildPostMatchReadViewModel(makeInput()).locale, "zh");
+  assert.equal(buildPostMatchReadViewModel(english).locale, "en");
 });
 
 test("post-match read carries the series date into asset identity context", () => {
@@ -317,8 +326,8 @@ test("final read derives winner, copy, and evidence labels from the selected ser
   assert.deepEqual(model.finalRead.winnerTeam, { name: "T1", identity: "T1" });
   assert.equal(model.finalRead.conclusion, "T1 的勝點不是搶得多，而是把每次領先換成塔與輸出。");
   assert.deepEqual(model.finalRead.conclusionParts, {
-    lead: "T1 的勝點不是搶得多，而是把每次領先",
-    emphasis: "換成塔與輸出。",
+    lead: "T1 的勝點不是搶得多，",
+    emphasis: "而是把每次領先換成塔與輸出。",
   });
   assert.deepEqual(model.finalRead.recapReferences, [
     { source: "matchup", playerName: "Oner", metric: "KDA", displayValue: "+13.03 KDA", label: "ONER · KDA" },

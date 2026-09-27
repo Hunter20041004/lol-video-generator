@@ -147,11 +147,12 @@ const mockPlayerRadarData = {
     },
     audioPlan: null,
     storyboard: [
-      { tag: "RESULT_HOOK", text: "GEN 2–0 HLE", durationInFrames: 120 },
-      { tag: "MATCHUP_EDGE", text: "不是一波打贏。是每分鐘都在擴大差距。", durationInFrames: 150 },
-      { tag: "GAME_FLOW", text: "HLE 拿到前期資源，GEN 最後拿走地圖。", durationInFrames: 240 },
-      { tag: "PLAYER_PROOF", text: "數據 MVP 候選 · Ruler", durationInFrames: 150 },
-      { tag: "FINAL_READ", text: "把每次領先換成塔與輸出。", durationInFrames: 90 },
+      { tag: "RESULT_HOOK", text: "GEN 2–0 HLE", durationInFrames: 150 },
+      { tag: "MATCHUP_EDGE", text: "不是一波打贏。是每分鐘都在擴大差距。", durationInFrames: 210 },
+      { tag: "EARLY_CONTROL", text: "HLE 先拿到前期資源。", durationInFrames: 210 },
+      { tag: "MAP_CONVERSION", text: "GEN 最後把領先換成地圖。", durationInFrames: 240 },
+      { tag: "PLAYER_PROOF", text: "數據 MVP 候選 · Ruler", durationInFrames: 240 },
+      { tag: "FINAL_READ", text: "把每次領先換成塔與輸出。", durationInFrames: 150 },
     ],
   },
 };

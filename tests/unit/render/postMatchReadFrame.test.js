@@ -25,12 +25,12 @@ function loadFrame() {
   })();
 }
 
-test("frame preserves the selected game flow label", async () => {
+test("frame preserves the selected team-final game label", async () => {
   const Frame = await loadFrame();
   const html = renderToStaticMarkup(React.createElement(Frame, {
-    model: { gameFlow: { gameNumber: 2 } }, sceneTag: "GAME_FLOW",
+    model: { gameFlow: { gameNumber: 2 } }, sceneTag: "MAP_CONVERSION",
   }));
-  assert.match(html, /遊戲過程 · GAME 2/);
+  assert.match(html, /GAME 2 · TEAM FINAL/);
 });
 
 test("series frame reports actual games instead of an inferred best-of", async () => {
@@ -40,7 +40,7 @@ test("series frame reports actual games instead of an inferred best-of", async (
       model: { seriesContext: { league: "LCK", gameCount, teamA: "T1", teamB: "HLE", score: "2-3" } },
       sceneTag: "FINAL_READ",
     }));
-    assert.ok(html.includes(`賽後判讀 · LCK · 共 ${gameCount} 局`));
+    assert.ok(html.includes(`LCK · 共 ${gameCount} 局`));
     assert.doesNotMatch(html, /BO[135]/);
     assert.ok(html.includes("T1 2-3 HLE"));
   }
@@ -53,7 +53,19 @@ test("series frame omits unknown or invalid counts without fabricating a format"
       model: { branding: { publicTitle: "賽後判讀" }, seriesContext: { league: "LCP", gameCount } },
       sceneTag: "RESULT_HOOK",
     }));
-    assert.ok(html.includes("賽後判讀 · LCP"));
+    assert.ok(html.includes("賽後判讀"));
+    assert.ok(html.includes("LCP"));
     assert.doesNotMatch(html, /共|BO[135]|undefined|NaN|Infinity/);
   }
+});
+
+test("English frame does not repeat POST MATCH READ in both header lines", async () => {
+  const Frame = await loadFrame();
+  const html = renderToStaticMarkup(React.createElement(Frame, {
+    model: { locale: "en", branding: { publicTitle: "POST MATCH READ" }, seriesContext: {} },
+    sceneTag: "RESULT_HOOK",
+  }));
+
+  assert.equal((html.match(/POST MATCH READ/g) || []).length, 1);
+  assert.match(html, /MATCH ANALYSIS/);
 });

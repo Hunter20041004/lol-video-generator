@@ -3,7 +3,7 @@ const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
 
 const execFileAsync = promisify(execFile);
-const EXPECTED_DURATION_SECONDS = 25;
+const EXPECTED_DURATION_SECONDS = 40;
 const DURATION_TOLERANCE_SECONDS = 0.08;
 
 function parseRate(value = "") {
@@ -85,7 +85,7 @@ function validatePostMatchReadMediaReport(media = {}) {
   if (!Number.isFinite(Number(media.fps)) || Math.abs(Number(media.fps) - 30) > 0.01) reasons.push("frame rate must be 30fps");
   if (!Number.isFinite(Number(media.duration))
     || Math.abs(Number(media.duration) - EXPECTED_DURATION_SECONDS) > DURATION_TOLERANCE_SECONDS) {
-    reasons.push("duration must be 25.0 seconds");
+    reasons.push("duration must be 40.0 seconds");
   }
   if (!Number.isFinite(Number(media.integratedLufs)) || Number(media.integratedLufs) < -18 || Number(media.integratedLufs) > -16) {
     reasons.push("integrated loudness must be -18 to -16 LUFS");

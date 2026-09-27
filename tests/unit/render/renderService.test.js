@@ -315,7 +315,7 @@ test("renderVideosFromRequest blocks a silent post-match read before Remotion st
           return null;
         },
       }),
-      /Post Match Read requires a verified 25-second licensed music segment\./
+      /Post Match Read requires a verified 40-second licensed music segment\./
     );
 
     assert.deepEqual(commands, []);
@@ -327,8 +327,8 @@ test("renderVideosFromRequest attaches one licensed audio plan to root and post-
     const audioPlan = {
       trackId: "licensed-bgm-1",
       sourceStartSeconds: 1.976,
-      durationInFrames: 750,
-      cutFrames: [0, 120, 270, 510, 660, 750],
+      durationInFrames: 1200,
+      cutFrames: [0, 150, 360, 570, 810, 1050, 1200],
       gain: 0.4417,
       fadeFrames: 2,
     };

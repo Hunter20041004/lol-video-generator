@@ -1,6 +1,6 @@
 const FPS = 30;
-const DURATION_IN_FRAMES = 750;
-const DEFAULT_CUT_FRAMES = Object.freeze([0, 120, 270, 510, 660, 750]);
+const DURATION_IN_FRAMES = 1200;
+const DEFAULT_CUT_FRAMES = Object.freeze([0, 150, 360, 570, 810, 1050, 1200]);
 const MAX_SNAP_FRAMES = 6;
 
 function buildPostMatchReadAudioPlan(segment = {}, trackId = "") {
