@@ -12,6 +12,7 @@
 - `npm audit --audit-level=high` 仍回 1 high（undici 7.29.0）及 1 moderate（fast-uri 3.1.7）；原始證據 `/tmp/lol-range-audit.log`。這是套件警報，不等於本專案已重現可利用漏洞。
 - 推薦只對既有相依做最小相容安全更新，先查修補版本與相依樹，不新增套件／服務，不放寬 audit；再全測、合併、main 全測、推送與原網址驗收。備援是保持已驗證的隔離測試版、暫不整合，原網址維持舊版。
 - 使用者本輪回覆「同意」，明確核准最小安全修補。只更新 lockfile 中 undici 7.29.0→7.30.0、fast-uri 3.1.7→3.1.8；package.json 不變，未新增相依。fast-uri 編碼大寫 host 問題以合成網址在本機重現，新增回歸先紅後綠（3/3）。audit=0，完整品質閘門通過後才整合。
+- 遠端安全掃描隨後新增 Axios 警報（與npm audit=0不一致）；比對目前1.18.1確受影響。本輪核准的既有相依最小修補續涵蓋1.18.1→1.20.0，同major，不新增安裝套件，package.json不變；獨立本機安全回歸先紅後綠，完整驗證再整合。不代表已發現專案污染入口或帳號洩漏。
 
 2026-09-04 使用者核准處理三個發布阻擋。檢查確認 PostMatchReadFrame 固定 BO3，而 postMatchReadBuilder 的 seriesContext 只有比分與實際 gameCount，沒有可靠 best-of 欄位。
 
