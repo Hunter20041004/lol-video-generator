@@ -1,8 +1,13 @@
 # HANDOFF — LoL 影片生成器
 
-> 2026-09-03 由 Codex 更新。歷史賽事掃描快取、七天限流備援與核准的套件安全修補已整合 main、推送並更新原本機常駐網址；真實掃描與預覽驗收通過。
+> 2026-10-01 由 Codex 更新。日期區間、一級守門、已驗證素材及最小套件安全修補已整合 main、推送並更新原本機常駐網址；真實區間掃描與40秒預覽／播放驗收通過。選手素材仍有43個缺口，未發布。
 
 ## 本輪狀態
+
+- **最新收尾**：功能提交 eba9b48、安全追加提交61998d6已ff整合main，遠端refs/heads/main確認含61998d6。最終main `npm run verify` exit0，`/tmp/lol-approved-axios-main-verify.log`：700 tests／693pass／7外部skip／0fail、Next build通過（既有4個tracing warnings）；main多1個未提交prepareMetaConnection測試，remote CI依提交內容驗證。`npm audit --audit-level=moderate`=0（`/tmp/lol-approved-axios-main-audit.log`），GitHub alerts open清單=[]（初次push的警告為更新前舊清單，已另查API確認修復）。最新隔離branch畫面7/7、渲染6/6、真實賽程contract1/1，證據`/tmp/lol-approved-axios-{browser,render,live-contract}.log`。CI結果見後續確認，勿把Dependabot任務當CI。
+- **原網址驗收**：沿用既有LaunchAgent `com.cengweiting.lol-video-generator.dev`，停止→主線測試→推送→bootstrap，沒有新增正式站。`http://localhost:49761/` HTTP200；這是原本機常駐開發工作台，尚無對外production部署流程。更新後真實瀏覽器8/27–28找到6場／6候選，兩端日皆有、選BNK FEARX 3-1 NS、preview按鈕可用；既有真實40秒成品播放currentTime前進、readyState4，console errors/warnings0，`/tmp/lol-approved-after-ui.log`。不再次渲染相同成品，沿用前一個同程式／素材產出的實際media證據；這次Axios變動另用真實來源contract與掃描重測邊界。
+- **安全與保留事項**：先user／LoL編輯QA，再本機合成null／超31天／日期注入3次皆400，snapshot前後SHA一致、publish queue0（`/tmp/lol-approved-after-security.log`）。沒有測第三方攻擊、沒有帳號操作／發文。main兩個prepareMetaConnection檔原SHA保持不變；未提交/untracked保留，`.impeccable`既有buildPath保留並僅追加42個精確例外，未提交。隔離工作區與影片／兩輪截图證據保留，不archive。仍缺43選手×隊伍身分素材，隊徽62身分已覆蓋；官方DRX照片不倒填歷史。其餘帳號授權與固定公開網址問題不在本輪修補範圍。
+- **局部自主決定／技能**：相容major内三個既有套件更新，未新增安裝套件或服務；Axios遠端新警報與npm結果不一致，按核准安全修補類別追加修補並全測，不以audit=0掩蓋。套用product-owner-teaching、systematic-debugging、test-driven-development、verification-before-completion、finishing-a-development-branch、playwright-cli、impeccable，以及依禁止子代理計畫改為inline的requesting-code-review；無獨立審查者。教學、替代方案、成本與限制已交付。下一步是續查43可靠照片來源與歷史有效日期，不宣稱全部素材完成。
 
 - 2026-10-01 遠端於 eba9b48 推送後新增 Axios 1.18.1 的 12 筆警報，而 npm audit 仍0；已比對 package-lock 確認版本落在遠端 affected range，不能以單一 scanner=0 宣稱全部安全。沿用本輪既有套件最小安全修補核准，僅 Axios 1.18.1→1.20.0（同 major、lockfile 版本／integrity／自身 form-data range，不新增任何安裝套件）。本機獨立子程序、兩個 ephemeral loopback server／合成 Authorization，重現 inherited createConnection 導向錯誤端點，更新後合法端點1次／錯誤端點0次，focused4/4。此測項人工設下前置污染，非專案存在污染入口或帳號外洩證据。主站先停止，修補完整閘門後才恢復。第二次 branch verify `/tmp/lol-approved-axios-branch-verify.log` exit0：699／692pass／7skip／0fail、build通過。
 - 第一批 eba9b48 已 ff 整合 main、主線699／692pass／7skip／0fail、build及audit通過（`/tmp/lol-approved-main-verify.log`、`/tmp/lol-approved-main-audit.log`），push遠端SHA確認一致，CI run36742081647 success。main未提交兩個prepareMetaConnection檔 SHA前後一致，不提交。main `.impeccable/config.json` 經官方ignore-value管理器追加42個精確例外，保留既有buildPath=comp；不提交user untracked設定。main三個UI檔 detector `/tmp/lol-approved-main-design.json`=[]。
