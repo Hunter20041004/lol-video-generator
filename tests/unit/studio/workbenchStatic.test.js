@@ -29,13 +29,15 @@ test('esports workflow scans candidates and renders an explicit preview before p
   assert.match(workflow, /mode:\s*["']preview["']/);
   assert.match(workflow, /languages:\s*\[["']zh["']\]/);
   assert.doesNotMatch(workflow, /daily-one-click/);
-  assert.match(workflow, /全球一級賽事中沒有找到已完成且資料完整的賽事/);
+  assert.match(workflow, /這個區間的資料來源尚未登錄一級賽事/);
+  assert.match(workflow, /startDate:\s*date,\s*endDate/);
+  assert.match(workflow, /selected\.canPreview === false/);
 });
 
 test('esports workflow describes the approved 40-second post-match video', () => {
   const workflow = read('app/components/studio/EsportsWorkflow.jsx');
 
-  assert.match(workflow, /40 秒賽後解析/);
+  assert.match(workflow, /40 秒(?:賽後)?解析/);
   assert.match(workflow, /正在渲染 40 秒影片/);
   assert.doesNotMatch(workflow, /25 秒|25秒/);
 });

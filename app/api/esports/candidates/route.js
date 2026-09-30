@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 const { scanEsportsCandidates } = require('../../../../utils/esports/candidateScanner');
+const { scanEsportsDateRange } = require('../../../../utils/esports/rangeScanner');
 const { readCandidateSnapshot } = require('../../../../utils/esports/candidateStore');
 const { formatEsportsApiError } = require('../../../../utils/esports/apiErrors');
 
 export async function POST(request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const result = await scanEsportsCandidates(body);
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      throw Object.assign(new Error('請提供開始與結束日期。'), { code: 'ESPORTS_DATE_RANGE_INVALID' });
+    }
+    const isRange = Object.hasOwn(body, 'startDate') || Object.hasOwn(body, 'endDate');
+    const result = await (isRange ? scanEsportsDateRange : scanEsportsCandidates)(body);
     return NextResponse.json({ success: true, ...result });
   } catch (error) {
     const payload = formatEsportsApiError(error, {

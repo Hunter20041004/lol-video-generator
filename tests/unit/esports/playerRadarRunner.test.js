@@ -90,6 +90,7 @@ function makeSnapshot() {
     candidates: [{
       seriesId: "series-1",
       league: "LCK",
+      tournament: "LCK 2026 Season",
       teamA: "T1",
       teamB: "GEN",
       teams: ["T1", "GEN"],

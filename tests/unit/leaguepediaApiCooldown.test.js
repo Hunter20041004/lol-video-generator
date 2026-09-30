@@ -2,6 +2,17 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const leaguepedia = require("../../utils/leaguepediaApi");
+
+test("complete queries reject a full last page instead of reporting truncated results", async () => {
+  clearSourceCooldown("leaguepedia");
+  const originalFetch = global.fetch;
+  global.fetch = async () => ({ ok: true, headers: { get: () => "" },
+    json: async () => ({ cargoquery: [{ title: { MatchId: "one" } }] }) });
+  try {
+    await assert.rejects(() => leaguepedia.cargoQuery({ tables: "MatchSchedule", fields: "MatchId", limit: 1, requireComplete: true }),
+      (error) => error.code === "LEAGUEPEDIA_RESULTS_INCOMPLETE");
+  } finally { global.fetch = originalFetch; }
+});
 const {
   clearSourceCooldown,
   readStore,

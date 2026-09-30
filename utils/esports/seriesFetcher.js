@@ -66,7 +66,7 @@ async function fetchCompletedSeriesForDate(options = {}, deps = {}) {
       const matchDate = normalizeDate(match.dateUtc || match.DateTime_UTC || match.date);
       if (matchDate && date && matchDate !== date) continue;
       const competition = classifyTierOneTournament(match.tournament || match.Tournament || "");
-      if (options.tournamentScope === "configured" && !competition) continue;
+      if (!competition) continue;
       const gameId = match.gameId || match.GameId || match.uniqueGame;
       const detail = await fetchMatchPlayers(gameId);
       if (!detail) continue;

@@ -53,6 +53,8 @@ test("fetchTierOneAssetInventory uses the four documented Cargo tables and prese
     "Teams",
   ]);
   assert.equal(inventory.asOf, "2026-08-28");
+  assert.equal(calls.find(({ tables }) => tables === "PlayerImages").order_by,
+    "PlayerImages.SortDate DESC,PlayerImages.FileName ASC,PlayerImages.Team ASC,PlayerImages.Tournament ASC");
   assert.deepEqual(inventory.sourceTables, ["Tournaments", "TournamentRosters", "PlayerImages", "Teams"]);
   assert.equal(inventory.teams.length, 2);
   assert.equal(inventory.players.length, 3);

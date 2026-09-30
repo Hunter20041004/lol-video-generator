@@ -1149,6 +1149,78 @@
       "presentation": {
         "labelMode": "embedded"
       }
+    },
+    {
+      "team": "BRION",
+      "teamAliases": [],
+      "region": "Korea",
+      "season": "2026",
+      "validFrom": "2026-01-01",
+      "validTo": "2026-12-31",
+      "sourceUrl": "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/14/BRIONlogo_profile.png/revision/latest?cb=20260310005016",
+      "sourcePage": "https://lol.fandom.com/wiki/File:BRIONlogo%20profile.png",
+      "sourceKind": "leaguepedia",
+      "licenseNote": "Exact team and 2026 source reviewed by Codex under the project owners 2026-09-30 request; editorial identification only, trademarks remain with the team.",
+      "reviewedAt": "2026-09-30T14:03:40.964Z",
+      "sha256": "6b3157aa8b1c14620808a14d3f6815c588895751ceb354427658c7f2d52e8502",
+      "width": 1000,
+      "height": 1054,
+      "repositoryPath": "public/team-crests/lck-brion-crest-2026.png",
+      "presentation": { "labelMode": "embedded" }
+    },
+    {
+      "team": "DRX",
+      "teamAliases": [],
+      "region": "Korea",
+      "season": "2026",
+      "validFrom": "2026-01-01",
+      "validTo": "2026-12-31",
+      "sourceUrl": "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/81/DRXlogo_profile.png/revision/latest?cb=20260114034916",
+      "sourcePage": "https://lol.fandom.com/wiki/File:DRXlogo%20profile.png",
+      "sourceKind": "leaguepedia",
+      "licenseNote": "Exact team and 2026 source reviewed by Codex under the project owners 2026-09-30 request; editorial identification only, trademarks remain with the team.",
+      "reviewedAt": "2026-09-30T14:03:40.964Z",
+      "sha256": "1fbeac0cbca2014ab01e2f66c62896bbd91fd65b4348cda0876769f6c31d75d1",
+      "width": 1000,
+      "height": 1276,
+      "repositoryPath": "public/team-crests/lck-drx-crest-2026.png",
+      "presentation": { "labelMode": "embedded" }
+    },
+    {
+      "team": "Ninjas in Pyjamas.CN",
+      "teamAliases": [],
+      "region": "China",
+      "season": "2026",
+      "validFrom": "2026-01-01",
+      "validTo": "2026-12-31",
+      "sourceUrl": "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/12/Ninjas_in_Pyjamas.CNlogo_profile.png/revision/latest?cb=20230107093945",
+      "sourcePage": "https://lol.fandom.com/wiki/File:Ninjas%20in%20Pyjamas.CNlogo%20profile.png",
+      "sourceKind": "leaguepedia",
+      "licenseNote": "Exact team and 2026 source reviewed by Codex under the project owners 2026-09-30 request; editorial identification only, trademarks remain with the team.",
+      "reviewedAt": "2026-09-30T14:03:40.964Z",
+      "sha256": "bdab1b702f4808ec0c503e67a704e1b0ba7bc48b58491ba8bbed2569486e1775",
+      "width": 1000,
+      "height": 1178,
+      "repositoryPath": "public/team-crests/lpl-ninjas-in-pyjamas-cn-crest-2026.png",
+      "presentation": { "labelMode": "embedded" }
+    },
+    {
+      "team": "LYON (2024 American Team)",
+      "teamAliases": [],
+      "region": "North America",
+      "season": "2026",
+      "validFrom": "2026-01-01",
+      "validTo": "2026-12-31",
+      "sourceUrl": "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/01/LYON_%282024_American_Team%29logo_profile.png/revision/latest?cb=20251223131015",
+      "sourcePage": "https://lol.fandom.com/wiki/File:LYON%20(2024%20American%20Team)logo%20profile.png",
+      "sourceKind": "leaguepedia",
+      "licenseNote": "Exact team and 2026 source reviewed by Codex under the project owners 2026-09-30 request; editorial identification only, trademarks remain with the team.",
+      "reviewedAt": "2026-09-30T14:03:40.964Z",
+      "sha256": "048b1a79bcaee130de0ee8fef370775f026218296a0779d175d4c5a2ffc5f7d3",
+      "width": 1000,
+      "height": 431,
+      "repositoryPath": "public/team-crests/lcs-lyon-2024-american-team-crest-2026.png",
+      "presentation": { "labelMode": "embedded" }
     }
   ]
 }

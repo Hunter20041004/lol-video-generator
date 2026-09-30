@@ -3,6 +3,11 @@ const { aggregateSeries } = require("./seriesAggregator");
 const { fetchCompletedSeriesForDate } = require("./seriesFetcher");
 const { writeCandidateSnapshot, findLatestCompatibleSnapshot, isHistoricalDate, FALLBACK_MAX_AGE_MS } = require("./candidateStore");
 const { resolveActiveMode } = require("./config");
+const { classifyTierOneTournament } = require("./competitionRegistry");
+
+function tierOneCandidates(candidates = []) {
+  return candidates.filter((candidate) => classifyTierOneTournament(candidate.tournament || candidate.Tournament || ""));
+}
 
 function normalizeLanguages(languages = ["zh", "en"]) {
   const values = Array.isArray(languages) && languages.length > 0 ? languages : ["zh", "en"];
@@ -90,7 +95,7 @@ async function scanEsportsCandidates(options = {}, deps = {}) {
     rawCandidates = await fetchSeriesCandidates({
       date: options.date,
       activeMode,
-      tournamentScope: options.tournamentScope,
+      tournamentScope: criteria.tournamentScope,
       languages: criteria.languages,
     });
   } catch (error) {
@@ -101,7 +106,7 @@ async function scanEsportsCandidates(options = {}, deps = {}) {
     }
     throw error;
   }
-  const candidates = (Array.isArray(rawCandidates) ? rawCandidates : []).map(normalizeCandidate);
+  const candidates = tierOneCandidates((Array.isArray(rawCandidates) ? rawCandidates : []).map(normalizeCandidate));
   const snapshot = {
     scanId: createScanId(options, createdAt),
     createdAt,
@@ -123,9 +128,11 @@ async function scanEsportsCandidates(options = {}, deps = {}) {
 }
 
 function cachedResponse(snapshot, cacheReason) {
+  const candidates = tierOneCandidates(snapshot.candidates);
   return {
     ...snapshot,
-    sourceStatus: { ...snapshot.sourceStatus, status: "cached", cacheReason, cachedAt: snapshot.createdAt },
+    candidates,
+    sourceStatus: { ...snapshot.sourceStatus, candidateCount: candidates.length, status: "cached", cacheReason, cachedAt: snapshot.createdAt },
   };
 }
 

@@ -153,7 +153,7 @@ async function fetchTierOneAssetInventory(options = {}, deps = {}) {
       tables: "PlayerImages",
       fields: "FileName,Link,Team,Tournament,ImageType,IsProfileImage,SortDate",
       where: `${buildCompetitionTournamentWhere(competition.id, "PlayerImages.Tournament")} AND PlayerImages.Tournament LIKE '%${cargoValue(year)}%'`,
-      order_by: "PlayerImages.SortDate DESC",
+      order_by: "PlayerImages.SortDate DESC,PlayerImages.FileName ASC,PlayerImages.Team ASC,PlayerImages.Tournament ASC",
       limit: 50,
     }));
   }

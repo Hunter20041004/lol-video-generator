@@ -42,7 +42,7 @@ test("audited crest lockups suppress duplicate external team labels", () => {
     .filter((crest) => !crest.presentation)
     .map((crest) => crest.team);
 
-  assert.equal(embedded.length, 51);
+  assert.equal(embedded.length, 55);
   assert.deepEqual(external, [
     "GEN",
     "HLE",

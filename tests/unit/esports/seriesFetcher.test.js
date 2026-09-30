@@ -19,6 +19,27 @@ function makePlayers(teamA, teamB) {
   ]);
 }
 
+test("every scan scope rejects academy matches before loading their details", async () => {
+  const { fetchCompletedSeriesForDate } = require("../../../utils/esports/seriesFetcher");
+  const matches = [
+    makeMatch("main", "LCK 2026 Summer", "T1", "GEN", "T1"),
+    makeMatch("academy", "LCK CL 2026 Summer", "T1 Academy", "GEN Academy", "T1 Academy"),
+  ];
+  const loaded = [];
+  const candidates = await fetchCompletedSeriesForDate({
+    date: "2026-06-20", activeMode: { tournaments: ["LCK"] },
+  }, {
+    fetchMatchesForDate: async () => matches,
+    fetchMatchPlayers: async (id) => {
+      loaded.push(id);
+      return { match: matches.find(({ gameId }) => gameId === id), players: [] };
+    },
+    fetchMatchTeamStats: async () => [],
+  });
+  assert.deepEqual(loaded, ["main"]);
+  assert.deepEqual(candidates.map(({ tournament }) => tournament), ["LCK 2026 Summer"]);
+});
+
 test("fetchCompletedSeriesForDate queries active tournament filters and groups games into series candidates", async () => {
   const { fetchCompletedSeriesForDate } = require("../../../utils/esports/seriesFetcher");
   const tournaments = [];

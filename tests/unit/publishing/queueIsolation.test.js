@@ -81,6 +81,7 @@ test("preview player radar leaves every publishing store absent", async () => {
       candidates: [{
         seriesId: "preview-series",
         league: "LCK",
+        tournament: "LCK 2026 Season",
         teamA: "T1",
         teamB: "GEN",
         teams: ["T1", "GEN"],

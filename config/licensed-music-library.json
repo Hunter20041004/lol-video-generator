@@ -41,7 +41,8 @@
         "measuredTruePeakDbfs": 0.2,
         "targetIntegratedLufs": -17,
         "gain": 0.7762,
-        "fadeMilliseconds": 34,
+        "fadeMilliseconds": 30,
+        "fadeInCurve": "qsin",
         "maxLeadingSilenceMilliseconds": 50
       }]
     },

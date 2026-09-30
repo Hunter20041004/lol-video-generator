@@ -1,5 +1,13 @@
 # Third-party assets
 
+## 2026-09-30 tier-one identity update
+
+The owner's request to complete tier-one assets authorized this research and import. Codex reviewed 16 exact player/team/2026 Leaguepedia records, four exact team crest file pages, and eight current Kiwoom DRX player gallery entries at https://en.drx.gg/lol. This is AI source review, not independent human or rights-holder certification.
+
+Exact sources, identities, review dates, validity windows and checksums are recorded in the source catalog and manifests. Leaguepedia portraits begin at the verified source tournament start date. Official DRX gallery portraits begin on the inspection date, 2026-09-30; current evidence does not establish historical roster membership. Rights remain with the teams, photographers and original rights holders. These are editorial identification assets in the owner's authorized project context, not an unrestricted license or official affiliation.
+
+The refreshed inventory covers 62 team identities and 440 player/team identities. All team identities have crests; 397 player/team identities have manifest entries, with 43 unresolved in `config/esports-asset-unresolved-2026.json`. Registration coverage does not guarantee availability on every historical match date.
+
 ## Bundled licensed audio
 
 Authorization was confirmed by the project owner on 2026-08-11 to use the following audio files in generated videos and to redistribute them in this GitHub repository:

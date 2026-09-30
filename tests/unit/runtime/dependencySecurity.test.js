@@ -1,6 +1,12 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
+test("fast-uri normalizes encoded uppercase hosts before comparing them", () => {
+  const uri = require("fast-uri");
+  assert.equal(uri.parse("//%41.com").host, "a.com");
+  assert.equal(uri.equal("//%41.com", "//a.com"), true);
+});
+
 test("fast-uri resolves scheme-relative IDN hosts consistently with the browser", () => {
   const uri = require("fast-uri");
   const base = "https://example.com/base";

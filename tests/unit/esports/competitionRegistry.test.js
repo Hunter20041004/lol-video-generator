@@ -60,3 +60,12 @@ test("competition registry builds an anchored SQL-safe Cargo predicate", () => {
   assert.match(lcpWhere, /NOT LIKE '%Wildcard%'/);
   assert.match(lcpWhere, /NOT LIKE '%Promotion%'/);
 });
+
+test("source predicates exclude secondary competitions before pagination", () => {
+  const { buildCompetitionTournamentWhere } = require("../../../utils/esports/competitionRegistry");
+  const where = buildCompetitionTournamentWhere("LCK", "PlayerImages.Tournament");
+  assert.match(where, /PlayerImages\.Tournament != 'LCK CL'/);
+  assert.match(where, /PlayerImages\.Tournament NOT LIKE 'LCK CL %'/);
+  assert.match(where, /PlayerImages\.Tournament NOT LIKE 'LCK CL\/%'/);
+  assert.match(buildTierOneTournamentWhere(), /ScoreboardGames\.Tournament NOT LIKE 'CBLOL Academy %'/);
+});

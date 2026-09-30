@@ -46,17 +46,7 @@ function buildTierOneTournamentWhere(field = "ScoreboardGames.Tournament") {
   if (!ALLOWED_CARGO_FIELDS.has(field)) {
     throw new Error(`Unsupported Cargo field for tier-one tournament filter: ${field}`);
   }
-  const clauses = new Set();
-  for (const competition of listTierOneCompetitions()) {
-    for (const exactName of competition.exactNames || []) {
-      clauses.add(`${field} = '${escapeCargoValue(exactName)}'`);
-    }
-    for (const prefix of competition.prefixes || []) {
-      clauses.add(`${field} LIKE '${escapeCargoValue(prefix)} %'`);
-      clauses.add(`${field} LIKE '${escapeCargoValue(prefix)}/%'`);
-    }
-  }
-  return `(${[...clauses].join(" OR ")})`;
+  return `(${listTierOneCompetitions().map(({ id }) => `(${buildCompetitionTournamentWhere(id, field)})`).join(" OR ")})`;
 }
 
 function buildCompetitionTournamentWhere(id, field = "TournamentRosters.Tournament") {
@@ -73,6 +63,10 @@ function buildCompetitionTournamentWhere(id, field = "TournamentRosters.Tourname
   }
   const excluded = (competition.excludedContains || [])
     .map((part) => `${field} NOT LIKE '%${escapeCargoValue(part)}%'`);
+  for (const prefix of competition.excludedPrefixes || []) {
+    const value = escapeCargoValue(prefix);
+    excluded.push(`${field} != '${value}'`, `${field} NOT LIKE '${value} %'`, `${field} NOT LIKE '${value}/%'`);
+  }
   return [`(${[...included].join(" OR ")})`, ...excluded].join(" AND ");
 }
 

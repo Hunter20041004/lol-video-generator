@@ -2,6 +2,16 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { performance } = require("node:perf_hooks");
 
+test("range validation and incomplete source results provide specific recovery messages", () => {
+  const { formatEsportsApiError } = require("../../../utils/esports/apiErrors");
+  const invalid = formatEsportsApiError({ code: "ESPORTS_DATE_RANGE_INVALID", message: "最多 31 天" });
+  assert.equal(invalid.status, 400);
+  assert.match(invalid.userMessage, /31/);
+  const incomplete = formatEsportsApiError({ code: "LEAGUEPEDIA_RESULTS_INCOMPLETE" });
+  assert.equal(incomplete.status, 502);
+  assert.match(incomplete.recoverySuggestion, /縮短/);
+});
+
 test("Leaguepedia rate-limit detection stays fast on repeated untrusted prefixes", () => {
   const { isLeaguepediaRateLimit } = require("../../../utils/esports/apiErrors");
   const adversarialMessage = "Leaguepedia API returned error:".repeat(3000);

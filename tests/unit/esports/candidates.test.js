@@ -84,6 +84,38 @@ function savedScan(overrides = {}) {
   };
 }
 
+test("scan removes non-tier-one series from both live results and legacy cache", async () => {
+  await withTempProject(async () => {
+    const { scanEsportsCandidates } = require(path.join(ROOT, "utils/esports/candidateScanner.js"));
+    const store = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    const options = { date: "2026-06-20", activeMode: "daily" };
+    const mixed = [aggregatedSeries(), { ...aggregatedSeries(), seriesId: "academy", tournament: "LCK CL 2026 Summer" }];
+    const live = await scanEsportsCandidates(options, {
+      now: () => new Date("2026-06-21T08:00:00Z"), fetchSeriesCandidates: async () => mixed,
+    });
+    assert.equal(live.candidates.length, 1);
+    assert.equal(live.sourceStatus.candidateCount, 1);
+    store.writeCandidateSnapshot({ ...live, candidates: mixed, sourceStatus: { ...live.sourceStatus, candidateCount: 2 } });
+    const cached = await scanEsportsCandidates(options, {
+      now: () => new Date("2026-06-21T09:00:00Z"), fetchSeriesCandidates: async () => assert.fail("must reuse cache"),
+    });
+    assert.equal(cached.candidates.length, 1);
+    assert.equal(cached.sourceStatus.candidateCount, 1);
+  });
+});
+
+test("saved scan detail and preview cannot select secondary series from legacy storage", async () => {
+  await withTempProject(async () => {
+    const store = require(path.join(ROOT, "utils/esports/candidateStore.js"));
+    store.writeCandidateSnapshot(savedScan({ candidates: [aggregatedSeries(), {
+      ...aggregatedSeries(), seriesId: "secondary", tournament: "CBLOL Academy 2026",
+    }], sourceStatus: { status: "ready", candidateCount: 2 } }));
+    const scan = store.readCandidateSnapshot("saved-scan", { now: () => new Date("2026-06-21T09:00:00Z") });
+    assert.equal(scan.candidates.length, 1);
+    assert.equal(scan.sourceStatus.candidateCount, 1);
+  });
+});
+
 test("latest compatible candidate snapshot selects the newest complete exact match", async () => {
   await withTempProject(async () => {
     const store = require(path.join(ROOT, "utils/esports/candidateStore.js"));
@@ -387,8 +419,8 @@ test("candidate store recovers malformed snapshots and replaces duplicate scanId
 
     assert.throws(() => writeCandidateSnapshot({ candidates: [] }), /scanId is required/);
 
-    writeCandidateSnapshot({ scanId: "same-scan", createdAt: "2026-06-20T08:00:00.000Z", candidates: [{ seriesId: "old" }] });
-    writeCandidateSnapshot({ scanId: "same-scan", createdAt: "2026-06-20T08:01:00.000Z", candidates: [{ seriesId: "new" }] });
+    writeCandidateSnapshot({ scanId: "same-scan", createdAt: "2026-06-20T08:00:00.000Z", candidates: [{ seriesId: "old", tournament: "LCK 2026" }] });
+    writeCandidateSnapshot({ scanId: "same-scan", createdAt: "2026-06-20T08:01:00.000Z", candidates: [{ seriesId: "new", tournament: "LCK 2026" }] });
 
     const scan = readCandidateSnapshot("same-scan", {
       maxAgeMs: 0,

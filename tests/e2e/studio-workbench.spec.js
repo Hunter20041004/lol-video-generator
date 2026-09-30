@@ -13,7 +13,7 @@ test("cached scan explains provenance and previews the original saved scan", asy
     return route.fulfill({ json: { success: true, videos: [], validationReports: [] } });
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "尋找已完成賽事" }).click();
+  await page.getByRole("button", { name: "尋找區間賽事" }).click();
   const status = page.getByRole("status").filter({ hasText: "使用已保存的賽事資料" });
   await expect(status).toBeVisible();
   await expect(status).toContainText("Leaguepedia 暫時限制請求");
@@ -23,7 +23,7 @@ test("cached scan explains provenance and previews the original saved scan", asy
   await expect.poll(() => previewRequest?.scanId).toBe("original-saved-scan");
   expect(previewRequest.mode).toBe("preview");
   cacheReason = "fresh";
-  await page.getByRole("button", { name: "尋找已完成賽事" }).click();
+  await page.getByRole("button", { name: "尋找區間賽事" }).click();
   await expect(status).not.toContainText("Leaguepedia 暫時限制請求");
   await page.locator("#esports-date").fill("2026-08-27");
   await expect(status).toHaveCount(0);
@@ -64,14 +64,15 @@ test("esports workflow previews before publishing the same artifact", async ({ p
 
   await page.goto("/");
   await expect(page.getByRole("button", { name: "確認發布這份成品" })).toHaveCount(0);
-  await page.getByRole("button", { name: "尋找已完成賽事" }).click();
+  await page.getByRole("button", { name: "尋找區間賽事" }).click();
   await expect(page.getByRole("combobox")).toContainText("LCK · HLE vs GEN · 0-2");
   await page.getByRole("button", { name: "產生影片預覽" }).click();
   await expect(page.locator("video")).toHaveAttribute("src", "/renders/hle-gen.mp4");
   await page.locator("#esports-date").fill("2026-08-13");
+  await page.locator("#esports-end-date").fill("2026-08-13");
   await expect(page.locator("video")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "確認發布這份成品" })).toHaveCount(0);
-  await page.getByRole("button", { name: "尋找已完成賽事" }).click();
+  await page.getByRole("button", { name: "尋找區間賽事" }).click();
   await page.getByRole("button", { name: "產生影片預覽" }).click();
   await page.getByRole("button", { name: "確認發布這份成品" }).click();
 
@@ -99,7 +100,7 @@ test("global tier-one scan keeps every league option and clears a stale preview"
   } }));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "尋找已完成賽事" }).click();
+  await page.getByRole("button", { name: "尋找區間賽事" }).click();
   await page.getByRole("combobox").click();
   for (const candidate of candidates) {
     await expect(page.getByRole("option", { name: `${candidate.league} · ${candidate.teamA} vs ${candidate.teamB} · ${candidate.seriesScore}` })).toBeVisible();

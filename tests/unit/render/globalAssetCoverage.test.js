@@ -20,11 +20,11 @@ test("the approved 2026 regional library is complete except for the reviewed blo
     assert.equal(manifestEntry.sourcePage, source.sourcePage, source.assetId);
     assert.ok(fs.existsSync(path.join(ROOT, source.destination)), source.destination);
   }
-  assert.equal(unresolved.asOf, "2026-08-28");
-  assert.equal(unresolved.teams.length, 4);
-  assert.equal(unresolved.players.length, 65);
+  assert.equal(unresolved.asOf, "2026-09-30");
+  assert.equal(unresolved.teams.length, 0);
+  assert.equal(unresolved.players.length, 43);
 
   const report = verifyEsportsAssetLibrary({ rootDir: ROOT, asOf: unresolved.asOf });
-  assert.equal(report.fileCount, 431);
-  assert.equal(new Set(report.files.map(({ repositoryPath }) => repositoryPath)).size, 431);
+  assert.equal(report.fileCount, 459);
+  assert.equal(new Set(report.files.map(({ repositoryPath }) => repositoryPath)).size, 459);
 });

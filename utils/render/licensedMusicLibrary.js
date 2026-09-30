@@ -17,12 +17,13 @@ function buildSegmentAudioArgs({ sourcePath, outputPath, segment }) {
   const gain = Number(segment.gain);
   const fadeSeconds = Number(segment.fadeMilliseconds) / 1000;
   const fadeOutStart = duration - fadeSeconds;
+  const fadeInCurve = segment.fadeInCurve === "qsin" ? ":curve=qsin" : "";
   return [
     "-y", "-loglevel", "error",
     "-ss", String(start),
     "-t", String(duration),
     "-i", sourcePath,
-    "-af", `volume=${gain},afade=t=in:st=0:d=${fadeSeconds},afade=t=out:st=${fadeOutStart}:d=${fadeSeconds}`,
+    "-af", `volume=${gain},afade=t=in:st=0:d=${fadeSeconds}${fadeInCurve},afade=t=out:st=${fadeOutStart}:d=${fadeSeconds}`,
     "-c:a", "pcm_s16le", "-ar", "48000", "-ac", "2",
     outputPath,
   ];

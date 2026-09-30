@@ -447,6 +447,8 @@ body {
   margin-top: 28px;
 }
 
+.studio-date-range .studio-field { margin-top: 0; }
+
 .studio-field label {
   display: flex;
   align-items: center;

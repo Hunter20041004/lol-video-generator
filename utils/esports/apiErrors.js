@@ -30,6 +30,21 @@ function formatRecoverySuggestion(error) {
 function formatEsportsApiError(error, options = {}) {
   const message = error?.message || options.fallbackMessage || "Esports pipeline failed.";
 
+  if (error?.code === "ESPORTS_RANGE_CACHE_EXPIRED") {
+    return { success: false, code: error.code, status: 409, recoverable: true,
+      userMessage: message, recoverySuggestion: "請將歷史日期與今天分開查詢，或等待資料源恢復後重試。", error: message };
+  }
+
+  if (error?.code === "ESPORTS_DATE_RANGE_INVALID") {
+    return { success: false, code: error.code, status: 400, recoverable: true,
+      userMessage: message, recoverySuggestion: "請選擇有效的開始與結束日期，包含首尾日最多 31 天。", error: message };
+  }
+  if (error?.code === "LEAGUEPEDIA_RESULTS_INCOMPLETE") {
+    return { success: false, code: error.code, status: 502, recoverable: true,
+      userMessage: "賽程來源回傳量超過安全上限，尚未取得完整清單。",
+      recoverySuggestion: "請縮短日期區間後重試。", error: message };
+  }
+
   if (isLeaguepediaAuthError(error)) {
     return {
       success: false,

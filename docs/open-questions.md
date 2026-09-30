@@ -1,5 +1,18 @@
 # 已決：發布 QA 的賽制標籤
 
+## 已決：2026-09-30 區間賽事掃描
+
+- 使用者要求開始／結束日期，找出區間所有一級比賽。首尾日都包含；每場保留真正比賽日期與獨立 seriesId，不按隊伍名稱跨日合併。維持 preview-first、不自動發文。沿用工作台視覺，不重設計影片。
+- 使用者回覆「對」，核准已完成＋未開打賽程、最多 31 天（含首尾日）；未開打／待結果／數據未齊不可 preview。UTC 日界沿用現有来源，畫面明示台灣早上 8 點換日。
+- 沿用 MatchSchedule/Tournaments join 與既有逐日 scoreboard scanner、保存資料，不新增付費服務。來源未公布賽程不列為「無比賽」，中途失敗／分頁上限不回完整成功。施工計畫 `docs/superpowers/plans/2026-09-30-esports-date-range.md`，本輪已實作並驗證，安全修補已核准，進入整合。
+- 選手 43 個缺口續留；不以錯隊或未確認歷史有效日期的照片補齊。
+
+## 已決：2026-09-30 既有套件安全修補
+
+- `npm audit --audit-level=high` 仍回 1 high（undici 7.29.0）及 1 moderate（fast-uri 3.1.7）；原始證據 `/tmp/lol-range-audit.log`。這是套件警報，不等於本專案已重現可利用漏洞。
+- 推薦只對既有相依做最小相容安全更新，先查修補版本與相依樹，不新增套件／服務，不放寬 audit；再全測、合併、main 全測、推送與原網址驗收。備援是保持已驗證的隔離測試版、暫不整合，原網址維持舊版。
+- 使用者本輪回覆「同意」，明確核准最小安全修補。只更新 lockfile 中 undici 7.29.0→7.30.0、fast-uri 3.1.7→3.1.8；package.json 不變，未新增相依。fast-uri 編碼大寫 host 問題以合成網址在本機重現，新增回歸先紅後綠（3/3）。audit=0，完整品質閘門通過後才整合。
+
 2026-09-04 使用者核准處理三個發布阻擋。檢查確認 PostMatchReadFrame 固定 BO3，而 postMatchReadBuilder 的 seriesContext 只有比分與實際 gameCount，沒有可靠 best-of 欄位。
 
 - 推薦：標頭改為「賽後判讀 · LCK · 共 5 局」這類實際局數，依既有完整 snapshot 顯示，不推測 BO3／BO5；保留版面與遊戲過程 GAME 標頭。沒有新增來源請求、資料結構或付費依賴。

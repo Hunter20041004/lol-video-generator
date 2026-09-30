@@ -247,12 +247,13 @@ async function cargoQuery(params) {
     order_by = '',
     group_by = '',
     limit = 50,
+    requireComplete = false,
   } = params;
 
   const allResults = [];
   let offset = 0;
   // Only paginate if we're asking for large chunks (50+)
-  const maxPages = limit >= 50 ? 5 : 1;
+  const maxPages = limit >= 50 ? (requireComplete ? 20 : 5) : 1;
 
   for (let page = 0; page < maxPages; page++) {
     if (page > 0) {
@@ -334,6 +335,9 @@ async function cargoQuery(params) {
 
     // If we got fewer than limit, we've reached the end
     if (rows.length < limit) break;
+    if (requireComplete && page === maxPages - 1) {
+      throw Object.assign(new Error('賽事來源結果超過單次查詢容量，請縮短日期區間；未回傳不完整清單。'), { code: 'LEAGUEPEDIA_RESULTS_INCOMPLETE' });
+    }
     offset += limit;
   }
 

@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { classifyTierOneTournament } = require("./competitionRegistry");
 
 const DEFAULT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const FALLBACK_MAX_AGE_MS = 7 * DEFAULT_MAX_AGE_MS;
@@ -72,7 +73,9 @@ function readCandidateSnapshot(scanId, options = {}) {
   if (!Number.isFinite(ageMs) || ageMs < 0 || ageMs > maxAgeMs) {
     throw new Error(`Candidate scan expired: ${id}`);
   }
-  return scan;
+  if (!Array.isArray(scan.candidates)) return scan;
+  const candidates = scan.candidates.filter((candidate) => classifyTierOneTournament(candidate.tournament || candidate.Tournament || ""));
+  return { ...scan, candidates, sourceStatus: { ...scan.sourceStatus, candidateCount: candidates.length } };
 }
 
 function normalizedSet(values) {

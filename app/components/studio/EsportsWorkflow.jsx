@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { CalendarDays, Search, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { parseDateRange } from "@/utils/esports/dateRange";
 import {
   Select,
   SelectContent,
@@ -24,7 +26,8 @@ function candidateLabel(candidate) {
   const teamA = candidate.teamA || candidate.teams?.[0] || "隊伍 A";
   const teamB = candidate.teamB || candidate.teams?.[1] || "隊伍 B";
   const score = candidate.seriesScore || candidate.score;
-  return `${candidate.league || "賽事"} · ${teamA} vs ${teamB}${score ? ` · ${score}` : ""}`;
+  const status = candidate.status === "scheduled" ? "未開打" : candidate.status === "awaiting_result" ? "待結果" : candidate.canPreview === false ? "數據未齊" : candidate.status === "completed" ? "已完成" : "";
+  return `${candidate.date ? `${candidate.date} · ` : ""}${candidate.league || "賽事"} · ${teamA} vs ${teamB}${score ? ` · ${score}` : ""}${status ? ` · ${status}` : ""}`;
 }
 
 async function requestJson(url, options) {
@@ -36,19 +39,25 @@ async function requestJson(url, options) {
 
 export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
   const [date, setDate] = useState(() => localDateOffset(-1));
+  const [endDate, setEndDate] = useState(() => localDateOffset(-1));
   const [scan, setScan] = useState(null);
   const [seriesId, setSeriesId] = useState("");
   const [preview, setPreview] = useState(null);
   const [publishResult, setPublishResult] = useState(null);
   const [busyAction, setBusyAction] = useState("");
   const [error, setError] = useState("");
+  const rangeError = useMemo(() => {
+    try { parseDateRange(date, endDate); return ""; } catch (caught) { return caught.message; }
+  }, [date, endDate]);
+  const entries = scan?.entries || scan?.candidates || [];
   const selected = useMemo(
     () => scan?.candidates?.find((candidate) => candidate.seriesId === seriesId) || null,
     [scan, seriesId]
   );
 
-  function changeDate(event) {
-    setDate(event.target.value);
+  function changeDate(event, end = false) {
+    if (end) setEndDate(event.target.value);
+    else setDate(event.target.value);
     setScan(null);
     setSeriesId("");
     setPreview(null);
@@ -64,15 +73,18 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
   }
 
   async function scanCandidates() {
+    if (rangeError) return;
     setBusyAction("scan");
     setError("");
     setPreview(null);
     setPublishResult(null);
+    setScan(null);
+    setSeriesId("");
     try {
       const payload = await requestJson("/api/esports/candidates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date, activeMode: "auto", tournamentScope: "configured", languages: ["zh"] }),
+        body: JSON.stringify({ startDate: date, endDate, activeMode: "auto", tournamentScope: "configured", languages: ["zh"] }),
       });
       setScan(payload);
       setSeriesId(payload.candidates?.[0]?.seriesId || "");
@@ -84,7 +96,7 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
   }
 
   async function createPreview() {
-    if (!scan?.scanId || !seriesId) return;
+    if (!scan?.scanId || !selected || selected.canPreview === false) return;
     setBusyAction("preview");
     setError("");
     setPreview(null);
@@ -141,26 +153,38 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
         <div className="studio-section-heading">
           <span>ESPORTS VIDEO</span>
           <h1>賽事影片</h1>
-          <p>從已完成的賽事中選一場，產生 40 秒賽後解析，再決定是否發布。</p>
+          <p>查詢一級賽事與賽程，選一場完整賽事製作 40 秒解析，再決定是否發布。</p>
         </div>
 
+        <div className="studio-date-range mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="studio-field">
-          <label htmlFor="esports-date"><CalendarDays aria-hidden="true" />比賽日期</label>
-          <input
+          <label htmlFor="esports-date"><CalendarDays aria-hidden="true" />開始日期</label>
+          <Input
             id="esports-date"
             type="date"
             value={date}
             onChange={changeDate}
+            aria-describedby="esports-range-hint"
+            aria-invalid={!!rangeError}
             disabled={busyAction !== "" || portfolioReadOnly}
           />
         </div>
-        <Button className="studio-primary-action" onClick={scanCandidates} disabled={!date || busyAction !== "" || portfolioReadOnly}>
+        <div className="studio-field">
+          <label htmlFor="esports-end-date">結束日期</label>
+          <Input id="esports-end-date" type="date" value={endDate} onChange={(event) => changeDate(event, true)}
+            aria-describedby="esports-range-hint" aria-invalid={!!rangeError} disabled={busyAction !== "" || portfolioReadOnly} />
+        </div>
+        </div>
+        <p id="esports-range-hint" className="mt-3 text-sm text-muted-foreground">首尾日都包含 · 最多 31 天 · 日期依 UTC（台灣早上 8 點換日）</p>
+        {rangeError && <WorkflowStatus tone="error">{rangeError}</WorkflowStatus>}
+        <Button className="studio-primary-action" onClick={scanCandidates} disabled={!!rangeError || busyAction !== "" || portfolioReadOnly}>
           <Search aria-hidden="true" />
-          {busyAction === "scan" ? "掃描中…" : "尋找已完成賽事"}
+          {busyAction === "scan" ? "正在查詢區間…" : "尋找區間賽事"}
         </Button>
 
         {scan && (
           <div className="studio-step-block">
+            <p className="text-sm text-muted-foreground">來源已登錄 {entries.length} 場 · {scan.candidates?.length || 0} 場數據完整可預覽</p>
             {scan.sourceStatus?.status === "cached" && (
               <WorkflowStatus>
                 <strong className="block">使用已保存的賽事資料</strong>
@@ -178,27 +202,28 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
               </WorkflowStatus>
             )}
             <div className="studio-field">
-              <label><span>02</span>選擇系列賽</label>
-              {scan.candidates?.length ? (
+              <label htmlFor="esports-series"><span>02</span>選擇系列賽</label>
+              {entries.length ? (
                 <Select value={seriesId} onValueChange={changeSeries} disabled={busyAction !== "" || portfolioReadOnly}>
-                  <SelectTrigger className="studio-select"><SelectValue placeholder="選一場系列賽" /></SelectTrigger>
+                  <SelectTrigger id="esports-series" className="studio-select"><SelectValue placeholder="查看賽程，選一場完整系列賽" /></SelectTrigger>
                   <SelectContent>
-                    {scan.candidates.map((candidate) => (
-                      <SelectItem key={candidate.seriesId} value={candidate.seriesId}>{candidateLabel(candidate)}</SelectItem>
+                    {entries.map((candidate) => (
+                      <SelectItem key={candidate.seriesId} value={candidate.seriesId} disabled={candidate.canPreview === false}>{candidateLabel(candidate)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               ) : (
-                <WorkflowStatus>這一天在全球一級賽事中沒有找到已完成且資料完整的賽事。</WorkflowStatus>
+                <WorkflowStatus>這個區間的資料來源尚未登錄一級賽事。未公布的賽程不會出現在結果中。</WorkflowStatus>
               )}
             </div>
+            <p className="mt-3 text-sm text-muted-foreground">未開打、待結果或數據未齊的場次僅供查看；未公布的賽程不在清單中。</p>
             {selected && (
               <div className="studio-selection-summary">
                 <strong>{candidateLabel(selected)}</strong>
                 <span>建議主角：{selected.recommendedMvp?.name || "系統將依比賽數據判定"}</span>
               </div>
             )}
-            <Button variant="outline" className="studio-primary-action" onClick={createPreview} disabled={!seriesId || busyAction !== "" || portfolioReadOnly}>
+            <Button variant="outline" className="studio-primary-action" onClick={createPreview} disabled={!selected || selected.canPreview === false || busyAction !== "" || portfolioReadOnly}>
               <Sparkles aria-hidden="true" />
               {busyAction === "preview" ? "正在渲染 40 秒影片…" : "產生影片預覽"}
             </Button>
