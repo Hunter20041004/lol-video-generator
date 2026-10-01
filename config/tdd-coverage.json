@@ -11,8 +11,8 @@
     {
       "id": "match-story-evidence",
       "description": "Match-specific research identities, references and narrative evidence gates",
-      "productionFiles": ["utils/esports/matchStoryContract.js"],
-      "testFiles": ["tests/unit/esports/matchStoryContract.test.js"]
+      "productionFiles": ["utils/esports/matchStoryContract.js", "utils/esports/storyDraftStore.js"],
+      "testFiles": ["tests/unit/esports/matchStoryContract.test.js", "tests/unit/esports/storyDraftStore.test.js"]
     },
     {
       "id": "patch-storyboard-density",
