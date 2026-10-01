@@ -1,0 +1,17 @@
+{
+  "schemaVersion":2,
+  "title":"Component material preview (not production)",
+  "extensions":{
+    "motion":[{"name":"incumbent","value":"Existing broadcast motion, unchanged","purpose":"Preserve original six-scene pace and final freeze"}],
+    "breakpoints":[]
+  },
+  "components":[{
+    "name":"Evidence panel",
+    "kind":"custom",
+    "refersTo":"evidence",
+    "description":"Static video evidence surface, not an interactive card",
+    "html":"<section class=\"ds-evidence\"><strong>10.02</strong><p>CS / MIN</p></section>",
+    "css":".ds-evidence{background:#131C1B;color:#EBE5D7;padding:24px 26px;border:1px solid #B49A6555;clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px)}.ds-evidence strong{font-family:'Barlow Condensed Post Match Read',sans-serif;font-weight:900;font-size:62px}.ds-evidence p{color:#B49A65}"
+  }],
+  "narrative":{"northStar":"原版骨架，遊戲介面材質","overview":"Independent trial; root design system remains unchanged."}
+}
