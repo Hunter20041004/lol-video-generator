@@ -9,6 +9,12 @@
   ],
   "slices": [
     {
+      "id": "match-story-evidence",
+      "description": "Match-specific research identities, references and narrative evidence gates",
+      "productionFiles": ["utils/esports/matchStoryContract.js"],
+      "testFiles": ["tests/unit/esports/matchStoryContract.test.js"]
+    },
+    {
       "id": "patch-storyboard-density",
       "description": "Champion patch storyboard segmentation for dense same-skill changes",
       "productionFiles": [
