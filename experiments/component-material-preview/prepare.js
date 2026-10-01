@@ -1,6 +1,6 @@
 const fs=require('node:fs');
 const path=require('node:path');
-const {restyleSource,restyleFrameSource,restyleTokens}=require('./materialStyle');
+const {restyleSource,restyleFrameSource,restyleTokens,polishSceneSource,polishSurfaceSource}=require('./materialStyle');
 
 // Generated preview copies only; incumbent source modules remain untouched.
 function prepare() {
@@ -9,7 +9,7 @@ function prepare() {
   fs.mkdirSync(out,{recursive:true});
   for(const [name,transform] of [
     ['PostMatchReadFrame.jsx',restyleFrameSource],
-    ['PostMatchReadScenes.jsx',restyleSource],
+    ['PostMatchReadScenes.jsx',source=>restyleSource(polishSurfaceSource(polishSceneSource(source)))],
     ['postMatchReadVisuals.js',restyleTokens],
   ]) {
     const source=fs.readFileSync(path.join(root,'src/templates/player-radar',name),'utf8');
