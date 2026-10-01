@@ -1,0 +1,90 @@
+{
+  "identity": {
+    "scanId": "scan-range-2026-08-27-2026-08-28-eb616252-8c67-4e4d-975f-68d9658f9f71",
+    "seriesId": "2026-08-27:LCK 2026 Season Play-In::2026-08-27::BNK FEARX::Nongshim RedForce",
+    "date": "2026-08-27",
+    "league": "LCK",
+    "teamA": "BNK FEARX",
+    "teamB": "Nongshim RedForce",
+    "seriesScore": "3-1"
+  },
+  "sources": [
+    {
+      "id": "kuki-interview",
+      "url": "https://www.kukinews.com/article/view/kuk202608270262",
+      "title": "Kuki News：Taeyoon 賽後直接採訪",
+      "publishedAt": null,
+      "retrievedAt": "2026-10-01T06:11:54Z",
+      "kind": "article",
+      "readStatus": "report",
+      "matchExplanation": "正文寫明8月27日LCK Play-In FEARX對Nongshim、3比1及翌日BRION；頁面顯示8月27日刊登、28日修訂，未將未明示時區轉成時間戳。"
+    },
+    {
+      "id": "fomos-report",
+      "url": "https://v.daum.net/v/20260827223349039",
+      "title": "Fomos／Daum：FEARX 3比1 Nongshim 賽事報導",
+      "publishedAt": null,
+      "retrievedAt": "2026-10-01T06:11:54Z",
+      "kind": "article",
+      "readStatus": "report",
+      "matchExplanation": "已讀正文而非頁首自動摘要；描述8月27日同場四局、第四局預示者交戰、系列3比1及NS賽季結束。"
+    }
+  ],
+  "facts": [
+    {
+      "id": "g4-herald-report",
+      "statement": "Fomos報導指出，第四局FEARX以Taeyoon的Kalista在預示者交戰的表現取得主動。",
+      "sourceIds": ["fomos-report"],
+      "evidenceType": "report",
+      "scope": "game",
+      "gameNumber": 4,
+      "limitations": ["報導概述不是逐幀操作證據，也不能證明一人包辦勝利。", "正文約15分鐘不是精確時鐘；先前回看紀錄為16分鐘附近，正式操作拆解須另附回看證據。"],
+      "conflicts": []
+    },
+    {
+      "id": "trade-background",
+      "statement": "Kuki採訪寫明Taeyoon於4月與Diable交易，從Nongshim加入FEARX。",
+      "sourceIds": ["kuki-interview"],
+      "evidenceType": "report",
+      "scope": "background",
+      "limitations": ["這是本場人物背景，不是其他比賽的固定故事，也不推測交易動機。"],
+      "conflicts": []
+    },
+    {
+      "id": "series-result",
+      "statement": "FEARX先失首局，再連勝三局，以3比1擊敗Nongshim。",
+      "sourceIds": ["kuki-interview", "fomos-report"],
+      "evidenceType": "report",
+      "scope": "series",
+      "limitations": ["系列結果，不是單局人頭比分。"],
+      "conflicts": []
+    },
+    {
+      "id": "season-stakes",
+      "statement": "Nongshim輸後結束2026賽季；FEARX當時仍須於翌日對BRION爭季後賽資格。",
+      "sourceIds": ["kuki-interview", "fomos-report"],
+      "evidenceType": "report",
+      "scope": "series",
+      "limitations": ["描述8月27日賽後當時狀態，不是10月1日最新賽程，不宣稱當日已晉級。"],
+      "conflicts": []
+    }
+  ],
+  "candidates": [
+    {
+      "id": "g4-herald",
+      "kind": "teamfight",
+      "headline": "第四局預示者團：Taeyoon與隊友如何改變局勢",
+      "whyInteresting": "先聚焦比賽內的具體交戰，交易背景與淘汰代價只作補充；吸引力是編輯判斷，未經觀眾測試。",
+      "factIds": ["g4-herald-report", "trade-background", "series-result", "season-stakes"],
+      "unresolved": ["精確動作與時間碼須把先前實際回看的紀錄接進證據格式，不能以此報導資料假裝已回看。"]
+    },
+    {
+      "id": "series-recap",
+      "kind": "recap",
+      "headline": "先失一局，連贏三局：FEARX保住季後賽希望",
+      "whyInteresting": "資料不足時用有來源的系列摘要作備援，不編造技能操作或單一勝因。",
+      "factIds": ["series-result", "season-stakes"],
+      "unresolved": []
+    }
+  ]
+}
