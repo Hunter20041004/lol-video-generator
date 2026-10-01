@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { PreviewPanel } from "./PreviewPanel";
 import { WorkflowStatus } from "./WorkflowStatus";
+import { MatchStoryPanel } from "./MatchStoryPanel";
 import { humanizeWorkflowError, normalizeEsportsPreview } from "./studioModel";
 
 function localDateOffset(days) {
@@ -243,6 +244,8 @@ export function EsportsWorkflow({ portfolioReadOnly = false, hidden = false }) {
         onRetry={(jobs) => publishPreview([...new Set(jobs.map((job) => job.platform))])}
         disabled={portfolioReadOnly}
       />
+      {scan?.scanId && selected && selected.canPreview !== false && <MatchStoryPanel
+        key={`${scan.scanId}:${seriesId}`} scanId={scan.scanId} selected={selected} disabled={portfolioReadOnly || busyAction !== ""} />}
     </section>
   );
 }

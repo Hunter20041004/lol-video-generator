@@ -14,6 +14,24 @@ test("malformed JSON returns a safe 400 without executing service", async () => 
   assert.equal(calls, 0);
 });
 
+test("an external Host cannot turn an internal loopback URL into an allowed origin", async () => {
+  let calls = 0;
+  const post = createMatchStoryPost({ execute: async () => { calls++; return {}; } });
+  const req = new Request("http://localhost:49765/api/esports/story", { method: "POST", headers: {
+    "content-type": "application/json", host: "synthetic-attacker.example:49765", origin: "http://synthetic-attacker.example:49765",
+  }, body: "{}" });
+  assert.equal((await post(req)).status, 403);
+  assert.equal(calls, 0);
+});
+
+test("Next internal localhost URL does not reject the browser's actual Host origin", async () => {
+  const post = createMatchStoryPost({ execute: async () => ({ id: "synthetic" }) });
+  const req = new Request("http://localhost:49765/api/esports/story", { method: "POST", headers: {
+    "content-type": "application/json", host: "127.0.0.1:49765", origin: "http://127.0.0.1:49765",
+  }, body: "{}" });
+  assert.equal((await post(req)).status, 200);
+});
+
 test("oversized streamed body returns 400 before service execution", async () => {
   let calls = 0;
   const post = createMatchStoryPost({ execute: async () => { calls += 1; return {}; } });

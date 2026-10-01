@@ -9,7 +9,7 @@ const selection = { scanId: id, seriesId: id };
 const requestSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("research"), ...selection }).strict(),
   z.object({ action: z.literal("import"), ...selection, research: z.unknown() }).strict(),
-  z.object({ action: z.literal("read"), ...versioned }).strict(),
+  z.object({ action: z.literal("read"), id, expectedRevision: versioned.expectedRevision.optional() }).strict(),
   z.object({ action: z.literal("confirm"), ...versioned }).strict(),
   z.object({ action: z.literal("revise"), ...versioned, patch: z.record(z.string(), z.unknown()) }).strict(),
 ]);
@@ -67,7 +67,7 @@ function createMatchStoryService({ researchEnabled = false, provider, store = cr
         const draft = store.read(request.id);
         const identity = matchIdentity(draft.identity.scanId, draft.identity.seriesId);
         validateResearchPackage(draft.research, identity, { origin: "editor" });
-        if (request.expectedRevision !== draft.revision) fail("MATCH_STORY_VERSION_CONFLICT", "草稿已更新，請重新讀取後再操作。");
+        if (request.expectedRevision !== undefined && request.expectedRevision !== draft.revision) fail("MATCH_STORY_VERSION_CONFLICT", "草稿已更新，請重新讀取後再操作。");
         if (request.action === "read") return draft;
         if (request.action === "confirm") return store.confirm(request.id, request.expectedRevision, identity);
         return store.revise(request.id, request.expectedRevision, request.patch, identity);

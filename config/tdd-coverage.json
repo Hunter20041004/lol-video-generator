@@ -9,6 +9,12 @@
   ],
   "slices": [
     {
+      "id": "match-story-editor",
+      "description": "Story editor match reset, confirmation invalidation and safe source navigation",
+      "productionFiles": ["app/components/studio/matchStoryModel.js"],
+      "testFiles": ["tests/unit/studio/matchStoryModel.test.js"]
+    },
+    {
       "id": "match-story-evidence",
       "description": "Match-specific research identities, references and narrative evidence gates",
       "productionFiles": ["utils/esports/matchStoryContract.js", "utils/esports/storyDraftStore.js", "utils/esports/matchStoryService.js", "utils/esports/matchStoryApi.js"],

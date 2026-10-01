@@ -85,6 +85,20 @@ test("unknown actions or client approval fields are rejected before any write", 
   await assert.rejects(service.execute({ action: "import", scanId: identity.scanId, seriesId: identity.seriesId, research: researchPackage(), approved: true }), { code: "MATCH_STORY_INVALID_REQUEST" });
 });
 
+test("latest read recovers after a lost save response without weakening write version guards", async (t) => {
+  const { service, identity } = setup(t);
+  const draft = await service.execute({ action: "import", scanId: identity.scanId, seriesId: identity.seriesId, research: researchPackage() });
+  await service.execute({ action: "revise", id: draft.id, expectedRevision: 1, patch: {} });
+  assert.equal((await service.execute({ action: "read", id: draft.id })).revision, 2);
+  await assert.rejects(service.execute({ action: "read", id: draft.id, expectedRevision: 1 }), { code: "MATCH_STORY_VERSION_CONFLICT" });
+  for (const action of ["revise", "confirm"]) {
+    const patch = action === "revise" ? { patch: {} } : {};
+    await assert.rejects(service.execute({ action, id: draft.id, expectedRevision: 1, ...patch }), { code: "MATCH_STORY_VERSION_CONFLICT" });
+    await assert.rejects(service.execute({ action, id: draft.id, ...patch }), { code: "MATCH_STORY_INVALID_REQUEST" });
+  }
+  assert.equal((await service.execute({ action: "read", id: draft.id })).revision, 2);
+});
+
 test("expired snapshot errors are stable and do not expose input or storage details", async (t) => {
   const { service, identity } = setup(t, { readSnapshot: () => { throw new Error("Candidate scan expired: /private/synthetic-secret"); } });
   await assert.rejects(service.execute({ action: "import", scanId: identity.scanId, seriesId: identity.seriesId, research: researchPackage() }), (error) => error.code === "MATCH_STORY_SNAPSHOT_UNAVAILABLE" && !error.message.includes("private"));

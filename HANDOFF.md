@@ -4,6 +4,14 @@
 
 ## 本輪狀態
 
+- **2026-10-01 Task5 工作台已驗證（整體故事製片尚未完成）**：新增故事編輯區、來源／事實／限制、選題、逐段引用與改稿、保存／版本確認、換場清稿、失敗保留與雙擊鎖。研究停用、人工JSON入口，不接render／publish。沿用核可工作台局部方向，不改影片世界。最新唯讀讀回真BFX–NS草稿rev2成功；未清unresolved、未確認或產片。
+- **本輪修復／TDD**：本機127/localhost Origin誤拒修為同埠loopback限定，不信任forwarded；長標題手機溢出、JSON解析原始錯誤已修。獨立審查指出保存成功但回應中斷後版本恢復失效；先紅後綠增加read可省略版本、明示讀回會取代未保存修改，revise／confirm仍嚴格版本必填，禁止自動重試寫入。相關service11/11、獨立複查service／route／editor26/26、無剩餘Critical/Important。
+- **最新驗證**：`/tmp/lol-story-task5-verify.log` exit0，769tests／762pass／7外部skip／0fail、coverage與Next build通過（4個既有filesystem tracing警告及既有ESM package型別警告）。`/tmp/lol-story-task5-browser-final.log`18/18；`/tmp/lol-story-task5-render.log`既有6composition still通過（不是新故事影片）；`/tmp/lol-story-task5-audit.log`0 vulnerabilities。兩輪1280×800／375×812與補充腳本／操作／恢復／fullpage圖已看；單次detector[]。QA／八項自評／動效Approve與教學見`docs/design/match-story-editor-qa.md`。獨立impeccable finish review disposition ship僅Task5局部工作台；載入／錯誤外觀未逐項截圖，行為已有測試。
+- **剩餘與下一步**：Task6依計畫須先完成主checkout視覺spec／plates閘門；實讀state仍spec open（右隊徽與地圖素材框不包住形狀）、plates pending，不強制跳過或用舊六幕替代。真實BFX–NS主候選尚缺交戰精確動作與時間碼證據。Task7整合在整體實作驗證後；本轮未merge／push／部署，原49761與使用者未提交prepareMetaConnection檔未動。隔離分支codex/match-story-workflow，基線00b2d5c；49765供本輪驗收，未使用付費模型／配音／imagegen／新服務。
+- **實際技能**：product-owner-teaching、executing-plans、using-git-worktrees、test-driven-development、systematic-debugging、receiving-code-review、impeccable、emil-design-eng、playwright-cli、review-animations、verification-before-completion、requesting-code-review。局部自主決定：恢復只讀最新、同埠loopback別名相容、沿用現有表單元件與CSS，不擴資料供應商或權限。
+
+- **2026-10-01 完整流程試跑（尚未跑到成片）**：維持零新增服務費與不發布。分支00b2d5c實際服務讀回真實BFX-NS草稿80c4809b-b56d-4393-8030-6ea259986948 rev2成功；confirm實際回MATCH_STORY_UNRESOLVED，交戰精確動作／時間碼尚未接進研究包。前後草稿SHA-256一致、未確認。`node --test tests/integration/esports/matchStoryWorkflow.test.js` 重跑真HTTP與磁碟合成流程1/1通過，不是這场成片。EsportsWorkflow、Root與renderService尚無新故事UI／composition／render接點；不以舊PlayerRadar影片當結果。無程式／模型／配音／render／發布操作，未merge／push／部署完整功能。下一步核可Task5/6與交戰證據。套用product-owner-teaching、systematic-debugging、verification-before-completion。
+
 - **最新零費用限制（2026-10-01）**：使用者要求不花費任何費用跑，本專案不新增第三方服務費；不開billing、不啟用可能計費的模型／搜尋／配音，不再要求5次付費試跑。主checkout計畫與open-questions已更新。Task4外部供應商停用，後續Task5/6以人工研究包及原素材／本機渲染接續，不擴為本地模型或新供應商。
 - **真資料免費流程證據**：正常讀Kuki與Fomos公開正文（2來源），新文件 `docs/research/2026-10-01-bfx-ns-zero-cost.json`。實際readCandidateSnapshot確認scan-range-2026-08-27-2026-08-28-eb616252-8c67-4e4d-975f-68d9658f9f71有效，未偽造時間或放寬期限。createMatchStoryService預設研究disabled驗證；實際import→revise→read保存草稿80c4809b-b56d-4393-8030-6ea259986948、revision2、2source／4segment、confirmedRevision=null。無provider供應，import/revise/read不進SDK／render／publish；不以帳戶免費額度未知當零費用保證。這是本輪Codex查核後匯入，不是專案全自動免費搜尋已上線。交戰精確動作／時間碼仍須接既有回看證據，主候選保留unresolved；不將這輪報導讀取標成reviewed-video。
 - **本輪驗證與限制**：只有公開資料artifact／草稿與紀錄變動，無程式／UI改動；實際契約與草稿讀回成功。不重新宣稱全測或成片；前一輪760 tests／753pass／7skip／0fail與build同程式基線仍有效。尚未merge／push／部署完整功能。套用product-owner-teaching、executing-plans、verification-before-completion。

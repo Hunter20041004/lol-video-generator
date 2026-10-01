@@ -45,7 +45,22 @@ async function readBody(request) {
 function createMatchStoryPost(service) {
   return async function POST(request) {
     const origin = request.headers.get("origin");
-    if (origin && origin !== new URL(request.url).origin) {
+    const target = new URL(request.url);
+    const host = request.headers.get("host");
+    // Next may use an internal localhost URL; the HTTP Host is the browser's destination.
+    // Do not trust client-supplied forwarded host/protocol headers for this check.
+    if (host) {
+      try {
+        const actual = new URL(`${target.protocol}//${host}`);
+        if (actual.host !== host.toLowerCase()) throw new Error("Invalid host");
+        const loopback = new Set(["localhost", "127.0.0.1", "[::1]"]);
+        if (actual.host !== target.host && (!loopback.has(actual.hostname) || !loopback.has(target.hostname) || actual.port !== target.port)) {
+          throw new Error("Unexpected host");
+        }
+        target.host = actual.host;
+      } catch { return errorResponse("MATCH_STORY_ORIGIN_REJECTED", "請使用有效的工作台網址。", 403); }
+    }
+    if (origin && origin !== target.origin) {
       return errorResponse("MATCH_STORY_ORIGIN_REJECTED", "不允許其他網站操作本機草稿。", 403);
     }
     if (request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !== "application/json") {
