@@ -1,0 +1,567 @@
+{
+  "model": {
+    "locale": "zh",
+    "branding": {
+      "publicTitle": "賽後判讀",
+      "publicTitleEn": "POST MATCH READ"
+    },
+    "seriesContext": {
+      "league": "LCK",
+      "seriesId": "2026-08-27:LCK 2026 Season Play-In::2026-08-27::BNK FEARX::Nongshim RedForce",
+      "snapshotId": "scan-range-2026-08-27-2026-08-28-c7e950f6-3f48-4139-a3b0-8eb5f40b4730",
+      "season": "2026",
+      "matchDate": "2026-08-27",
+      "teamA": "BF",
+      "teamB": "NR",
+      "teamAIdentity": "BNK FEARX",
+      "teamBIdentity": "Nongshim RedForce",
+      "score": "3-1",
+      "gameCount": 4,
+      "scopeLabel": "LCK · 3-1"
+    },
+    "resultHook": {
+      "scoreParts": {
+        "left": "3",
+        "separator": "–",
+        "right": "1"
+      },
+      "resultClaim": "BF 以 3–1 拿下系列賽。",
+      "displayOrder": [
+        "BF",
+        "NR"
+      ]
+    },
+    "hook": {
+      "metric": "KDA",
+      "leftRaw": 9,
+      "rightRaw": 2.26,
+      "comparisonType": "ratio",
+      "approximate": true,
+      "displayValue": "約 4×",
+      "question": "這個系列賽，輔助差距有多誇張？"
+    },
+    "matchup": {
+      "role": "Support",
+      "focusPlayer": {
+        "name": "Kellin",
+        "team": "BNK FEARX",
+        "role": "Support",
+        "championPlayed": "Renata Glasc",
+        "champions": [
+          "Renata Glasc",
+          "Seraphine",
+          "Karma",
+          "Bard"
+        ],
+        "rawStats": {
+          "role": "Support",
+          "kills": 4,
+          "deaths": 7,
+          "assists": 59,
+          "damageToChampions": 26301,
+          "gold": 33374,
+          "cs": 99,
+          "visionScore": 449,
+          "kda": 9,
+          "dpm": 217,
+          "gpm": 275,
+          "csm": 0.82,
+          "vpm": 3.7,
+          "kp": 0.85
+        },
+        "radarStats": [
+          {
+            "label": "KDA",
+            "rawValue": "9",
+            "normalizedScore": 90
+          },
+          {
+            "label": "DPM",
+            "rawValue": "217",
+            "normalizedScore": 2
+          },
+          {
+            "label": "KP%",
+            "rawValue": "85%",
+            "normalizedScore": 83
+          },
+          {
+            "label": "GPM",
+            "rawValue": "275",
+            "normalizedScore": 18
+          },
+          {
+            "label": "VPM",
+            "rawValue": "3.7",
+            "normalizedScore": 100
+          }
+        ]
+      },
+      "edgePlayer": {
+        "name": "Kellin",
+        "team": "BNK FEARX",
+        "role": "Support",
+        "championPlayed": "Renata Glasc",
+        "champions": [
+          "Renata Glasc",
+          "Seraphine",
+          "Karma",
+          "Bard"
+        ],
+        "rawStats": {
+          "role": "Support",
+          "kills": 4,
+          "deaths": 7,
+          "assists": 59,
+          "damageToChampions": 26301,
+          "gold": 33374,
+          "cs": 99,
+          "visionScore": 449,
+          "kda": 9,
+          "dpm": 217,
+          "gpm": 275,
+          "csm": 0.82,
+          "vpm": 3.7,
+          "kp": 0.85
+        },
+        "radarStats": [
+          {
+            "label": "KDA",
+            "rawValue": "9",
+            "normalizedScore": 90
+          },
+          {
+            "label": "DPM",
+            "rawValue": "217",
+            "normalizedScore": 2
+          },
+          {
+            "label": "KP%",
+            "rawValue": "85%",
+            "normalizedScore": 83
+          },
+          {
+            "label": "GPM",
+            "rawValue": "275",
+            "normalizedScore": 18
+          },
+          {
+            "label": "VPM",
+            "rawValue": "3.7",
+            "normalizedScore": 100
+          }
+        ]
+      },
+      "opponentPlayer": {
+        "name": "Lehends",
+        "team": "Nongshim RedForce",
+        "role": "Support",
+        "championPlayed": "Neeko",
+        "champions": [
+          "Neeko",
+          "Nautilus",
+          "Lulu",
+          "Shen"
+        ],
+        "rawStats": {
+          "role": "Support",
+          "kills": 4,
+          "deaths": 19,
+          "assists": 39,
+          "damageToChampions": 21378,
+          "gold": 31026,
+          "cs": 141,
+          "visionScore": 502,
+          "kda": 2.26,
+          "dpm": 176,
+          "gpm": 256,
+          "csm": 1.16,
+          "vpm": 4.14,
+          "kp": 0.73
+        },
+        "radarStats": [
+          {
+            "label": "KDA",
+            "rawValue": "2.26",
+            "normalizedScore": 23
+          },
+          {
+            "label": "DPM",
+            "rawValue": "176",
+            "normalizedScore": 0
+          },
+          {
+            "label": "KP%",
+            "rawValue": "73%",
+            "normalizedScore": 63
+          },
+          {
+            "label": "GPM",
+            "rawValue": "256",
+            "normalizedScore": 12
+          },
+          {
+            "label": "VPM",
+            "rawValue": "4.14",
+            "normalizedScore": 100
+          }
+        ]
+      },
+      "edgeWinnerTeam": "BNK FEARX",
+      "edgeScore": 19,
+      "edgeType": "winner-breakpoint",
+      "reasons": [
+        {
+          "metric": "KDA",
+          "winnerValue": 9,
+          "loserValue": 2.26,
+          "delta": 6.74,
+          "normalizedGap": 67
+        },
+        {
+          "metric": "KP%",
+          "winnerValue": 0.85,
+          "loserValue": 0.73,
+          "delta": 0.12,
+          "normalizedGap": 20
+        },
+        {
+          "metric": "GPM",
+          "winnerValue": 275,
+          "loserValue": 256,
+          "delta": 19,
+          "normalizedGap": 6
+        }
+      ],
+      "hasAllFiveRoles": true,
+      "claimScope": "series-maximum",
+      "scopeClaim": "五路之中，輔助差距最大",
+      "claim": "輔助把視野與參戰換成開戰主導權。",
+      "primaryEvidence": {
+        "metric": "KDA",
+        "winnerValue": 9,
+        "loserValue": 2.26,
+        "delta": 6.74,
+        "displayValue": "+6.74 KDA"
+      },
+      "scopeLabel": "LCK · 3-1"
+    },
+    "gameFlow": {
+      "gameNumber": 1,
+      "gameId": "",
+      "earlyResourceTeam": "BNK FEARX",
+      "finalMapTeam": "BNK FEARX",
+      "earlyResources": {
+        "voidGrubs": 2,
+        "riftHeralds": 1,
+        "displayValue": "2＋1"
+      },
+      "conversion": {
+        "barons": 1,
+        "towers": 8,
+        "displayValue": "1 → 8"
+      },
+      "goldDelta": 11549,
+      "towerScore": "8–1",
+      "teamFinals": [
+        {
+          "gameId": "LCK/2026 Season/Season Play-In_Round 1_2_4",
+          "team": "BNK FEARX",
+          "side": "Blue",
+          "isWinner": true,
+          "dragons": 2,
+          "barons": 1,
+          "towers": 8,
+          "gold": 55491,
+          "kills": 21,
+          "riftHeralds": 1,
+          "voidGrubs": 2,
+          "source": "ScoreboardTeams",
+          "snapshotType": "team-final",
+          "hasEventTimestamps": false
+        },
+        {
+          "gameId": "LCK/2026 Season/Season Play-In_Round 1_2_4",
+          "team": "Nongshim RedForce",
+          "side": "Red",
+          "isWinner": false,
+          "dragons": 1,
+          "barons": 0,
+          "towers": 1,
+          "gold": 43942,
+          "kills": 10,
+          "riftHeralds": 0,
+          "voidGrubs": 1,
+          "source": "ScoreboardTeams",
+          "snapshotType": "team-final",
+          "hasEventTimestamps": false
+        }
+      ],
+      "analysisClaim": "BNK FEARX 拿到前期資源，BNK FEARX 最後拿走地圖。",
+      "conclusion": "物件本身不是勝點，物件之後換到幾座塔才是。",
+      "claimBasis": {
+        "source": "ScoreboardTeams",
+        "snapshotType": "team-final",
+        "fields": [
+          "VoidGrubs",
+          "RiftHeralds",
+          "Barons",
+          "Towers",
+          "Gold"
+        ],
+        "hasEventTimestamps": false
+      }
+    },
+    "proof": {
+      "player": {
+        "name": "Taeyoon",
+        "team": "BNK FEARX",
+        "role": "Adc",
+        "championPlayed": "Kalista",
+        "champions": [
+          "Kalista",
+          "Ashe",
+          "Ezreal",
+          "Caitlyn"
+        ],
+        "rawStats": {
+          "role": "Adc",
+          "kills": 17,
+          "deaths": 9,
+          "assists": 36,
+          "damageToChampions": 76585,
+          "gold": 59155,
+          "cs": 1214,
+          "visionScore": 242,
+          "kda": 5.89,
+          "dpm": 632,
+          "gpm": 488,
+          "csm": 10.02,
+          "vpm": 2,
+          "kp": 0.72
+        },
+        "radarStats": [
+          {
+            "label": "KDA",
+            "rawValue": "5.89",
+            "normalizedScore": 59
+          },
+          {
+            "label": "DPM",
+            "rawValue": "632",
+            "normalizedScore": 62
+          },
+          {
+            "label": "KP%",
+            "rawValue": "72%",
+            "normalizedScore": 62
+          },
+          {
+            "label": "GPM",
+            "rawValue": "488",
+            "normalizedScore": 89
+          },
+          {
+            "label": "CSM",
+            "rawValue": "10.02",
+            "normalizedScore": 100
+          }
+        ],
+        "originalName": "Kim Tae-yoon"
+      },
+      "proofType": "mvp",
+      "isRecommendedMvp": true,
+      "proofStats": [
+        {
+          "metric": "CSM",
+          "rawValue": "10.02",
+          "score": 100
+        },
+        {
+          "metric": "GPM",
+          "rawValue": "488",
+          "score": 89
+        },
+        {
+          "metric": "DPM",
+          "rawValue": "632",
+          "score": 62
+        }
+      ],
+      "proofReasons": [
+        {
+          "metric": "CSM",
+          "rawValue": "10.02",
+          "score": 100
+        },
+        {
+          "metric": "GPM",
+          "rawValue": "488",
+          "score": 89
+        },
+        {
+          "metric": "DPM",
+          "rawValue": "632",
+          "score": 62
+        }
+      ],
+      "verdict": "Taeyoon (Kim Tae-yoon) 有這場最清楚的MVP理由。",
+      "secondaryEvidence": [
+        {
+          "metric": "KDA",
+          "displayValue": "5.89"
+        },
+        {
+          "metric": "KP%",
+          "displayValue": "72%"
+        },
+        {
+          "metric": "GPM",
+          "displayValue": "488"
+        }
+      ],
+      "labelType": "data-mvp-candidate",
+      "label": "數據 MVP 候選",
+      "claim": "數據 MVP 候選: Taeyoon"
+    },
+    "finalRead": {
+      "winnerTeam": {
+        "name": "BF",
+        "identity": "BNK FEARX"
+      },
+      "conclusion": "BF 的勝點不是搶得多，而是把每次領先換成塔與輸出。",
+      "conclusionParts": {
+        "lead": "BF 的勝點不是搶得多，",
+        "emphasis": "而是把每次領先換成塔與輸出。"
+      },
+      "recapReferences": [
+        {
+          "source": "matchup",
+          "playerName": "Kellin",
+          "metric": "KDA",
+          "displayValue": "+6.74 KDA",
+          "label": "KELLIN · KDA"
+        },
+        {
+          "source": "proof",
+          "playerName": "Taeyoon",
+          "metric": "CSM",
+          "displayValue": "10.02 CSM",
+          "label": "TAEYOON · CSM"
+        }
+      ]
+    },
+    "assets": {
+      "teams": {
+        "teamA": {
+          "team": "BNK FEARX",
+          "season": "2026",
+          "sha256": "b5b69b5d9ddaf255c1e95f66f5a79eecda4d9d07f42afddd53bab73a79cb68c6",
+          "width": 1000,
+          "height": 1000,
+          "publicPath": "/team-crests/bnk-fearx-2026.png",
+          "labelMode": "embedded"
+        },
+        "teamB": {
+          "team": "Nongshim RedForce",
+          "season": "2026",
+          "sha256": "e56bdcad9679c1348c6b5c4c8149d1c22d50bbcdef456feca18f2c477c6399be",
+          "width": 1000,
+          "height": 1000,
+          "publicPath": "/team-crests/nongshim-redforce-2026.png",
+          "labelMode": "embedded"
+        }
+      },
+      "finalRead": {
+        "winnerCrest": {
+          "team": "BNK FEARX",
+          "season": "2026",
+          "sha256": "b5b69b5d9ddaf255c1e95f66f5a79eecda4d9d07f42afddd53bab73a79cb68c6",
+          "width": 1000,
+          "height": 1000,
+          "publicPath": "/team-crests/bnk-fearx-2026.png",
+          "labelMode": "embedded"
+        }
+      },
+      "matchup": {
+        "edge": {
+          "championName": "Renata Glasc",
+          "squareSrc": "/render-assets/afb9ebb3aef5049245ed2d54.png",
+          "atmosphereSrc": "/render-assets/57daf26d26289d1766d46943.jpg",
+          "fallbackState": "full",
+          "mapSrc": null
+        },
+        "opponent": {
+          "championName": "Neeko",
+          "squareSrc": "/render-assets/6de3a31d82d088d0d945afc6.png",
+          "atmosphereSrc": "/render-assets/d740119ca0b83094c30b0d0e.jpg",
+          "fallbackState": "full",
+          "mapSrc": null
+        }
+      },
+      "proof": {
+        "champions": [
+          {
+            "championName": "Kalista",
+            "src": "/render-assets/3f3d38cdb34b2eb7767190a6.png"
+          },
+          {
+            "championName": "Ashe",
+            "src": "/render-assets/2ee6cbc6855f8de6632eabd9.png"
+          },
+          {
+            "championName": "Ezreal",
+            "src": "/render-assets/f4a3a0f0df989076bc1b94c3.png"
+          }
+        ],
+        "playerPortrait": {
+          "playerId": "taeyoon",
+          "publicName": "Taeyoon",
+          "team": "BNK FEARX",
+          "season": "2026",
+          "sha256": "d7b397902180dee83edcd337724c63e75b3bc6287bb5863fa81c46e3e6472456",
+          "width": 615,
+          "height": 531,
+          "publicPath": "/player-portraits/bfx-taeyoon-2026.webp"
+        }
+      },
+      "smiteSrc": "/render-assets/6a023ab024f2f7ba55148ff7.png",
+      "mapSrc": "/render-assets/287ecd61055413b0f0263733.png"
+    },
+    "audioPlan": null,
+    "storyboard": [
+      {
+        "tag": "RESULT_HOOK",
+        "durationInFrames": 150,
+        "text": "這個系列賽，輔助差距有多誇張？"
+      },
+      {
+        "tag": "MATCHUP_EDGE",
+        "durationInFrames": 210,
+        "text": "不是小贏，是整個系列賽的斷層。"
+      },
+      {
+        "tag": "EARLY_CONTROL",
+        "durationInFrames": 210,
+        "text": "物件本身不是勝點，物件之後換到幾座塔才是。"
+      },
+      {
+        "tag": "MAP_CONVERSION",
+        "durationInFrames": 240,
+        "text": "物件本身不是勝點，物件之後換到幾座塔才是。"
+      },
+      {
+        "tag": "PLAYER_PROOF",
+        "durationInFrames": 240,
+        "text": "Taeyoon (Kim Tae-yoon) 有這場最清楚的MVP理由。"
+      },
+      {
+        "tag": "FINAL_READ",
+        "durationInFrames": 150,
+        "text": "把每次領先換成塔與輸出。"
+      }
+    ]
+  },
+  "music": "render-assets/audio/c6e83e763f9b1851-3de66094-post-match-read.wav",
+  "background": "render-assets/rift-stone-trial/forest.webp"
+}

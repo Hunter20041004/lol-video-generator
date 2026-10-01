@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-01T00:24:04.174Z",
+  "title": "Design System: Rift Stone Trial (preview only)",
+  "extensions": {
+    "motion": [
+      {
+        "name": "entry",
+        "value": "14 frames cubic ease-out, 12px translateY",
+        "purpose": "Ordered evidence reveal; transform suppressed by reducedMotion"
+      },
+      {
+        "name": "background",
+        "value": "scale 1 to 1.012, frozen from frame 1140",
+        "purpose": "Slow scenery depth; no tactical inference"
+      }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Stone evidence panel",
+      "kind": "custom",
+      "refersTo": "stone-panel",
+      "description": "Noninteractive film statistics surface, not a website control",
+      "html": "<section class=\"ds-stone\"><strong>8–1</strong><p>防禦塔 · FEARX / NS</p></section>",
+      "css": ".ds-stone{background:#101a1b;color:#eee9dc;border-top:2px solid #776849;border-bottom:2px solid #776849;padding:30px 36px}.ds-stone strong{color:#c6aa72;font-family:Cinzel,serif;font-size:72px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "峽谷石刻戰報",
+    "overview": "Independent six-scene trial; root design system is unchanged.",
+    "dos": [
+      "Keep factual qualifications and verified imagery."
+    ],
+    "donts": [
+      "Do not treat atmospheric terrain as actual tactical positions."
+    ]
+  }
+}
