@@ -1,0 +1,64 @@
+{
+  "title": "峽谷圖鑑｜構圖確認",
+  "question": "三張都是同一個圖鑑風格。選想帶進影片的構圖；A保留原稿，B/C示範依當場兩隊換色。正式版三種構圖都會支援隊伍換色。",
+  "options": [
+    {
+      "id": "atlas-original",
+      "label": "A｜原選構圖",
+      "thesis": "保留你已選的斜向色面與比分、地圖交錯。",
+      "palette": [
+        "#087F68",
+        "#F4F6EE",
+        "#102B25"
+      ],
+      "materials": [
+        "平面峽谷插畫",
+        "俐落數字與證據索引"
+      ],
+      "viewport": "斜向色面建立焦點，下方三欄證據；這張原稿尚未換隊色。",
+      "risk": "隊伍換色仍需實作；生成隊徽不能直接用在成品。",
+      "comp": ".impeccable/mocks/decision/award-reset/atlas.png"
+    },
+    {
+      "id": "atlas-spine",
+      "label": "B｜中央地圖",
+      "thesis": "比分先讀，中央峽谷把兩隊識別與底部證據串起來。",
+      "palette": [
+        "#F2C230",
+        "#CA2333",
+        "#F4F6EE"
+      ],
+      "materials": [
+        "平面峽谷插畫",
+        "兩隊識別色"
+      ],
+      "viewport": "上方比分、中間縱向地圖、底部三欄數據；黃與紅來自本場隊徽。",
+      "risk": "地圖不能壓過比分；生成隊徽與文字僅為構圖示意。",
+      "comp": ".impeccable/mocks/rift-atlas-map-spine.png"
+    },
+    {
+      "id": "atlas-spread",
+      "label": "C｜開放圖鑑",
+      "thesis": "大片閱讀區配不對稱地圖，證據用直列索引呈現。",
+      "palette": [
+        "#F2C230",
+        "#CA2333",
+        "#F4F6EE"
+      ],
+      "materials": [
+        "平面峽谷插畫",
+        "刊物式數據索引"
+      ],
+      "viewport": "大比分佔上半，地圖偏左，下方三列證據；黃與紅來自本場隊徽。",
+      "risk": "資料較長時要控制行長；生成隊徽與文字不能當真實素材。",
+      "comp": ".impeccable/mocks/rift-atlas-open-spread.png"
+    }
+  ],
+  "canon": false,
+  "reroll": false,
+  "steer": true,
+  "buildPath": {
+    "value": "comp",
+    "toggle": false
+  }
+}

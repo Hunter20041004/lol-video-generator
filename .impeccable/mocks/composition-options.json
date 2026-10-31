@@ -1,0 +1,43 @@
+{
+  "title": "決勝一幀：選擇五幕構圖骨架",
+  "question": "美術世界已固定；現在只選觀眾第一眼先看到比分、人物，還是勝方證物。三者都維持一幕一張影像、一句判讀、一筆證據。",
+  "options": [
+    {
+      "id": "comp-1-score-led",
+      "label": "比分主導",
+      "kicker": "ORIGINAL DIRECTION",
+      "lineage": "決勝一幀原始概念",
+      "thesis": "先用巨大 2–3 停住滑動，再讓人物與判讀補上原因。",
+      "palette": ["#080909", "#F1ECE2", "#E94B35", "#77736C"],
+      "materials": ["黑白賽事照片", "底片顆粒", "紅色編輯記號"],
+      "viewport": "比分佔據上半場，人物由右下切入，判讀位於中下段，留白包住三個層次。",
+      "risk": "開場最強，但後續幕需要調整數字尺度，避免每幕都像比分頁。",
+      "comp": ".impeccable/mocks/comp-1-score-led.png"
+    },
+    {
+      "id": "comp-2-portrait-led",
+      "label": "人物主導",
+      "kicker": "COMPOSITION STUDY",
+      "lineage": "運動人物專題與暗房放大",
+      "thesis": "先用勝方人物建立情緒，比分與判讀在安靜黑場中依序出現。",
+      "palette": ["#080909", "#F1ECE2", "#E94B35", "#77736C"],
+      "materials": ["單一人物裁切", "底片邊框", "紅筆確認記號"],
+      "viewport": "人物佔左半並越出畫面，右側保留黑場給比分、判讀與唯一證據。",
+      "risk": "情緒最強，但真實照片品質與人物辨識必須非常可靠。",
+      "comp": ".impeccable/mocks/comp-2-portrait-led.png"
+    },
+    {
+      "id": "comp-3-crest-led",
+      "label": "勝方證物主導",
+      "kicker": "COMPOSITION STUDY",
+      "lineage": "隊服織物特寫與編輯證物照",
+      "thesis": "讓隊徽與隊服成為巨大的實體證物，人物退場，結論更像戰報。",
+      "palette": ["#080909", "#F1ECE2", "#E94B35", "#77736C"],
+      "materials": ["隊服織物特寫", "暗房黑場", "五拍時間刻度"],
+      "viewport": "垂直比分貼左，判讀在右上，勝方隊徽織物佔下半場，中央保留最大黑場。",
+      "risk": "最有品牌性，但若每支影片沒有足夠好的隊服或隊徽素材，延展成本最高。",
+      "comp": ".impeccable/mocks/comp-3-crest-led.png"
+    }
+  ],
+  "steer": true
+}

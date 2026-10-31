@@ -1,0 +1,9 @@
+{
+  "prompt": "Edit this exact Taeyoon player performance mockup. Keep the actual supplied player's face and jersey appearance, broad gold/crimson background, title 選手表現, verified statistics 10.02 CSM, KDA5.89, 參戰率72%, 每分鐘金錢488, and 數據 MVP 候選 clearly not official MVP. SINGLE COMPOSITION REPAIR: Taeyoon name currently touches/extends toward player's hair. Scale and reposition name to fit entire left typography column x=6% to43% frame, no text extends past43%. Portrait exclusively right x=48% to94%, head/hair/shoulders never enter left column. Clear visible background gutter between portrait and ALL labels including MVP候選. Reduce portrait enough for that nonoverlap but preserve realistic face identity; final uses original photo. Simplify top-right series marker into small text BNK FEARX 3–1 NS instead of competing tiny crests. Remove duplicate bottom 10.02 caption strip and use 本系列數據，非官方 MVP as quiet footer caption. Do not change primary10.02 or other stats. No extra metrics, no altered face, no classical serif, no shadows or metric cards. Preserve approved angular clean type and editorial gold/red style.",
+  "tool": "built-in image_gen",
+  "approved": false,
+  "intent": "corrected-scene-design-preview",
+  "parentPrompt": "05-player.prompt.txt",
+  "parentGeneratedFile": "exec-c8bf0faa-1602-41e2-b777-7fe386dc2db6.png",
+  "source": "Approved opening visual baseline, frozen real metrics. Generated portrait reconstruction / lettering / crests are not production assets."
+}
