@@ -1,5 +1,10 @@
 const MAX_BODY_BYTES = 1024 * 1024;
 const errors = {
+  MATCH_STORY_CONFIRM_REQUIRED: [409, "請先確認目前的稿件版本，再製作預覽。"],
+  MATCH_STORY_RENDER_BUSY: [409, "這份稿件正在製作預覽，請等候，不會重複開始。"],
+  MATCH_STORY_ASSET_UNAVAILABLE: [409, "本場已驗證素材不可用，請先補齊正確素材。"],
+  MATCH_STORY_TOO_DENSE: [409, "文字超出影片的閱讀或排版預算，請縮短稿件或候選標題。"],
+  MATCH_STORY_RIGHTS_UNVERIFIED: [409, "外加素材權利尚未驗證，本版只使用專案已驗證素材。"],
   MATCH_STORY_INVALID_REQUEST: [400, "故事稿請求格式無效。"],
   MATCH_STORY_INVALID_ID: [400, "草稿識別碼無效。"],
   MATCH_STORY_INVALID_DRAFT: [400, "草稿資料格式無效。"],
@@ -42,7 +47,7 @@ async function readBody(request) {
   } finally { reader.releaseLock(); }
   return JSON.parse(Buffer.concat(chunks).toString("utf8"));
 }
-function createMatchStoryPost(service) {
+function createMatchStoryPost(service, {responseKey='draft'}={}) {
   return async function POST(request) {
     const origin = request.headers.get("origin");
     const target = new URL(request.url);
@@ -72,7 +77,7 @@ function createMatchStoryPost(service) {
       if (error.code === "MATCH_STORY_REQUEST_TOO_LARGE") return errorResponse(error.code, "故事稿資料超過大小限制。", 400);
       return errorResponse("MATCH_STORY_INVALID_REQUEST", "請提供有效的故事稿資料。", 400);
     }
-    try { return Response.json({ success: true, draft: await service.execute(body) }); }
+    try { return Response.json({ success: true, [responseKey]: await service.execute(body) }); }
     catch (error) {
       const code = Object.hasOwn(errors, error?.code) ? error.code : "MATCH_STORY_FAILED";
       const [status, message] = errors[code] || [500, "故事稿操作失敗，請稍後再試。"];

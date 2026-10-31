@@ -1,0 +1,42 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const os=require('node:os');
+const path=require('node:path');
+const {fork}=require('node:child_process');
+const {once}=require('node:events');
+const {researchPackage}=require('../../fixtures/match-story/research');
+const {inspectMatchStoryMedia}=require('../../../utils/render/matchStoryMedia');
+
+test('confirmed synthetic HTTP draft crosses real disk, material and Remotion boundaries without publishing',{timeout:180000},async t=>{
+ const root=path.resolve(__dirname,'../../..');
+ const cwd=fs.mkdtempSync(path.join(os.tmpdir(),'lol-story-preview-http-'));
+ const child=fork(path.resolve(__dirname,'../../fixtures/match-story/httpServer.js'),[],{cwd,env:{...process.env,STORY_TEST_RENDER_ROOT:root},stdio:['ignore','pipe','pipe','ipc']});
+ let errors='';child.stderr.on('data',chunk=>{errors+=chunk;});
+ t.after(async()=>{if(child.exitCode===null){child.kill();await once(child,'exit');}fs.rmSync(cwd,{recursive:true,force:true});});
+ const research=researchPackage();
+ research.identity={...research.identity,teamA:'T1',teamB:'Gen.G'};
+ research.candidates[0].headline='合成流程測試';
+ const ready=Promise.race([once(child,'message'),once(child,'exit').then(()=>{throw new Error(errors||'fixture exited');})]);
+ child.send({scanId:research.identity.scanId,createdAt:new Date().toISOString(),candidates:[{...research.identity,tournament:'LCK 2026 Season',status:'completed',completeness:{hasTenPlayers:true,hasFiveRoleMatchups:true},players:Array.from({length:10},()=>({})),roleMatchups:Array.from({length:5},()=>({left:{},right:{}}))}]});
+ const [message]=await ready;
+ const base=`http://127.0.0.1:${message.port}/api/esports/story`;
+ async function post(body,suffix=''){const response=await fetch(base+suffix,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});return {status:response.status,...await response.json()};}
+ const imported=await post({action:'import',scanId:research.identity.scanId,seriesId:research.identity.seriesId,research});
+ assert.equal(imported.status,200);
+ const id=imported.draft.id;
+ const revised=await post({action:'revise',id,expectedRevision:1,patch:{selectedCandidateId:'candidate-1',segments:[{narration:'合成流程，非賽事報導。',factIds:['fact-1']},{narration:'結尾仍是合成測試。',factIds:['fact-1']}]}});
+ assert.equal(revised.status,200);
+ assert.equal((await post({action:'confirm',id,expectedRevision:2})).draft.confirmedRevision,2);
+ const before=fs.readFileSync(path.join(cwd,'.data/match-story-drafts.json'));
+ const rendered=await post({id,expectedRevision:2,scanId:research.identity.scanId,seriesId:research.identity.seriesId},'/preview');
+ assert.equal(rendered.status,200,JSON.stringify(rendered));
+ assert.equal(rendered.preview.validation.passed,true);
+ assert.match(rendered.preview.videoUrl,/^\/renders\/story-[\da-f-]+\.mp4$/);
+ assert.match(rendered.preview.materialFingerprint,/^[\da-f]{64}$/);
+ const media=await inspectMatchStoryMedia(path.join(root,'public',rendered.preview.videoUrl));
+ assert.equal(media.width,1080);assert.equal(media.height,1920);
+ assert.equal(media.videoCodec,'h264');
+ assert.deepEqual(fs.readFileSync(path.join(cwd,'.data/match-story-drafts.json')),before);
+ assert.deepEqual(fs.readdirSync(path.join(cwd,'.data')).sort(),['esports-candidate-scans.json','match-story-drafts.json']);
+});

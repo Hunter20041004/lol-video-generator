@@ -1,5 +1,8 @@
 import { Composition } from "remotion";
 import { PatchVideo } from "./Composition";
+import { MatchStoryFrame } from "./templates/MatchStoryFrame";
+import { MatchStoryVideo } from "./templates/MatchStoryVideo";
+import { matchStoryProof } from "./video-system/matchStoryProof";
 import { createPortfolioRenderProps } from "../utils/portfolioDemo";
 import { calculateMetadataFrames, getPostMatchReadStoryboard } from "./video-system/pacing";
 
@@ -283,6 +286,8 @@ const retainedCompositions = [
 
 export const RemotionRoot = () => (
   <>
+    <Composition id="MatchStoryVisualProof" component={MatchStoryFrame} durationInFrames={1} fps={30} width={1080} height={1920} defaultProps={{plateOnly:true}} />
+    <Composition id="MatchStoryVideo" component={MatchStoryVideo} calculateMetadata={({props})=>({durationInFrames:props.timeline.durationInFrames,props})} fps={30} width={1080} height={1920} defaultProps={matchStoryProof} />
     {retainedCompositions.map(([id, data]) => (
       <Composition
         key={id}

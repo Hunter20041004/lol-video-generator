@@ -6,6 +6,28 @@ const path = require('node:path');
 const { fork } = require('node:child_process');
 const { once } = require('node:events');
 
+test('confirmed story can preview once and editing removes the rendered version', async ({page})=>{
+ const research=researchPackage();let previews=0,publications=0;
+ const draft={id:'synthetic-preview',identity:research.identity,research,revision:2,status:'confirmed',confirmedRevision:2,selectedCandidateId:'candidate-1',segments:[{narration:'合成預覽測試。',factIds:['fact-1']}],rights:[]};
+ await page.route('**/api/esports/candidates',route=>route.fulfill({json:{success:true,scanId:research.identity.scanId,candidates:[{...research.identity,canPreview:true}]}}));
+ await page.route('**/api/esports/story',route=>route.fulfill({json:{success:true,draft}}));
+ await page.route('**/api/publish',route=>{publications++;return route.abort();});
+ await page.route('**/api/esports/story/preview',async route=>{
+  previews++;expect(route.request().postDataJSON()).toEqual({id:draft.id,expectedRevision:2,scanId:research.identity.scanId,seriesId:research.identity.seriesId});
+  await new Promise(resolve=>setTimeout(resolve,100));
+  return route.fulfill({json:{success:true,preview:{draftId:draft.id,revision:2,videoUrl:'/renders/story-12345678-1234-1234-1234-123456789abc.mp4',materialFingerprint:'a'.repeat(64),validation:{passed:true}}}});
+ });
+ // Deliberately tests version metadata/UI, not actual video decoding.
+ await page.route('**/renders/story-12345678-1234-1234-1234-123456789abc.mp4',route=>route.fulfill({contentType:'video/mp4',body:Buffer.alloc(0)}));
+ await page.goto('/');await page.getByRole('button',{name:'尋找區間賽事'}).click();
+ await page.getByLabel('匯入研究資料').setInputFiles({name:'research.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(research))});
+ const previewButton=page.getByRole('button',{name:'製作故事預覽'});await expect(previewButton).toBeEnabled();
+ await previewButton.dispatchEvent('click');await previewButton.dispatchEvent('click');
+ await expect(page.getByTestId('story-preview-video')).toBeVisible();expect(previews).toBe(1);expect(publications).toBe(0);
+ await page.getByLabel('第 1 段旁白').fill('新的合成稿。');
+ await expect(page.getByTestId('story-preview-video')).toHaveCount(0);await expect(previewButton).toBeDisabled();
+});
+
 test('a lost save response can recover the latest draft explicitly without retrying a write', async ({ page }) => {
   const research = researchPackage();
   let reads = 0, saves = 0;
@@ -100,10 +122,10 @@ test('untrusted source text is inert and unsafe links have no navigation entry',
   await expect(page.getByTestId('match-story-panel').locator('img')).toHaveCount(0);
 });
 
-test('real Next route accepts the local browser origin and rejects external or forwarded origins', async ({ request }) => {
-  const url = 'http://127.0.0.1:49765/api/esports/story';
+test('real Next route accepts the local browser origin and rejects external or forwarded origins', async ({ request, baseURL }) => {
+  const url = `${baseURL}/api/esports/story`;
   const data = { action: 'research', scanId: 'synthetic', seriesId: 'synthetic' };
-  const local = await request.post(url, { headers: { origin: 'http://127.0.0.1:49765' }, data });
+  const local = await request.post(url, { headers: { origin: baseURL }, data });
   expect(local.status()).toBe(503);
   expect((await local.json()).code).toBe('MATCH_STORY_SERVICE_DISABLED');
   const hostile = await request.post(url, { headers: { origin: 'https://synthetic.example', 'x-forwarded-host': 'synthetic.example', 'x-forwarded-proto': 'https' }, data });

@@ -9,6 +9,12 @@
   ],
   "slices": [
     {
+      "id": "match-story-preview",
+      "description": "Confirmed revision-only preview, source-backed timing and verified team-colour materials",
+      "productionFiles": ["utils/esports/matchStoryPreview.js", "utils/esports/matchStoryPreviewApi.js", "utils/render/matchStoryValidation.js", "utils/render/matchStoryAssets.js", "utils/render/riftAtlasMaterials.js", "utils/render/matchStoryAudio.js", "utils/render/matchStoryMedia.js", "utils/render/matchStoryRenderer.js"],
+      "testFiles": ["tests/unit/esports/matchStoryPreview.test.js", "tests/unit/esports/matchStoryPreviewRoute.test.js", "tests/unit/render/matchStoryValidation.test.js", "tests/unit/render/matchStoryAssets.test.js", "tests/unit/render/riftAtlasMaterials.test.js", "tests/unit/render/matchStoryFrame.test.js", "tests/unit/render/matchStoryFonts.test.js", "tests/unit/render/matchStoryVideo.test.js", "tests/unit/render/matchStoryAudio.test.js", "tests/unit/render/matchStoryMedia.test.js", "tests/unit/render/matchStoryRenderer.test.js"]
+    },
+    {
       "id": "match-story-editor",
       "description": "Story editor match reset, confirmation invalidation and safe source navigation",
       "productionFiles": ["app/components/studio/matchStoryModel.js"],

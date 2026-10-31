@@ -1,0 +1,1 @@
+{"identity":{"scanId":"scan-synthetic","seriesId":"series-synthetic","date":"2026-08-27","league":"LCK","teamA":"T1","teamB":"Gen.G","seriesScore":"3-1"},"sources":[],"facts":[{"id":"fact-1","statement":"合成流程測試","sourceIds":[],"scope":"game","gameNumber":4}],"candidates":[{"id":"candidate-1","headline":"合成流程測試","whyInteresting":"合成流程，非賽事報導","factIds":["fact-1"],"unresolved":[]}]}

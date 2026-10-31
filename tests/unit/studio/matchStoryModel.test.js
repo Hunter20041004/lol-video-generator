@@ -4,6 +4,18 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const url = pathToFileURL(path.resolve(__dirname, '../../../app/components/studio/matchStoryModel.js')).href;
 
+test('only a validated preview of the current confirmed revision is accepted and edits clear it', async () => {
+ const {storyEditorReducer}=await import(url);
+ const draft={id:'synthetic',revision:2,confirmedRevision:2,status:'confirmed',segments:[],selectedCandidateId:'fight'};
+ const state=storyEditorReducer(undefined,{type:'loaded',draft});
+ const preview={draftId:'synthetic',revision:2,videoUrl:'/renders/story-12345678-1234-1234-1234-123456789abc.mp4',materialFingerprint:'a'.repeat(64),validation:{passed:true}};
+ const accepted=storyEditorReducer(state,{type:'preview',preview});assert.deepEqual(accepted.preview,preview);
+ const edited=storyEditorReducer(accepted,{type:'edit',segments:[]});assert.equal(edited.preview,null);
+ for(const bad of [{...preview,revision:1},{...preview,draftId:'other'},{...preview,videoUrl:'https://example.com/video.mp4'},{...preview,validation:{passed:false}}]){
+  assert.equal(storyEditorReducer(state,{type:'preview',preview:bad}).preview,null);
+ }
+});
+
 test('selecting another match clears the previous draft and local edits', async () => {
   const { storyEditorReducer, initialStoryEditor } = await import(url);
   const before = { ...initialStoryEditor, draft: { id: 'old' }, segments: [{ narration: 'old', factIds: [] }], dirty: true, error: 'old' };

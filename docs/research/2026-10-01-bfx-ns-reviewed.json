@@ -1,0 +1,24 @@
+{
+  "identity": {
+    "scanId": "scan-range-2026-08-27-2026-08-28-eb616252-8c67-4e4d-975f-68d9658f9f71",
+    "seriesId": "2026-08-27:LCK 2026 Season Play-In::2026-08-27::BNK FEARX::Nongshim RedForce",
+    "date": "2026-08-27", "league": "LCK", "teamA": "BNK FEARX", "teamB": "Nongshim RedForce", "seriesScore": "3-1"
+  },
+  "sources": [
+    {"id":"g4-video","url":"https://www.youtube.com/watch?v=EP3kMpvBfQE","title":"OPLoLReplay：NS vs BFX Game 4 精華","publishedAt":null,"retrievedAt":"2026-10-01T07:34:04Z","kind":"video","readStatus":"reviewed-video","matchExplanation":"頁面標題明列NS／BFX、LCK 2026 Play-In及Game4，畫面有BFX／NS隊名。正常YouTube播放器回看262–285秒，另於269–273秒連續播放；截圖僅作本機研究，未下載或取得重製授權。"},
+    {"id":"kuki-interview","url":"https://www.kukinews.com/article/view/kuk202608270262","title":"Kuki News：Taeyoon 賽後直接採訪","publishedAt":null,"retrievedAt":"2026-10-01T06:11:54Z","kind":"article","readStatus":"report","matchExplanation":"沿用當日已讀正文：8月27日FEARX對Nongshim、3比1、交易背景及翌日BRION；未把未明示時區轉為出版時間戳。"},
+    {"id":"fomos-report","url":"https://v.daum.net/v/20260827223349039","title":"Fomos／Daum：FEARX 3比1 Nongshim 賽事報導","publishedAt":null,"retrievedAt":"2026-10-01T06:11:54Z","kind":"article","readStatus":"report","matchExplanation":"沿用當日已讀正文，同場第四局預示者交戰及系列結果；報導概略15分鐘不作畫面精確時間。"}
+  ],
+  "facts": [
+    {"id":"g4-clear-down","statement":"第四局截至遊戲16:15，Clear已進入死亡狀態；河道仍在交戰，Taeyoon、Kellin、Raptor與VicLa都在畫面內。","sourceIds":["g4-video"],"evidenceType":"reviewed-video","scope":"game","gameNumber":4,"limitations":["16:15是可讀取的畫面狀態，不宣稱Clear精確死亡時刻。","不判定每個技能、傷害量或單一勝因。"],"conflicts":[],"observation":{"sourceId":"g4-video","reviewer":"Codex：正常播放器人工畫面核對","reviewedAt":"2026-10-01T07:35:00Z","playerStartSeconds":269,"playerEndSeconds":273.02,"gameStartSeconds":971,"gameEndSeconds":975,"observed":"269–273秒正常連續播放，273.02秒截圖時遊戲16:15、人頭3–6；Clear側欄有35秒死亡計時，河道有四名BFX姓名。"}},
+    {"id":"g4-herald-result","statement":"第四局遊戲16:17畫面已出現藍方擊殺預示者提示；BFX是本局藍方。","sourceIds":["g4-video"],"evidenceType":"reviewed-video","scope":"game","gameNumber":4,"limitations":["未確認預示者之眼拾取者，不指定持有人。","修正舊筆記的16:23：本輪16:17畫面已有提示，不把這個畫面秒數當精確擊殺瞬間。"],"conflicts":[],"observation":{"sourceId":"g4-video","reviewer":"Codex：正常播放器人工畫面核對","reviewedAt":"2026-10-01T07:34:04Z","playerStartSeconds":273,"playerEndSeconds":275,"gameStartSeconds":975,"gameEndSeconds":977,"observed":"275秒截圖時鐘16:17、比分3–6，上方韓文提示藍方擊殺預示者；畫面BFX藍色身份、基地／側欄對照。本輪未逐幀核對出現的第一幀。"}},
+    {"id":"g4-six-all","statement":"第四局遊戲16:27時，人頭追成6–6，Taeyoon仍存活；画面擊殺提示為VicLa擊殺Diable。","sourceIds":["g4-video"],"evidenceType":"reviewed-video","scope":"game","gameNumber":4,"limitations":["6–6是第四局人頭，不是系列比分。","不能把所有擊殺歸给Taeyoon，不能据此證明整系列唯一勝因。"],"conflicts":[],"observation":{"sourceId":"g4-video","reviewer":"Codex：正常播放器人工畫面核對","reviewedAt":"2026-10-01T07:34:04Z","playerStartSeconds":278.74,"playerEndSeconds":285,"gameStartSeconds":981,"gameEndSeconds":987,"observed":"278.74秒截圖16:21人頭4–6；285秒截圖16:27人頭6–6，Taeyoon姓名／血條仍在場，提示BFX VicLa擊殺NS Diable。"}},
+    {"id":"trade-background","statement":"Kuki採訪寫明Taeyoon於4月與Diable交易，從Nongshim加入FEARX。","sourceIds":["kuki-interview"],"evidenceType":"report","scope":"background","limitations":["只作本場背景，不推測交易動機，不套用其他場次。"],"conflicts":[]},
+    {"id":"series-result","statement":"FEARX先失首局，再連勝三局，以3比1擊敗Nongshim。","sourceIds":["kuki-interview","fomos-report"],"evidenceType":"report","scope":"series","limitations":["這是系列結果，和第四局人頭分開。"],"conflicts":[]},
+    {"id":"season-stakes","statement":"Nongshim輸後結束2026賽季；FEARX當時仍須於翌日對BRION爭季後賽資格。","sourceIds":["kuki-interview","fomos-report"],"evidenceType":"report","scope":"series","limitations":["描述8月27日當時狀態，不是10月1日最新賽程，不宣稱已晉級。"],"conflicts":[]}
+  ],
+  "candidates": [
+    {"id":"g4-herald","kind":"teamfight","headline":"上路先倒下，FEARX河道仍追回來","whyInteresting":"聚焦本場具體交戰處境與結果，隊友貢獻保留；交易與淘汰只補背景。吸引力為編輯判斷，非觀眾成效證據。","factIds":["g4-clear-down","g4-herald-result","g4-six-all","trade-background","series-result","season-stakes"],"unresolved":[]},
+    {"id":"series-recap","kind":"recap","headline":"先失一局，連贏三局：FEARX保住季後賽希望","whyInteresting":"來源支持的系列摘要備援，不自動替換主線。","factIds":["series-result","season-stakes"],"unresolved":[]}
+  ]
+}
