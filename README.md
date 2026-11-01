@@ -4,7 +4,7 @@
 
 一套把《英雄聯盟》版本資料與電競賽事資訊轉成雙語短影音的內容工廠。它將資料掃描、候選評分、腳本規劃、Remotion 算圖、發布佇列與成效追蹤整合在同一個 Next.js 工作台。
 
-> **狀態：已完成，2026-11 封存。** 250+ commits、699 項自動測試與 CI；實際產出的影片發布在 Instagram [@hextech.vs.cn](https://www.instagram.com/hextech.vs.cn/)。
+> **狀態：製作中，2026 世界賽八強系列完成後封存。** 250+ commits、699 項自動測試與 CI；產線已串接 Instagram Graph API，可自動發文到 [@hextech.vs.cn](https://www.instagram.com/hextech.vs.cn/)。
 
 ## Executive Summary
 
