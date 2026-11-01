@@ -4,9 +4,24 @@
 
 一套把《英雄聯盟》版本資料與電競賽事資訊轉成雙語短影音的內容工廠。它將資料掃描、候選評分、腳本規劃、Remotion 算圖、發布佇列與成效追蹤整合在同一個 Next.js 工作台。
 
+> **狀態：已完成，2026-11 封存。** 250+ commits、699 項自動測試與 CI；實際產出的影片發布在 Instagram [@hextech.vs.cn](https://www.instagram.com/hextech.vs.cn/)。
+
 ## Executive Summary
 
 Hextech Video Studio turns League of Legends patch and esports data into bilingual short-form videos, with AI-assisted analysis, Remotion rendering, and controlled Instagram / Threads publishing in one portfolio-ready workflow.
+
+<img src="docs/screenshots/demo.gif" alt="合成資料示範影片（靜音）" width="270" align="right">
+
+```mermaid
+flowchart TD
+  A[版本改動／賽事資料掃描] --> B[候選評分與把關]
+  B --> C[AI 雙語腳本]
+  C --> D[Remotion 算圖 1080×1920]
+  D --> E[發布佇列：Instagram / Threads]
+  E --> F[成效回填]
+```
+
+<br clear="right">
 
 ![Hextech Video Studio 工作台](docs/screenshots/workbench.png)
 
