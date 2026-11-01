@@ -2,55 +2,57 @@
 
 [![CI](https://github.com/Hunter20041004/lol-video-generator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Hunter20041004/lol-video-generator/actions/workflows/ci.yml)
 
-一套把《英雄聯盟》版本資料與電競賽事資訊轉成雙語短影音的內容工廠。它將資料掃描、候選評分、腳本規劃、Remotion 算圖、發布佇列與成效追蹤整合在同一個 Next.js 工作台。
+**Turns League of Legends patch notes and esports match data into bilingual short videos, and posts them to Instagram automatically.**
 
-> **狀態：製作中，2026 世界賽八強系列完成後封存。** 250+ commits、699 項自動測試與 CI；產線已串接 Instagram Graph API，可自動發文到 [@hextech.vs.cn](https://www.instagram.com/hextech.vs.cn/)。
+把《英雄聯盟》版本改動與電競賽事資料，自動做成中英雙語短影音，並自動發到 Instagram。
 
-## Executive Summary
+> **Type** Personal project · **Status** In progress: archiving after the 2026 Worlds quarterfinal series · **Role** Solo project · **Stack** Next.js, React, Remotion, Node.js, Google Generative AI, Meta Graph API (Instagram / Threads)
 
-Hextech Video Studio turns League of Legends patch and esports data into bilingual short-form videos, with AI-assisted analysis, Remotion rendering, and controlled Instagram / Threads publishing in one portfolio-ready workflow.
-
-<img src="docs/screenshots/demo.gif" alt="合成資料示範影片（靜音）" width="270" align="right">
+<img src="docs/screenshots/demo.gif" alt="Synthetic demo video (muted)" width="270" align="right">
 
 ```mermaid
 flowchart TD
-  A[版本改動／賽事資料掃描] --> B[候選評分與把關]
-  B --> C[AI 雙語腳本]
-  C --> D[Remotion 算圖 1080×1920]
-  D --> E[發布佇列：Instagram / Threads]
-  E --> F[成效回填]
+  A[Patch / match data scan] --> B[Candidate scoring and gatekeeping]
+  B --> C[AI bilingual script]
+  C --> D[Remotion render 1080×1920]
+  D --> E[Publish queue: Instagram / Threads]
+  E --> F[Performance tracking]
 ```
 
 <br clear="right">
 
-![Hextech Video Studio 工作台](docs/screenshots/workbench.png)
+Committed portfolio evidence: [Watch the muted synthetic MP4](public/demo/meta-tier-ranking.mp4) · [View the workbench PNG](docs/screenshots/workbench.png) · Live account: [@hextech.vs.cn](https://www.instagram.com/hextech.vs.cn/)
 
-Committed portfolio evidence: [觀看靜音 synthetic MP4](public/demo/meta-tier-ranking.mp4) · [查看工作台 PNG](docs/screenshots/workbench.png)
+The committed video is generated synthetic evidence, not live Riot, player, or ranked data; it is muted and uses unmistakably synthetic names, scores, and sample values. Local portfolio route: `http://localhost:3000/?portfolio=1`.
 
-本機作品集路由是 `http://localhost:3000/?portfolio=1`。The committed video is generated synthetic evidence, not live Riot, player, or ranked data; it is muted and uses unmistakably synthetic names, scores, and sample values.
+## Background
 
-## 作品集重點
+I wanted to see whether a whole esports content channel could run as a pipeline: data comes in after each patch or match, and a finished video goes out to Instagram with as little manual work as possible.
 
-- **資料到影片的完整管線**：版本掃描 → 內容候選 → 中英文腳本 → Remotion 影片 → 發布佇列。
-- **四個工作區**：版本改動、電競賽事、Meta 內容工廠、發布與成效控制台。
-- **發布安全閘門**：素材不完整、資料來源降級或影片不存在時會阻止正式發布。
-- **可重跑的本機資料層**：snapshot、queue 與 insight store 支援失敗復原與排程。
-- **測試保護**：unit、API boundary、render 與 opt-in live contract tests。
+## What it does
 
-## 架構
+- **Four workspaces** in one Next.js workbench: patch changes, esports matches, a meta content factory, and a publishing and performance console.
+- **Data to video end to end**: scan the data, score candidates, write Chinese and English scripts with AI, render vertical videos with Remotion.
+- **Posts automatically** to Instagram and Threads through the Meta Graph API, with OAuth account linking, a publish queue and performance tracking.
+- **Blocks bad posts**: publishing stops if assets are incomplete, a data source is degraded, or the video file is missing.
 
-```text
-app/                 Next.js 工作台與 API routes
-utils/contentFactory 版本內容解析、雙語 payload、內容庫
-utils/esports         賽事聚合、評分、腳本與 gatekeeper
-utils/metaFactory     Meta 候選、來源 adapter 與 snapshot
-utils/publishing      Instagram / Threads 佇列、OAuth、insights
-utils/render          遠端素材快取與 Remotion render service
-src/templates         版本、賽事、Meta 等短影音模板
-tests/                unit、boundary 與 live contract tests
-```
+![Hextech Video Studio workbench](docs/screenshots/workbench.png)
 
-## 本機 Demo
+## Key decisions
+
+| Decision | Why |
+| --- | --- |
+| Publishing gates instead of "render and post" | A wrong stat or missing asset on a public account is worse than a late post. |
+| Player-radar videos can't publish without evidence for each stat | A public account shouldn't post player numbers that can't be traced back to the match data. |
+| Account linking checks the expected username before posting | Prevents posting to the wrong Instagram or Threads account. |
+| Local, re-runnable data layer (snapshots, queue, insight store) | A failed render or post can be retried without losing state. |
+
+## Results
+
+- Live Instagram account [@hextech.vs.cn](https://www.instagram.com/hextech.vs.cn/) with match highlights and patch analysis.
+- 250+ commits, 699 automated tests (unit, API boundary, render and opt-in live contract tests) and CI on pushes to main and pull requests.
+
+## Run it locally
 
 ```bash
 npm ci
@@ -58,87 +60,26 @@ cp .env.example .env.local
 npm run dev
 ```
 
-開啟 `http://localhost:3000`。不設定第三方金鑰也能瀏覽工作台與執行測試；實際 AI 分析、社群 OAuth、發布與遠端資料契約需要各服務的合法憑證。
-
-建議展示流程：
-
-1. 在「版本改動工廠」切換英雄、系統、裝備／符文模式。
-2. 掃描或載入內容庫，選擇一筆候選內容。
-3. 產生雙語影片並從預覽區檢查結果。
-4. 到發布控制台查看排程與成效同步狀態。
-
-### 重製作品集證據
-
-使用 Node.js 22，先安裝完全鎖定的相依套件與 Playwright Chromium：
+Open `http://localhost:3000`. The workbench and tests run without third-party keys; AI analysis, social login and publishing need your own credentials. To regenerate the portfolio evidence:
 
 ```bash
-npm ci
 npx playwright install chromium
+npm run portfolio:render     # synthetic 180-frame 1080×1920 MP4
+npm run dev                  # in one terminal
+npm run portfolio:capture    # in another: 1440×900 workbench PNG
 ```
 
-以 canonical synthetic fixture 重製 180-frame、1080×1920、30fps 的靜音 MP4：
+Architecture, verification, and security and publishing boundaries: [`docs/SETUP.md`](docs/SETUP.md) (Chinese). Publishing setup: [`docs/publishing-setup.md`](docs/publishing-setup.md).
 
-```bash
-npm run portfolio:render
-```
+## Notes
 
-接著在第一個終端啟動本機工作台：
+Unofficial portfolio project, not affiliated with or endorsed by Riot Games. League of Legends and related marks belong to their owners; check the terms of data sources, game assets and social platforms before reuse.
 
-```bash
-npm run dev
-```
+**Bundled licensed audio.** The MP3 tracks were confirmed by the owner as authorized for generated videos and redistribution in this repository. They remain third-party material outside the ISC license; see [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).
 
-伺服器可由 `http://127.0.0.1:3000` 存取後，在第二個終端擷取 1440×900 PNG：
+## 中文摘要
 
-```bash
-npm run portfolio:capture
-```
-
-## 驗證
-
-```bash
-npm test
-npm run verify
-```
-
-外部資料來源的真實邊界測試預設不執行，避免日常測試依賴第三方可用性：
-
-```bash
-RUN_EXTERNAL_CONTRACTS=1 npm test -- tests/contract/metaFactory/lolalyticsContract.test.js
-```
-
-## 安全與發布邊界
-
-- 所有 API key、OAuth secret、refresh token 與 access token 只從 `.env.local`／環境變數讀取，且不進版。
-- `.env.example` 已移除過時的 YouTube／TikTok 發布變數；保留的空白設定涵蓋作品集存取與基礎 URL、Gemini 分析、Meta 發布及成效追蹤。
-- 正式發布前會檢查影片檔案、公開媒體 URL、資料完整度與支援的平台。
-- Remotion 透過參數陣列與 `shell: false` 啟動，composition 只由 `dataType` 固定對照表選取，不接受呼叫端傳入命令片段。
-- Production 的所有 `POST /api/*` 都需要 `X-Operator-Token`，並以 `PORTFOLIO_OPERATOR_TOKEN` 做固定時間比較；未設定時採 fail closed。
-- 公開作品集應設定 `NEXT_PUBLIC_PORTFOLIO_READ_ONLY=true`，介面會清楚標示展示模式並停用 render、scan、publish 等寫入／計算操作；GET 型的佇列與成果瀏覽仍可使用。
-- 本機 render、發布包、快取、log 與 insight store 均由 `.gitignore` 排除。
-
-Production 變數只放在部署平台，不要把值寫入 Git：
-
-```bash
-NEXT_PUBLIC_PORTFOLIO_READ_ONLY=true
-PORTFOLIO_OPERATOR_TOKEN=<密碼管理器產生的長隨機值>
-```
-
-管理者若要直接呼叫 production API，需從安全的 server-side 工具加入 `X-Operator-Token`；瀏覽器端程式不保存也不回傳這組 Token。本機 `npm run dev` 不受此限制，原有創作流程維持不變。
-
-## 技術棧
-
-Next.js 16、React 19、Remotion 4、Node.js test runner、Google Generative AI，以及用於 Instagram / Threads 發布的 Meta Graph API。
-
-## Disclaimer
-
-這是非官方作品集專案，與 Riot Games 無隸屬或背書關係。《英雄聯盟》及相關商標屬其各自權利人；使用者應自行確認資料來源、遊戲素材與社群平台的授權條款。
-
-## Bundled licensed audio
-
-Local renders automatically select one verified track from `config/licensed-music-library.json`. Bilingual outputs share the same selection, and Remotion trims playback to the video duration. A caller-supplied `bgmFile` overrides automatic selection; an explicit `null` keeps a render muted. The committed portfolio demo remains muted.
-
-The bundled MP3 files were confirmed by the project owner as authorized for generated videos and redistribution in this repository. They remain third-party material and are not covered by the ISC license; see [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).
+想試試看一個電競內容頻道能不能整條自動化：每次改版或比賽後資料進來，產出雙語短影片並自動發到 Instagram。工作台整合版本改動、電競賽事、Meta 內容工廠與發布成效四個工作區；影片由 Remotion 算圖，透過 Meta Graph API 自動發到 Instagram／Threads，素材不完整或資料來源降級時會擋下發布。
 
 ## License
 

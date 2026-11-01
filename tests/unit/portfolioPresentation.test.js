@@ -233,7 +233,7 @@ test("public setup documents only retained social publishers", () => {
   assert.match(env, /^GEMINI_API_KEY=/m);
   assert.match(readme, /Google Generative AI/);
   assert.match(readme, /Instagram \/ Threads/);
-  assert.match(readme, /Executive Summary/);
+  assert.match(readme, /^## What it does$/m);
 });
 
 test("package identity and tracked media have explicit rights", () => {
@@ -468,10 +468,10 @@ test("portfolio evidence has the required binary contracts", () => {
 
 test("README makes committed synthetic evidence discoverable and exactly reproducible", () => {
   const readme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
-  const firstSection = readme.slice(0, readme.indexOf("## 作品集重點"));
+  const firstSection = readme.slice(0, readme.indexOf("## Background"));
 
-  assert.match(firstSection, /\[觀看靜音 synthetic MP4\]\(public\/demo\/meta-tier-ranking\.mp4\)/);
-  assert.match(firstSection, /\[查看工作台 PNG\]\(docs\/screenshots\/workbench\.png\)/);
+  assert.match(firstSection, /\[Watch the muted synthetic MP4\]\(public\/demo\/meta-tier-ranking\.mp4\)/);
+  assert.match(firstSection, /\[View the workbench PNG\]\(docs\/screenshots\/workbench\.png\)/);
   assert.match(firstSection, /`http:\/\/localhost:3000\/\?portfolio=1`/);
   assert.match(readme, /npx playwright install chromium/);
   assert.match(readme, /npm run portfolio:render/);
