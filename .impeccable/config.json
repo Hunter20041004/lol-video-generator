@@ -1,0 +1,387 @@
+{
+  "buildPath": "comp",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "outfit",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:47.533Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "cinzel",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:47.577Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(42, 56, 73, 0.2)",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:47.632Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#eef1f4",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:47.675Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e2e6eb",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:47.722Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#9ba6b2",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:47.768Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#788493",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:47.822Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8d98a6",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:47.865Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#b9c1ca",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:47.907Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#303b48",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:47.938Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(211, 179, 91, .18)",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:47.982Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#dce1e6",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.030Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7f8b98",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.070Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2b3540",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.105Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#000",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.206Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7e8995",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.233Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#65717e",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.269Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#b5bdc6",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.306Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#91c7a7",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.346Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#677381",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.377Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1b2530",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.414Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#aab4bf",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.450Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#351d22",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.490Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e3a2ab",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.531Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2d3945",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.566Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#573039",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.597Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e2a0a9",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.631Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#294739",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.653Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#93c8aa",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.696Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7d8996",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.738Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#202a35",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.773Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#aeb7c1",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.812Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#687482",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.851Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#c0c7cf",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.885Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#222b35",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.932Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#788491",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:48.968Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#819c8c",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:49.004Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7f8a96",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:49.048Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#818d99",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:49.103Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#77838f",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:49.155Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7f9b8b",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:49.207Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8f9ba7",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T16:10:49.242Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      }
+    ]
+  }
+}

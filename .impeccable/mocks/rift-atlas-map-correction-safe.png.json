@@ -1,0 +1,10 @@
+{
+  "prompt": "Edit this exact provided corrected map composition. SINGLE FIX: eliminate identity-layer collision. The left circular BNK crest currently overlaps the bottom-left of huge numeral 3. The user explicitly reports clipping/penetration; this is unacceptable.\nKeep exact provided map pixels, outline, three lane paths, river, base placements, entire bottom evidence band, yellow/crimson color palette, background and typography identity unchanged. DO NOT redraw, rotate, mirror or reshape the map.\nRe-layout ONLY the score and two crests/team names within the upper 38%: score 3–1 occupies a centered row from 11% to 25% frame height, scale numerals down enough to stay wholly within that row. Both crests occupy the SAME horizontal row below it, from 28% to 34% height, with left crest centered at 24% width and right crest at 78% width. Entire crests must fit that row. Team names are below their crests in the 35–38% height row. Visible background gap at least 2% of frame height between every score numeral and crest. No emblem intersects any numeral or team name. No mountain or brush stroke crosses crests or text. Keep clean negative space between identity and map. Preserve title/date above score. Preserve exact words, no invented claims or stats. Modern angular sans, no classical serif. This is still a static mockup; authentic team logos will be replaced with original source assets in production. Top priority: no collisions, fully visible crest silhouettes, clear numbers, current map outline unchanged.",
+  "tool": "built-in image_gen",
+  "intent": "map-and-overlap-repair-preview",
+  "approved": true,
+  "approvalEvidence": "User: 目前沒有了 很好 可以繼續做下去其他頁面. Approval covers visual baseline and continued scene design; generated logos/maps remain non-authoritative production placeholders.",
+  "paletteApproved": true,
+  "seed": "9b5949a9",
+  "source": "Edit of exec-f4101d70-6208-4907-9c01-5e30bee09101.png; parent prompt rift-atlas-map-correction.prompt.txt; terrain reference CommunityDragon 16.19 base_baron1. Simplified topology comparison only, not exact in-game detail or real tactical events."
+}

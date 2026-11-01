@@ -1,0 +1,9 @@
+{
+  "prompt": "Edit this exact match recap mockup, preserving gold versus crimson broad backgrounds, angular sans type, all correct numeric data and series/single-game section grouping. Remove BOTH invented human figures completely. Do not generate ANY human, face, silhouette or photograph. Their spaces become quiet warm chalk reading space. Remove the invented trophy, quill and 3D coin/tower illustrations; numbers and precise editorial rules carry evidence. Correct first series comparison label to Kellin / Lehends · 輔助 KDA, value 9 / 2.26; next section Taeyoon · 每分鐘補刀, value 10.02. Keep 單局終局 防禦塔 8–1 and 金錢差 +11,549. Keep primary series result 3–1 and exact team names BNK FEARX / NONGSHIM REDFORCE. Header 賽果回顧, date LCK / 2026.08.27, footer 系列表現與單局終局，分開看. Premium open ledger typography, no rounded cards. No new claims, no fake people, no awards, no changed data. Group facts clearly and prevent all overlaps.",
+  "tool": "built-in image_gen",
+  "approved": false,
+  "intent": "corrected-scene-design-preview",
+  "parentPrompt": "06-recap.prompt.txt",
+  "parentGeneratedFile": "exec-9a7bd62c-a4b1-4a43-b63c-f9f5a433ec59.png",
+  "source": "Approved opening visual baseline, frozen real metrics. Generated portrait reconstruction / lettering / crests are not production assets."
+}

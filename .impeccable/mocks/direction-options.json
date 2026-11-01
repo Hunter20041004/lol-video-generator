@@ -1,0 +1,133 @@
+{
+  "title": "選擇新版賽後判讀的視覺世界",
+  "question": "三個方向都只保留一幕一個主訊息，並用同一場 T1 2–3 HLE 檢驗留白、辨識度與資料可信度。",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "決勝一幀",
+      "kicker": "THE ROLL",
+      "lineage": "職業體育攝影編輯台、底片放大與賽後照片專題",
+      "thesis": "每一幕只讓一張決定性影像、一句判讀與一筆證據登場。",
+      "palette": ["#080909", "#F1ECE2", "#E94B35", "#77736C"],
+      "materials": ["高反差賽事攝影", "底片邊框與編輯紅筆", "未曝光黑場"],
+      "viewport": "2–3 比分佔據上半場，勝方隊徽與一張球員決勝照片錯位疊放；下半場只留一句判讀，四周保留可感知的黑場。",
+      "risk": "照片挑選不夠精準時，留白會像素材不足，而不是自信。",
+      "raised": [
+        {"from": "室內太陽", "raise": "每幕保留一塊真正安靜的大面積空間，讓主角的尺度成立。"},
+        {"from": "凡爾賽軸線", "raise": "五幕沿同一條視覺軸逐步揭露，不把證據一次攤滿。"},
+        {"from": "接線場", "raise": "每幕只容許一條證據線連到結論，不靠多色圖例解釋狀態。"}
+      ],
+      "comp": ".impeccable/mocks/decision/assigned.png"
+    },
+    {
+      "id": "model-pick",
+      "label": "比賽日頭版",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "韓國體育報紙頭版、瑞士現代主義與行動海報",
+      "thesis": "把 25 秒影片當成五張會動的比賽日頭版，文字大膽但資訊節制。",
+      "palette": ["#F4F0E6", "#111111", "#D63A2F", "#B8B2A6"],
+      "materials": ["暖白新聞紙", "黑色粗排字", "單一朱紅校樣章"],
+      "viewport": "暖白紙面上只放巨大 2–3、兩隊縮寫與一張被裁切的勝方人物；後續每幕用不同留白比例重排同一套字體。",
+      "risk": "這是最可靠、也最容易被其他運動內容採用的方向，獨特性必須靠 LoL 真實素材與資料語言建立。",
+      "comp": ".impeccable/mocks/decision/model-pick.png"
+    },
+    {
+      "id": "challenger-factory",
+      "label": "戰報型錄",
+      "verdict": "competitive",
+      "lineage": "Factory Records 型錄身分與脈衝波唱片封套",
+      "thesis": "把每場系列賽編成唯一戰報編號，讓數據像可收藏的證物。",
+      "palette": ["#050606", "#F2F2EC", "#E23A30", "#2C5BEA", "#E0B719"],
+      "materials": ["霧黑封套", "白色脈衝線", "小面積四色編碼"],
+      "viewport": "大片霧黑中只有 PMR 025、2–3 與由五局資料生成的一個脈衝圖；隊名藏在極小但清楚的型錄標記。",
+      "case": "留白與品牌辨識最強，也能把每支影片變成系列收藏；但第一次觀看需要更明確的 LoL 身分。",
+      "risk": "編碼語言太克制時，一般觀眾可能先覺得酷，晚一拍才理解賽果。",
+      "comp": ".impeccable/mocks/decision/challenger-factory.png",
+      "hero": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve.webp"
+    },
+    {
+      "id": "challenger-jackfield",
+      "label": "訊號接線場",
+      "verdict": "declined",
+      "lineage": "機房 jackfield 接線排程",
+      "thesis": "用一條不中斷的琥珀訊號線串起五幕證據。",
+      "palette": ["#050505", "#E5A736", "#8A6B2D"],
+      "materials": ["黑玻璃", "琥珀接線", "刻度編號"],
+      "viewport": "比分與隊伍沿單一接線軌排列，證據以斷線、雙線與端點狀態表達。",
+      "case": "結構清楚，但機房文化與一般 LoL 觀眾距離太遠。",
+      "risk": "容易被看成專業工具介面，而不是短影音。",
+      "kept": "只用一條證據線把畫面主張接到數據。",
+      "hero": "https://impeccable.style/worlds/cards/operate-b-normalled-jackfield-hero.webp"
+    },
+    {
+      "id": "challenger-drum",
+      "label": "五拍節奏機",
+      "verdict": "declined",
+      "lineage": "1980 年代節奏機的 step row",
+      "thesis": "五幕像五個節拍，播放游標把證據逐格點亮。",
+      "palette": ["#141414", "#F2F2E8", "#E64226", "#F0AF19"],
+      "materials": ["霧面機器面板", "實體步進鍵", "單點 LED"],
+      "viewport": "2–3 上方只有五個節拍鍵，當前一格亮起並展開該幕的唯一證據。",
+      "case": "節奏很清楚，但面板、按鍵與讀數會再次把資訊塞滿。",
+      "risk": "最容易重回使用者不喜歡的工具型 AI 介面。",
+      "kept": "把五幕視為一條不可換行的節奏，而不是五張卡片。",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-drum-machine-step-row-hero.webp"
+    },
+    {
+      "id": "challenger-googie",
+      "label": "星爆賽場",
+      "verdict": "declined",
+      "lineage": "Googie 路邊建築與原子時代招牌",
+      "thesis": "讓比分與勝負轉折沿一條上揚懸臂線爆發。",
+      "palette": ["#19252A", "#F3EBD8", "#E8664B", "#48AFA9"],
+      "materials": ["鉻金屬", "層壓板", "星爆燈牌"],
+      "viewport": "比分在一個巨大星爆中，人物與判讀掛在單一上揚斜線上。",
+      "case": "記憶點強，但文化語境沒有自然指向 LoL 或賽事證據。",
+      "risk": "可能像復古主題包裝，搶走比賽本身。",
+      "kept": "每幕只准有一個夠大膽的結構手勢。",
+      "hero": "https://impeccable.style/worlds/cards/design-canon-googie-starburst-diner-hero.webp"
+    },
+    {
+      "id": "challenger-sun",
+      "label": "室內太陽",
+      "verdict": "declined",
+      "lineage": "單色光場、霧與鏡面展覽空間",
+      "thesis": "用一輪巨大勝方光場與人物剪影承載整幕。",
+      "palette": ["#D99320", "#17120B", "#F0B64B"],
+      "materials": ["鈉燈單色光", "薄霧", "鏡面倒影"],
+      "viewport": "HLE 隊徽成為半輪光源，2–3 與人物剪影只佔地平線下方。",
+      "case": "留白極強，但資料證據很難自然進入這個世界。",
+      "risk": "氣氛可能大於內容，削弱可信度。",
+      "kept": "主體要有足夠大的安靜場域，不能被資訊貼滿。",
+      "hero": "https://impeccable.style/worlds/cards/light-shadow-caustics-indoor-weather-sun-hero.webp"
+    },
+    {
+      "id": "challenger-versailles",
+      "label": "勝負軸線",
+      "verdict": "declined",
+      "lineage": "凡爾賽花園的軸線、藏園與依序啟動的噴泉",
+      "thesis": "沿一條嚴格中軸前進，每一幕才打開下一個證據庭院。",
+      "palette": ["#173A2A", "#D8C9A7", "#E8E5DB", "#9A7A37"],
+      "materials": ["修剪綠籬", "礫石", "水線與鍍金標記"],
+      "viewport": "比分位於遠端中軸，觀眾沿五次視覺推進抵達結論。",
+      "case": "敘事揭露很有秩序，但文化辨識與 LoL 幾乎沒有交集。",
+      "risk": "隱喻需要解釋，短影音沒有這個時間。",
+      "kept": "證據沿固定軸線逐幕顯露，讓觀眾永遠知道下一眼看哪裡。",
+      "hero": "https://impeccable.style/worlds/cards/architecture-inhabitable-space-versailles-bosquet-vistas-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "comp", "toggle": true},
+  "canon": true,
+  "canonCard": {
+    "label": "標準電競轉播",
+    "thesis": "深色舞台、隊伍色、比分面板與數據卡，做到最完整的業界標準。",
+    "palette": ["#061018", "#F1E7D2", "#CBAA63", "#43D2CE"],
+    "materials": ["深色轉播圖層", "隊徽與人物去背", "數據面板"],
+    "viewport": "巨大比分、雙隊徽、人物照與下方數據摘要完整同框。",
+    "risk": "辨識成本最低，但也最接近舊版，最容易重新出現資訊擁擠與 AI 電競模板感。",
+    "comp": ".impeccable/mocks/decision/canon.png"
+  },
+  "steer": true
+}

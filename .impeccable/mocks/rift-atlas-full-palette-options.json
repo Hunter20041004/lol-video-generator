@@ -1,0 +1,30 @@
+{
+  "title": "峽谷圖鑑｜地圖與遮擋修正",
+  "question": "大片雙隊色已核可。這張修正比分／隊徽交疊，地圖朝向與主要路線對照16.19客戶端簡化地形。局部生成輪廓不是精確地圖；正式使用鎖定來源底稿。尚未實作影片。",
+  "options": [
+    {
+      "id": "atlas-full-palette",
+      "label": "大範圍雙隊色",
+      "thesis": "不只換飾線，讓整個畫面讀成兩隊的對戰。",
+      "palette": [
+        "#D6AD29",
+        "#B52237",
+        "#F4F0E5"
+      ],
+      "materials": [
+        "平面峽谷插畫",
+        "雙隊色域與中性閱讀區"
+      ],
+      "viewport": "大片背景與比分色面、峽谷插畫都換隊色，下方閱讀區保留暖白。",
+      "risk": "生成隊徽與局部地圖輪廓仍須正式來源替換；染色不代表實際遊戲陣營。",
+      "comp": ".impeccable/mocks/rift-atlas-map-correction-safe.png"
+    }
+  ],
+  "canon": false,
+  "reroll": false,
+  "steer": true,
+  "buildPath": {
+    "value": "comp",
+    "toggle": false
+  }
+}

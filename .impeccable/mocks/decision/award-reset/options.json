@@ -1,0 +1,19 @@
+{
+  "title":"賽後判讀：整套視覺重新設計",
+  "question":"比較同一場 BNK FEARX 3–1 Nongshim 的開場樣稿。請選你願意延伸成整支40秒影片的方向；這些不是已完成影片，也不是獲獎認證。",
+  "options":[
+    {"id":"rift-atlas","label":"峽谷圖鑑","kicker":"提案 A","lineage":"遊戲地圖圖鑑／圖解戰術出版物","thesis":"把比分與證據嵌進一張有閱讀層次的峽谷圖鑑，不再排成儀表板。","palette":["#087F68","#F4F6EE","#102B25","#EF593D"],"materials":["礦物色平面插畫","清晰圖鑑字排","細刻度"],"viewport":"上方賽事資訊；巨大3–1與地圖錯位交織，中下方隊徽對陣與可讀的證據索引。","risk":"地圖只提供遊戲語境，不能被誤認為有來源的戰術路徑或事件座標。","raised":[{"from":"碰撞圖","raise":"主結果、證據、來源分層，但不畫不存在的事件軌跡。"},{"from":"花道構圖","raise":"一個主構圖控制整幕，次要資料完整但不搶焦點。"},{"from":"曲面折紙","raise":"圖鑑圖像與資料區的輪廓有整體結構，不靠多個小框拼接。"},{"from":"Metro字排","raise":"字體本身承擔資訊層次，刪掉無功能的導覽裝飾。"},{"from":"攝影取景框","raise":"所有關鍵資訊留在手機安全區，不讓外框成為主角。"}],"comp":".impeccable/mocks/decision/award-reset/atlas.png"},
+    {"id":"championship-identity","label":"競技形象片","kicker":"推薦方向","lineage":"職業賽事識別系統／動態字體片頭","thesis":"用隊伍識別、巨大比分與有節奏的圖形切換，做一支真正有張力的賽事解析。","palette":["#234BE8","#F2F4FA","#141A32","#F45D4F"],"materials":["大色域印刷圖形","專屬數字字排","真實隊徽"],"viewport":"巨大比分是唯一主焦點；隊伍左右錯位，三項系列／單局證據以清楚欄位分層。","risk":"比其他提案更接近成熟體育轉播，必須靠專屬字排與連貫動態避免制式感。","comp":".impeccable/mocks/decision/award-reset/championship.png"},
+    {"id":"risograph","label":"套色賽事刊物","verdict":"competitive","lineage":"Riso套色印刷／遊戲社群刊物","thesis":"把每場比賽做成有個性的套色刊物，色層與數據隨敘事展開。","palette":["#183EE8","#F24687","#F6F4E8","#F3CD32"],"materials":["細網點套印","兩色地圖圖像","印刷字排"],"viewport":"亮色大比分、清楚隊伍識別、圖鑑式地圖裁切與整齊比較數據。","case":"閱讀清晰度有競爭力，LoL原生辨識則要靠真實地圖與隊徽，不能只像藝術刊物。","risk":"印刷顆粒只能點到為止；過度做舊會回到使用者不喜歡的粗糙感。","comp":".impeccable/mocks/decision/award-reset/risograph.png","board":"https://impeccable.style/worlds/cards/risograph-web-system.webp","hero":"https://impeccable.style/worlds/cards/risograph-web-system-hero.webp"},
+    {"id":"particle-display","label":"同心證據環","verdict":"declined","lineage":"粒子碰撞事件展示","thesis":"比分居中，證據依層向外展開。","palette":["#10171F","#67C7DF","#F2CD41"],"materials":["細線事件環","分層數字"],"viewport":"比分與證據同心排列。","case":"LoL辨識與閱讀清晰都較圖鑑弱；軌跡容易被當成不存在的事件資料。","kept":"保留主結果與證據分層的紀律，不保留科技線條。","risk":"容易回到通用科技感。"},
+    {"id":"ikebana","label":"三點非對稱構圖","verdict":"declined","lineage":"花道主副支線／活性留白","thesis":"讓比分、人物與證據形成非對稱主副支點。","palette":["#D6D9CC","#364D43","#4A62BE"],"materials":["克制自然色域","留白構圖"],"viewport":"比分、人物、證據分置三個支點。","case":"LoL辨識弱，豐富賽事資訊的閱讀承載力亦不足。","kept":"保留一主兩副、留白有用途的構圖紀律。","risk":"容易漂亮但資訊不足。"},
+    {"id":"curved-fold","label":"曲面展開","verdict":"declined","lineage":"弧線摺面／平面與剖面對照","thesis":"用曲面展開銜接賽果與證據。","palette":["#E5E4DB","#292F33","#69736F"],"materials":["平面折線","柔和剖面"],"viewport":"一個折面承接比分與比較值。","case":"LoL辨識與資料理解都較弱，空間效果會搶走主敘事。","kept":"保留大區域間的連續結構，不保留折紙造型。","risk":"易變成無關產品的形式實驗。"},
+    {"id":"metro","label":"色塊全景","verdict":"declined","lineage":"Metro字體與平面色塊","thesis":"將資料分配到全景色塊，字體取代框線。","palette":["#111111","#09AFCB","#F1F1F1"],"materials":["平面色域","大字體"],"viewport":"比分色塊後連接其他資料格。","case":"LoL辨識較弱，資料格切碎敘事，清晰度不如連續圖鑑。","kept":"保留字體作為結構、減少外框的紀律。","risk":"容易成為另一種卡片模板。"},
+    {"id":"viewfinder","label":"賽事取景窗","verdict":"declined","lineage":"攝影機取景框與焦點層次","thesis":"影像為主，數據只留在安全區。","palette":["#111519","#F2F4F5","#D7AA51"],"materials":["全幅影像","取景區字排"],"viewport":"一張影像配四角數據。","case":"現有素材沒有賽事影像主體可承載全片；四角讀數削弱解析順序與LoL辨識。","kept":"保留手機安全區與焦點紀律，不保留OSD裝飾。","risk":"易把沒有的比賽錄像效果當成真實內容。"}
+  ],
+  "reroll":{"registers":["safer","bolder"]},
+  "buildPath":{"value":"comp","toggle":true},
+  "canon":true,
+  "canonCard":{"label":"標準賽事轉播","thesis":"沿用觀眾熟悉的比分板與數據比較，但重新做到完整製作品質。","palette":["#121B24","#E6E9EE","#D1AE52"],"materials":["精準轉播格線","真實隊徽","乾淨數字"],"viewport":"隊徽與比分集中，當幕證據清楚排列，沒有多餘背景裝飾。","risk":"風格熟悉且比較不冒險，個性需要從內容與動態建立。","comp":".impeccable/mocks/decision/award-reset/canon.png"},
+  "steer":true
+}

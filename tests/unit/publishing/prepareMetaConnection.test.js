@@ -51,6 +51,37 @@ test("public gateway verification waits for a new tunnel to become reachable", a
   assert.equal(result.attempts, 2);
 });
 
+test("public gateway verification falls back when system DNS still negatively caches a fresh tunnel", async () => {
+  const fallbackUrls = [];
+  const response = (status, contentType = "text/plain", bytes = 0) => ({
+    status,
+    headers: { get: () => contentType },
+    arrayBuffer: async () => new ArrayBuffer(bytes),
+  });
+  const fallbackFetchImpl = async (url, options = {}) => {
+    fallbackUrls.push(url);
+    if (url.endsWith("/")) return response(404);
+    if (url.includes("/callback")) return response(400, "application/json");
+    if (options.method === "HEAD") return response(200, "video/mp4");
+    return response(206, "video/mp4", 2);
+  };
+
+  const result = await verifyPublicGateway({
+    baseUrl: "https://dns-lag.trycloudflare.com",
+    sampleVideoUrl: "/renders/clip.mp4",
+    fetchImpl: async () => {
+      const error = new TypeError("fetch failed");
+      error.cause = { code: "ENOTFOUND" };
+      throw error;
+    },
+    fallbackFetchImpl,
+    attempts: 1,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(fallbackUrls.length, 5);
+});
+
 test("connection preparation updates both origins and returns exact callback URLs after all checks", async () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "hvs-connect-"));
   const managed = { baseUrl: "https://safe-window.trycloudflare.com", stop: async () => {} };
