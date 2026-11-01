@@ -3,7 +3,16 @@ const { writeCandidateSnapshot } = require("../../../utils/esports/candidateStor
 const { createMatchStoryService } = require("../../../utils/esports/matchStoryService");
 const { createMatchStoryPost } = require("../../../utils/esports/matchStoryApi");
 
-const post = createMatchStoryPost(createMatchStoryService());
+const storyService = createMatchStoryService();
+const post = createMatchStoryPost(storyService);
+const previewRoot = process.env.STORY_TEST_RENDER_ROOT;
+const previewPost = previewRoot ? require('../../../utils/esports/matchStoryPreviewApi').createMatchStoryPreviewPost(
+  require('../../../utils/esports/matchStoryPreview').createMatchStoryPreview({
+    storyService,
+    assetResolver: (identity, options) => require('../../../utils/render/matchStoryAssets').prepareMatchStoryMaterials(identity, {...options, rootDir: previewRoot}),
+    renderer: packet => require('../../../utils/render/matchStoryRenderer').renderMatchStoryPreview(packet, {rootDir: previewRoot}),
+  })
+) : null;
 const server = http.createServer(async (incoming, outgoing) => {
   try {
     const chunks = [];
@@ -11,7 +20,7 @@ const server = http.createServer(async (incoming, outgoing) => {
     const request = new Request(`http://127.0.0.1:${server.address().port}${incoming.url}`, {
       method: incoming.method, headers: incoming.headers, body: Buffer.concat(chunks),
     });
-    const response = await post(request);
+    const response = await (incoming.url === '/api/esports/story/preview' && previewPost ? previewPost : post)(request);
     outgoing.writeHead(response.status, Object.fromEntries(response.headers));
     outgoing.end(await response.text());
   } catch {

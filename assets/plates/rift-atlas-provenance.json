@@ -1,0 +1,39 @@
+{
+  "generated": false,
+  "paidServices": false,
+  "detailReassemblyApproved": true,
+  "outputs": [
+    {
+      "id": "territory-ground",
+      "path": "assets/plates/territory-ground.png",
+      "publicPath": "/story-atlas/territory-ground.png",
+      "width": 1412,
+      "height": 2063,
+      "source": "Dino0040, CC0 real scanned watercolor alpha; .impeccable/sources/grunge-brushes/grunge_brushes/increased_opacity/brush017.png"
+    },
+    {
+      "id": "crest-left",
+      "path": "assets/plates/crest-left.png",
+      "publicPath": "/story-atlas/crest-left.png",
+      "width": 321,
+      "height": 309,
+      "source": "https://static.wixstatic.com/media/b625f3_54c9266e5ccf45fd8b1fcb7647cfdb2a~mv2.png; verified SHA b5b69b5d9ddaf255c1e95f66f5a79eecda4d9d07f42afddd53bab73a79cb68c6; Official FEARX website brand asset used for editorial team identification; trademarks remain the property of BNK FEARX."
+    },
+    {
+      "id": "crest-right",
+      "path": "assets/plates/crest-right.png",
+      "publicPath": "/story-atlas/crest-right.png",
+      "width": 330,
+      "height": 339,
+      "source": "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/b8/Nongshim_RedForcelogo_square.png/revision/latest?cb=20260114093156; verified SHA e56bdcad9679c1348c6b5c4c8149d1c22d50bbcdef456feca18f2c477c6399be; Leaguepedia-hosted high-resolution 2026 crest used for editorial team identification and cross-checked against https://ns-esports.com/page/11; trademarks remain the property of Nongshim RedForce."
+    },
+    {
+      "id": "map",
+      "path": "assets/plates/map.png",
+      "publicPath": "/story-atlas/map.png",
+      "width": 1292,
+      "height": 1065,
+      "source": "Riot client map11 16.19 base-baron1; original topology retained with contain fit, no tactical paths; not a verified August 27 terrain variant."
+    }
+  ]
+}

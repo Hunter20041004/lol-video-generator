@@ -1,0 +1,72 @@
+{
+  "identity": {
+    "teamA": "BNK FEARX",
+    "teamB": "Nongshim RedForce",
+    "seriesScore": "3-1",
+    "league": "LAYOUT TEST",
+    "date": "2026-08-27"
+  },
+  "headline": "合成排版測試",
+  "sourceLabel": "合成文字，非賽事報導",
+  "music": {
+    "trackId": "licensed-bgm-1",
+    "title": "Licensed BGM 1",
+    "bgmFile": "render-assets/audio/fb9fe588eeb13b28-f490c4cc-post-match-read.wav",
+    "audioPlan": {
+      "trackId": "licensed-bgm-1",
+      "sourceStartSeconds": 0,
+      "durationInFrames": 1200,
+      "cutFrames": [
+        0,
+        150,
+        360,
+        570,
+        810,
+        1050,
+        1200
+      ],
+      "gain": 1,
+      "fadeFrames": 0,
+      "preprocessed": true
+    }
+  },
+  "timeline": {
+    "fps": 30,
+    "durationInFrames": 1200,
+    "freezeFrames": 60,
+    "scenes": [
+      {
+        "from": 0,
+        "durationInFrames": 240,
+        "component": "hook",
+        "narration": "這是合成排版測試，不是真實比賽故事。",
+        "facts": []
+      },
+      {
+        "from": 240,
+        "durationInFrames": 660,
+        "component": "event",
+        "narration": "本幕用於檢查文字、隊徽、地圖與閱讀空間。",
+        "facts": [
+          {
+            "scope": "game",
+            "gameNumber": 2
+          }
+        ]
+      },
+      {
+        "from": 900,
+        "durationInFrames": 300,
+        "component": "verdict",
+        "narration": "最後兩秒靜止，供讀者看完結論。",
+        "facts": []
+      }
+    ]
+  },
+  "materials": {
+    "territory-ground": "story-runs/run-aJ5zvl/territory-ground.png",
+    "crest-left": "story-runs/run-aJ5zvl/crest-left.png",
+    "crest-right": "story-runs/run-aJ5zvl/crest-right.png",
+    "map": "story-runs/run-aJ5zvl/map.png"
+  }
+}

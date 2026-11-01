@@ -1,0 +1,357 @@
+{
+  "tool": "comp-diff",
+  "version": 1,
+  "createdAt": "2026-10-06T03:28:07.935Z",
+  "label": "story-hook-v9",
+  "comp": ".impeccable/mocks/rift-atlas-map-correction-safe.png",
+  "build": ".impeccable/review/story-hook-v9.png",
+  "spec": null,
+  "compSize": "941x1672",
+  "buildSize": "540x960",
+  "align": "stretch",
+  "overall": 0.3289,
+  "verdict": "contradicted",
+  "scores": {
+    "overall": 0.3289,
+    "structure": 0.2518,
+    "color": 0.2276,
+    "colorIntersection": 0.1101,
+    "paletteMatch": 0.2909,
+    "detail": 0.3455,
+    "detailRaw": 0.3871,
+    "detailAdded": 0.0833,
+    "bands": 0.65
+  },
+  "palette": {
+    "comp": [
+      {
+        "hex": "#f7f7ec",
+        "coverage": 0.3535
+      },
+      {
+        "hex": "#800808",
+        "coverage": 0.2491
+      },
+      {
+        "hex": "#f4de82",
+        "coverage": 0.198
+      },
+      {
+        "hex": "#0c0d0f",
+        "coverage": 0.0915
+      },
+      {
+        "hex": "#f0d898",
+        "coverage": 0.0553
+      },
+      {
+        "hex": "#460808",
+        "coverage": 0.0525
+      }
+    ],
+    "build": [
+      {
+        "hex": "#f8f8d9",
+        "coverage": 0.4398
+      },
+      {
+        "hex": "#c40b1a",
+        "coverage": 0.1939
+      },
+      {
+        "hex": "#caab08",
+        "coverage": 0.1438
+      },
+      {
+        "hex": "#939776",
+        "coverage": 0.0842
+      },
+      {
+        "hex": "#f2d408",
+        "coverage": 0.0827
+      },
+      {
+        "hex": "#0d1514",
+        "coverage": 0.0556
+      }
+    ]
+  },
+  "regions": [
+    {
+      "id": "band-1",
+      "x": 0,
+      "y": 0,
+      "w": 1,
+      "h": 0.06607929515418502,
+      "kind": "band",
+      "score": {
+        "overall": 0.4554,
+        "structure": 0.5273,
+        "color": 0.2956,
+        "colorIntersection": 0.1654,
+        "paletteMatch": 0.3657,
+        "detail": 0.6176,
+        "detailRaw": 0.6384,
+        "detailAdded": 0.0417,
+        "bands": 0.2833
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 941,
+          "h": 110
+        },
+        "build": {
+          "x": 283,
+          "y": 45,
+          "w": 376,
+          "h": 62
+        }
+      }
+    },
+    {
+      "id": "band-2",
+      "x": 0,
+      "y": 0.06607929515418502,
+      "w": 1,
+      "h": 0.22026431718061673,
+      "kind": "band",
+      "score": {
+        "overall": 0.304,
+        "structure": 0.2924,
+        "color": 0.201,
+        "colorIntersection": 0.1383,
+        "paletteMatch": 0.2348,
+        "detail": 0.3095,
+        "detailRaw": 0.4709,
+        "detailAdded": 0.3229,
+        "bands": 0.4933
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 941,
+          "h": 369
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 941,
+          "h": 369
+        }
+      }
+    },
+    {
+      "id": "band-3",
+      "x": 0,
+      "y": 0.28634361233480177,
+      "w": 1,
+      "h": 0.06607929515418504,
+      "kind": "band",
+      "score": {
+        "overall": 0.3408,
+        "structure": 0.5895,
+        "color": 0.1114,
+        "colorIntersection": 0.0271,
+        "paletteMatch": 0.1568,
+        "detail": 0.0666,
+        "detailRaw": 0.1187,
+        "detailAdded": 0.1042,
+        "bands": 0.6
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 790,
+          "h": 110
+        },
+        "build": {
+          "x": 49,
+          "y": 0,
+          "w": 892,
+          "h": 110
+        }
+      }
+    },
+    {
+      "id": "band-4",
+      "x": 0,
+      "y": 0.3524229074889868,
+      "w": 1,
+      "h": 0.07048458149779735,
+      "kind": "band",
+      "score": {
+        "overall": 0.2818,
+        "structure": 0.4717,
+        "color": 0.1056,
+        "colorIntersection": 0.0261,
+        "paletteMatch": 0.1484,
+        "detail": 0.1211,
+        "detailRaw": 0.2097,
+        "detailAdded": 0.1771,
+        "bands": 0.4
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 802,
+          "h": 118
+        },
+        "build": {
+          "x": 37,
+          "y": 0,
+          "w": 904,
+          "h": 118
+        }
+      }
+    },
+    {
+      "id": "band-5",
+      "x": 0,
+      "y": 0.42290748898678415,
+      "w": 1,
+      "h": 0.36123348017621143,
+      "kind": "band",
+      "score": {
+        "overall": 0.2033,
+        "structure": 0.1571,
+        "color": 0.1152,
+        "colorIntersection": 0.0772,
+        "paletteMatch": 0.1356,
+        "detail": 0.2979,
+        "detailRaw": 0.3447,
+        "detailAdded": 0.0938,
+        "bands": 0.3
+      },
+      "verdict": "contradicted",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 941,
+          "h": 604
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 941,
+          "h": 604
+        }
+      }
+    },
+    {
+      "id": "band-6",
+      "x": 0,
+      "y": 0.7841409691629956,
+      "w": 1,
+      "h": 0.1145374449339207,
+      "kind": "band",
+      "score": {
+        "overall": 0.3095,
+        "structure": 0.4091,
+        "color": 0.3631,
+        "colorIntersection": 0.0767,
+        "paletteMatch": 0.5173,
+        "detail": 0.0546,
+        "detailRaw": 0.138,
+        "detailAdded": 0.1667,
+        "bands": 0.4125
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 49,
+          "y": 0,
+          "w": 844,
+          "h": 192
+        },
+        "build": {
+          "x": 57,
+          "y": 6,
+          "w": 681,
+          "h": 151
+        }
+      }
+    },
+    {
+      "id": "band-7",
+      "x": 0,
+      "y": 0.8986784140969163,
+      "w": 1,
+      "h": 0.07488986784140972,
+      "kind": "band",
+      "score": {
+        "overall": 0.3537,
+        "structure": 0.6377,
+        "color": 0.2818,
+        "colorIntersection": 0,
+        "paletteMatch": 0.4335,
+        "detail": 0,
+        "detailRaw": 0,
+        "detailAdded": 0,
+        "bands": 0.4
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 58,
+          "y": 0,
+          "w": 811,
+          "h": 125
+        },
+        "build": null
+      }
+    },
+    {
+      "id": "band-8",
+      "x": 0,
+      "y": 0.973568281938326,
+      "w": 1,
+      "h": 0.026431718061673992,
+      "kind": "band",
+      "score": {
+        "overall": 0.4914,
+        "structure": 0.9995,
+        "color": 0.3263,
+        "colorIntersection": 0,
+        "paletteMatch": 0.502,
+        "detail": 0,
+        "detailRaw": 0,
+        "detailAdded": 0,
+        "bands": 0.4
+      },
+      "verdict": "missing",
+      "inkBox": {
+        "comp": {
+          "x": 327,
+          "y": 0,
+          "w": 259,
+          "h": 5
+        },
+        "build": null
+      }
+    }
+  ],
+  "files": {
+    "sideBySide": "/Users/cengweiting/.codex/worktrees/decisive-frame-40s/lol-video-generator/.impeccable/review/diff/final/side-by-side.png",
+    "heatmap": "/Users/cengweiting/.codex/worktrees/decisive-frame-40s/lol-video-generator/.impeccable/review/diff/final/heatmap.png",
+    "regionFiles": [
+      "/Users/cengweiting/.codex/worktrees/decisive-frame-40s/lol-video-generator/.impeccable/review/diff/final/regions/band-1.png",
+      "/Users/cengweiting/.codex/worktrees/decisive-frame-40s/lol-video-generator/.impeccable/review/diff/final/regions/band-2.png",
+      "/Users/cengweiting/.codex/worktrees/decisive-frame-40s/lol-video-generator/.impeccable/review/diff/final/regions/band-3.png",
+      "/Users/cengweiting/.codex/worktrees/decisive-frame-40s/lol-video-generator/.impeccable/review/diff/final/regions/band-4.png",
+      "/Users/cengweiting/.codex/worktrees/decisive-frame-40s/lol-video-generator/.impeccable/review/diff/final/regions/band-5.png",
+      "/Users/cengweiting/.codex/worktrees/decisive-frame-40s/lol-video-generator/.impeccable/review/diff/final/regions/band-6.png",
+      "/Users/cengweiting/.codex/worktrees/decisive-frame-40s/lol-video-generator/.impeccable/review/diff/final/regions/band-7.png",
+      "/Users/cengweiting/.codex/worktrees/decisive-frame-40s/lol-video-generator/.impeccable/review/diff/final/regions/band-8.png"
+    ]
+  }
+}

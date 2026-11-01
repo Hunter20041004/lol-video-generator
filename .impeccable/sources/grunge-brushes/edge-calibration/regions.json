@@ -1,0 +1,1 @@
+{"regions":[{"id":"center-object","kind":"image","box":{"x":0.2,"y":0.2,"w":0.6,"h":0.6},"note":"A centered white square with a 60px background margin on every side; known object does not contact region edges."}]}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useReducer, useRef, useState } from "react";
-import { ExternalLink, FileCheck, Plus, Save, Trash2 } from "lucide-react";
+import { ExternalLink, FileCheck, Film, Plus, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -63,6 +63,27 @@ export function MatchStoryPanel({ scanId, selected, disabled = false }) {
   }
   const versioned = editor.draft && { id: editor.draft.id, expectedRevision: editor.draft.revision };
 
+  async function makePreview() {
+    if (locked.current || disabled || !isStoryConfirmed(editor)) return;
+    locked.current = true;
+    setBusy("preview");
+    dispatch({ type: "error", message: "" });
+    try {
+      const response = await fetch("/api/esports/story/preview", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...versioned, scanId, seriesId: selected.seriesId }),
+      });
+      const result = await response.json().catch(() => { throw new Error("伺服器回應無法讀取，請重試。"); });
+      if (!response.ok || result.success !== true) throw new Error(result.message || "預覽製作失敗，稿件仍保留。");
+      if (mounted.current) dispatch({ type: "preview", preview: result.preview });
+    } catch (error) {
+      if (mounted.current) dispatch({ type: "error", message: error.message === "Failed to fetch" ? "連線中斷，稿件仍保留。請先確認製作狀態，再重試。" : error.message });
+    } finally {
+      locked.current = false;
+      if (mounted.current) setBusy("");
+    }
+  }
+
   return <section data-testid="match-story-panel" className="studio-story-panel" aria-labelledby="story-heading">
     <header className="studio-story-heading">
       <div><h2 id="story-heading">這場比賽，要說哪個故事？</h2>
@@ -82,7 +103,7 @@ export function MatchStoryPanel({ scanId, selected, disabled = false }) {
       <Button variant="outline" className="studio-primary-action" disabled={unavailable || !draftId}
         onClick={() => operate("read", { id: draftId })}>讀回最新版本</Button>
     </details>
-    {busy && <WorkflowStatus busy>正在{busy === "import" ? "匯入資料" : busy === "read" ? "讀回稿件" : busy === "confirm" ? "確認版本" : "保存稿件"}…</WorkflowStatus>}
+    {busy && <WorkflowStatus busy>正在{busy === "import" ? "匯入資料" : busy === "read" ? "讀回稿件" : busy === "confirm" ? "確認版本" : busy === "preview" ? "製作影片，請留在此頁等候；不會發文" : "保存稿件"}…</WorkflowStatus>}
     {editor.error && <WorkflowStatus tone="error">{editor.error} 未保存文字仍保留。</WorkflowStatus>}
     {editor.draft && <nav aria-label="稿件導覽" className="studio-story-nav">
       <Button asChild variant="outline"><a href="#story-candidates">選擇看點</a></Button>
@@ -138,7 +159,15 @@ export function MatchStoryPanel({ scanId, selected, disabled = false }) {
             <Button className="studio-primary-action" disabled={unavailable || !editor.dirty} onClick={() => operate("revise", { ...versioned, patch: { selectedCandidateId: editor.selectedCandidateId, segments: editor.segments } })}><Save aria-hidden="true" />保存稿件</Button>
             <Button variant="outline" className="studio-primary-action" disabled={unavailable || !canConfirmStory(editor) || isStoryConfirmed(editor)} onClick={() => operate("confirm", versioned)}><FileCheck aria-hidden="true" />確認這版稿件</Button>
           </div>
-          <p className="studio-story-note">修改後須重新保存與確認。預覽接點尚未完成，目前確認只保存簽核，不會製片或發布。</p>
+          <Button className="studio-primary-action" disabled={unavailable || !isStoryConfirmed(editor)} onClick={makePreview}><Film aria-hidden="true" />製作故事預覽</Button>
+          <p className="studio-story-note">修改後須重新保存與確認。預覽使用已驗證的隊徽、示意地圖與免費筆觸，不使用比賽實況，不會發文。</p>
+          {editor.preview && <section aria-labelledby="story-preview-heading">
+            <h3 id="story-preview-heading">第 {editor.preview.revision} 版故事預覽</h3>
+            <p className="studio-story-note">影片基本規格已通過；請播放檢查文字與節奏。預覽不等於授權發布。</p>
+            <div className="studio-video-frame"><video data-testid="story-preview-video" src={editor.preview.videoUrl} controls playsInline preload="metadata"
+              aria-label={`第 ${editor.preview.revision} 版故事影片`}
+              onError={() => dispatch({ type: "error", message: "影片載入失敗，稿件仍保留，可重新製作預覽。" })} /></div>
+          </section>}
         </>}
       </div>
     </div>}

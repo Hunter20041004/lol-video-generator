@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-06T11:07:26+09:00",
+  "title": "Design System: Hextech Video Studio — 賽後判讀",
+  "extensions": {
+    "colorMeta": {
+      "rift-navy": {"role":"neutral","displayName":"Rift Navy — PlayerRadar","tonalRamp":["oklch(15% 0.025 240)","oklch(26% 0.025 240)","oklch(37% 0.025 240)","oklch(49% 0.025 240)","oklch(60% 0.025 240)","oklch(72% 0.025 240)","oklch(84% 0.025 240)","oklch(95% 0.025 240)"]},
+      "rift-void": {"role":"neutral","displayName":"Rift Void — PlayerRadar","tonalRamp":["oklch(15% 0.015 240)","oklch(26% 0.015 240)","oklch(37% 0.015 240)","oklch(49% 0.015 240)","oklch(60% 0.015 240)","oklch(72% 0.015 240)","oklch(84% 0.015 240)","oklch(95% 0.015 240)"]},
+      "hextech-gold": {"role":"primary","displayName":"Hextech Gold — PlayerRadar","tonalRamp":["oklch(15% 0.10 85)","oklch(26% 0.10 85)","oklch(37% 0.10 85)","oklch(49% 0.10 85)","oklch(60% 0.10 85)","oklch(72% 0.10 85)","oklch(84% 0.10 85)","oklch(95% 0.10 85)"]},
+      "hextech-gold-bright": {"role":"primary","displayName":"Bright Hextech Gold — PlayerRadar","tonalRamp":["oklch(15% 0.09 90)","oklch(26% 0.09 90)","oklch(37% 0.09 90)","oklch(49% 0.09 90)","oklch(60% 0.09 90)","oklch(72% 0.09 90)","oklch(84% 0.09 90)","oklch(95% 0.09 90)"]},
+      "rune-cyan": {"role":"secondary","displayName":"Rune Cyan — PlayerRadar","tonalRamp":["oklch(15% 0.11 185)","oklch(26% 0.11 185)","oklch(37% 0.11 185)","oklch(49% 0.11 185)","oklch(60% 0.11 185)","oklch(72% 0.11 185)","oklch(84% 0.11 185)","oklch(95% 0.11 185)"]},
+      "moon-white": {"role":"neutral","displayName":"Moon White — PlayerRadar","tonalRamp":["oklch(15% 0.02 90)","oklch(26% 0.02 90)","oklch(37% 0.02 90)","oklch(49% 0.02 90)","oklch(60% 0.02 90)","oklch(72% 0.02 90)","oklch(84% 0.02 90)","oklch(95% 0.02 90)"]},
+      "info-steel": {"role":"neutral","displayName":"Info Steel — PlayerRadar","tonalRamp":["oklch(15% 0.025 235)","oklch(26% 0.025 235)","oklch(37% 0.025 235)","oklch(49% 0.025 235)","oklch(60% 0.025 235)","oklch(72% 0.025 235)","oklch(84% 0.025 235)","oklch(95% 0.025 235)"]},
+      "broadcast-panel": {"role":"neutral","displayName":"Broadcast Panel — PlayerRadar","tonalRamp":["oklch(15% 0.03 235)","oklch(26% 0.03 235)","oklch(37% 0.03 235)","oklch(49% 0.03 235)","oklch(60% 0.03 235)","oklch(72% 0.03 235)","oklch(84% 0.03 235)","oklch(95% 0.03 235)"]},
+      "story-warm-paper": {"role":"neutral","displayName":"Warm Story Paper — MatchStoryVideo","tonalRamp":["oklch(15% 0.025 100)","oklch(26% 0.025 100)","oklch(37% 0.025 100)","oklch(49% 0.025 100)","oklch(60% 0.025 100)","oklch(72% 0.025 100)","oklch(84% 0.025 100)","oklch(95% 0.025 100)"]},
+      "story-ink": {"role":"neutral","displayName":"Story Ink — MatchStoryVideo","tonalRamp":["oklch(15% 0.008 190)","oklch(26% 0.008 190)","oklch(37% 0.008 190)","oklch(49% 0.008 190)","oklch(60% 0.008 190)","oklch(72% 0.008 190)","oklch(84% 0.008 190)","oklch(95% 0.008 190)"]}
+    },
+    "typographyMeta": {
+      "display": {"displayName":"PlayerRadar Display","purpose":"既有轉播世界的比分、選手與主數據。"},
+      "body": {"displayName":"PlayerRadar Body","purpose":"既有固定稿中文；保留原子集字型。"},
+      "label": {"displayName":"PlayerRadar Label","purpose":"既有轉播標籤；不套用於獨立故事世界。"},
+      "story-headline": {"displayName":"Story Headline","purpose":"MatchStoryVideo 13 字以內中文標題。"},
+      "story-headline-long": {"displayName":"Story Long Headline","purpose":"MatchStoryVideo 14–18 字中文標題；超過 18 字或含 CR／LF 換行拒絕製片。"},
+      "story-team": {"displayName":"Story Team Identity","purpose":"兩侧隊名；detail 保留兩行空間。"},
+      "story-score": {"displayName":"Story Series Score","purpose":"Hook／verdict 中的系列比分，不冒充單局人頭。"},
+      "story-narration": {"displayName":"Story Narration","purpose":"可編輯故事正文，用完整本機 Noto Sans TC Story。"},
+      "story-scope": {"displayName":"Story Evidence Scope","purpose":"單局／系列範圍與 evidenceType。"},
+      "story-source": {"displayName":"Story Source","purpose":"只計實際段落引用、readStatus 為 report／stats／reviewed-video 的來源；顯示文字摘要或原始照片，故事成片不放裝飾地圖。"}
+    },
+    "shadows": [],
+    "motion": [
+      {"name":"story-scene-cut","value":"hard cut; static while reading","purpose":"只適用 MatchStoryVideo，文字場景硬切，不加布局動畫。"},
+      {"name":"story-final-hold","value":"60 frames at 30fps","purpose":"只適用 MatchStoryVideo，影片時鐘限制在結尾停留起點。"},
+      {"name":"story-music-fade","value":"12 frames at 30fps; linear gain","purpose":"只適用 MatchStoryVideo，hook／event／context／verdict 相對增益1／0.5／0.4／0.85，音源跟隨影片時間、不重頭播放；末尾60frames停留靜音。"}
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name":"Rift Atlas Story Headline",
+      "kind":"custom",
+      "refersTo":"story-headline",
+      "description":"MatchStoryVideo 13 字以內標題的範例，不替代真實研究稿。",
+      "html":"<h1 class=\"ds-story-headline\">上路先倒，還能打嗎？</h1>",
+      "css":".ds-story-headline{margin:0;width:90%;background:#f6f3df;color:#101717;font-family:'Noto Sans TC Story';font-size:72px;line-height:1.18;font-weight:900;text-align:center}"
+    },
+    {
+      "name":"Rift Atlas Team Identity",
+      "kind":"custom",
+      "refersTo":"story-team",
+      "description":"MatchStoryVideo 真實隊名；徽章圖像另以 contain 保留原徽，使用中性墨底。",
+      "html":"<p class=\"ds-story-team\">BNK FEARX</p>",
+      "css":".ds-story-team{margin:0;color:#101717;font-family:'Barlow Condensed Post Match Read';font-size:44px;line-height:1.05;font-weight:900;text-align:center}"
+    },
+    {
+      "name":"Rift Atlas Series Score",
+      "kind":"custom",
+      "refersTo":"story-score",
+      "description":"MatchStoryVideo hook／verdict 的系列比分；範例沿用目前預設對戰。",
+      "html":"<div class=\"ds-story-score\" aria-label=\"系列賽結果 3 比 1\"><span>3</span><span class=\"ds-story-score-separator\">–</span><span class=\"ds-story-score-right\">1</span></div>",
+      "css":".ds-story-score{display:flex;justify-content:space-between;align-items:center;color:#101717;font-family:'Barlow Condensed Post Match Read';font-size:250px;line-height:.9;font-weight:900}.ds-story-score-separator{font-size:110px}.ds-story-score-right{color:#f6f3df}"
+    },
+    {
+      "name":"Rift Atlas Reading Block",
+      "kind":"custom",
+      "refersTo":"story-reading",
+      "description":"MatchStoryVideo 暖紙閱讀區；來源類型依真實 facts 決定。此 snippet 是元件標示，沒有捏造事件。",
+      "html":"<div class=\"ds-story-reading\"><p class=\"ds-story-scope\">本場看點</p><p class=\"ds-story-narration\">此處顯示已核對的故事正文</p></div>",
+      "css":".ds-story-reading{background:#f6f3df;color:#101717;border-top:2px solid #101717;padding-top:22px;font-family:'Noto Sans TC Story'}.ds-story-scope{margin:0;font-size:34px;line-height:1.3;font-weight:700}.ds-story-narration{margin:14px 0 0;font-size:55px;line-height:1.35;font-weight:900;white-space:pre-line;overflow-wrap:anywhere;word-break:break-all}"
+    },
+    {
+      "name":"Rift Atlas Source Line",
+      "kind":"custom",
+      "refersTo":"story-source",
+      "description":"MatchStoryVideo 來源限制；影片中的位置為 bottom 12%，避免播放器控制列遮擋。以下 N 為元件示意，實際值只計引用且已核對的來源。",
+      "html":"<p class=\"ds-story-source\">來源：N 份已核對來源 · 文字摘要</p>",
+      "css":".ds-story-source{margin:0;background:#f6f3df;color:#101717;font-family:'Noto Sans TC Story';font-size:32px;line-height:1.3;font-weight:700}"
+    }
+  ],
+  "narrative": {
+    "northStar":"Rift Atlas — 雙隊筆觸故事",
+    "overview":"下列既有「峽谷賽事轉播」規則仍適用於 PlayerRadar／Post Match Read；不重設既有工作台。各節新增的 Rift Atlas — MatchStoryVideo 子節只適用於 src/templates/MatchStoryFrame.jsx、MatchStoryVideo.jsx 與其素材管線。story-* token 只屬於這個已核可的獨立新世界，不把舊世界的金色焦點、切角框、六角節點或四格證據帶套回故事影片。\n\n大片雙隊色域、掃描筆觸與完整召喚峽谷輪廓建立新的敘事舞台。暖紙色讓中文閱讀段落與色域清楚分開，深墨底保護真實隊徽的辨識；隊伍身分先於裝飾。\n\n這是使用者已核可的免費素材重組方向。原 comp 保留色域、分區、字級對比與筆觸語言的參照作用，插畫細節允許重組；不將重組宣稱為原圖逐像素復現或最終品質驗收。",
+    "keyCharacteristics":[
+      "由本場已驗證隊徽取色，左右隊伍保有真實身分。",
+      "暖紙閱讀區、深墨隊徽底與完整地圖形成清楚分區。",
+      "中文可編輯稿使用完整本機字型；正文閱讀時畫面靜止。",
+      "來源、單局／系列賽範圍與示意地圖限制始終可追溯。"
+    ],
+    "rules":[
+      {"name":"The One Gold Rule","body":"每幕只允許一個主要金色焦點；金色不能被當成普通裝飾。","section":"colors"},
+      {"name":"The Verified Team Colour Rule","body":"故事影片的色域來自本場隊徽，隊徽本身保留原色；不能用科技風金青色覆蓋或為視覺效果猜隊色。","section":"colors"},
+      {"name":"The Evidence First Rule","body":"數字與結論形成第一、第二閱讀層；英文標籤不得先於真正內容搶走注意力。","section":"typography"},
+      {"name":"The Read Budget Rule","body":"Hook／verdict／detail 正文預算分別為 50／68／80 字，行數上限分別為 3／4／5 行；伺服器按每 17 個 Unicode 字元一行保守估算，各段明確換行逐段加總，空行至少計一行。超出便要求刪稿，不以自動加速、縮字或溢位換取可製作狀態。","section":"typography"}
+    ],
+    "dos":[
+      "Do 使用 manifest 已驗證、可追溯的隊徽、英雄、選手、地圖與音樂。",
+      "Do 讓每幕能指出唯一主焦點與唯一判讀，同時保留可掃讀的次級比較與全局證據。",
+      "Do 使用 4–10 frames 的一次性 cubic ease-out，只動 transform 與 opacity；reduced-motion 顯示最終穩定狀態。",
+      "Do 在缺少素材時退回隊徽、位置、選手首字與真實數據。",
+      "Do 從本場已驗證隊徽取雙隊色，保留原徽與中性墨底。",
+      "Do 使用完整 Noto Sans TC Story、本機字型與暖紙閱讀區，超出閱讀預算便刪稿。",
+      "Do 保持地圖 contain、來源 bottom 12% 與末尾 60 frames 靜止。",
+      "Do 依 THIRD_PARTY_ASSETS.md 與 run provenance 追溯免費 pinned 素材。"
+    ],
+    "donts":[
+      "Don't 生成仿真選手、混用錯誤英雄，或捏造遊戲事件、時間與路線。",
+      "Don't 使用圓角卡片、玻璃面板、彩虹霓虹、循環脈衝、彈跳、故障閃爍或白閃。",
+      "Don't 把「數據 MVP 候選」寫成未經來源證實的官方 MVP。",
+      "Don't 用英文 eyebrow、小標或裝飾圖表替代真正的比分、物件與判讀。",
+      "Don't 把原 comp 插畫細節、43.49% 失敗像素閘門或使用者允許重組當成品質通過。",
+      "Don't 付費生成素材、生成假臉／假隊徽，或為這個世界切換影片框架。",
+      "Don't 將舊科技風金青框線、切角容器、四格證據帶強加於獨立故事世界。",
+      "Don't 把背景色域、地圖位置或候選人物冒充已證實賽事事件、官方 MVP 或勝因。"
+    ]
+  }
+}

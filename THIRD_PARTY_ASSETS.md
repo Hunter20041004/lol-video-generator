@@ -71,3 +71,13 @@ The Post Match Read video uses Barlow Condensed for condensed Latin display type
 | `public/fonts/NotoSansTC-PostMatchRead-900.woff2` | `864727d210d54f2537bbe23b3a839436c3992af72de9322af5270897246bd44f` | `2e4b1cee33fe3bd60e4c231c30e019947eebb71dd702d7a53f74fec25c026b18` |
 
 The reproducible build script is `scripts/buildPostMatchReadFont.sh`; its exact glyph inventory is `config/post-match-read-font-glyphs.txt`.
+
+### Editable match-story font and free assembly sources
+
+`public/fonts/NotoSansTC-Story-Variable.ttf` is the complete, unmodified Noto Sans TC variable font from the same Google Fonts commit above, SHA-256 `864727d210d54f2537bbe23b3a839436c3992af72de9322af5270897246bd44f`. License: `public/fonts/OFL-NotoSansTC.txt`. The full character set is intentional for editable story copy; the older fixed-copy subset files remain unchanged.
+
+`assets/story-source/brush017.png` comes from Dino0040's [100 grunge brushstrokes and splatters set](https://opengameart.org/content/100-grunge-brushstrokes-and-splatters-set), declared CC0. This is a scanned alpha brush, not an AI illustration. The bundled copy includes provenance metadata; its SHA-256 is `bcc6d2b7a6348d75be2a520f65b2d44689dc87a544b75ce8e8b36f9cbf97c266` (different from the original archive entry because metadata was added). It supplies texture for both verified team colour fields.
+
+`assets/story-source/map11-16.19-base-baron1.png` is the previously downloaded Riot client minimap 11, version 16.19, base-baron1 variant; bundled SHA-256 `7a7d8f902cd7baf8f42df833259ecde002064eced8590d16d3d41d13a04e2614`. It remains Riot-owned, not CC0. It is used only as a labelled illustrative map under the project's existing Riot asset-use scope, with no inferred event paths or assertion that this exact terrain variant occurred on August 27. Existing team crest licensing and identity manifests continue to apply.
+
+Generated match-specific plates are stored in separate `public/story-runs/run-*` directories with source identity and output byte fingerprints in `provenance.json`; these are local preview artifacts, not externally licensed footage.

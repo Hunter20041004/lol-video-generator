@@ -499,6 +499,7 @@ async function renderVideosFromRequest(requestData = {}, options = {}) {
 }
 
 module.exports = {
+  renderMatchStoryPreview: require('./matchStoryRenderer').renderMatchStoryPreview,
   DATA_TYPE_TO_COMPOSITION,
   getPayloadForLanguage,
   prepareProps,

@@ -31,6 +31,7 @@ cache_processed_matches.json
 # Generated media, publishing packages, and render caches
 public/renders/
 public/render-assets/
+public/story-runs/
 public/publish-packages/
 public/temp/
 output/

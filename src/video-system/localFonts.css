@@ -1,4 +1,12 @@
 @font-face {
+  font-family: "Noto Sans TC Story";
+  src: url("/public/fonts/NotoSansTC-Story-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+}
+
+@font-face {
   font-family: "Outfit";
   src: url("/public/fonts/Outfit-Variable.woff2") format("woff2");
   font-style: normal;

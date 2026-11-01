@@ -1,0 +1,11 @@
+{
+  "selectedCandidateId":"g4-herald",
+  "segments":[
+    {"narration":"上路先倒了，這波預示者團，FEARX還能打嗎？","factIds":["g4-clear-down"]},
+    {"narration":"第四局，十六分鐘附近。Taeyoon還在河道交戰，隊友也沒退場。","factIds":["g4-clear-down"]},
+    {"narration":"這不是他一個人的秀。Kellin、Raptor與VicLa都在場，接著FEARX拿下預示者。","factIds":["g4-clear-down","g4-herald-result"]},
+    {"narration":"到十六分二十七秒，人頭追成六比六。Taeyoon活下來，VicLa收掉Diable。","factIds":["g4-six-all"]},
+    {"narration":"Taeyoon面對的，正是四月把他交易出去的Nongshim。這場，輸的人就結束賽季。","factIds":["trade-background","season-stakes"]},
+    {"narration":"最後FEARX三比一獲勝，NS止步。下一關還有BRION，季後賽門票還沒到手。","factIds":["series-result","season-stakes"]}
+  ]
+}

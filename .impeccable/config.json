@@ -1,0 +1,782 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "outfit",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.150Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "cinzel",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.165Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(42, 56, 73, 0.2)",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.178Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#eef1f4",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.192Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e2e6eb",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.202Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#9ba6b2",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.213Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#788493",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.223Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8d98a6",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.234Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#b9c1ca",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.247Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#303b48",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.266Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(211, 179, 91, .18)",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.281Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#dce1e6",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.291Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7f8b98",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.304Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2b3540",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.315Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#000",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.325Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7e8995",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.335Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#65717e",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.345Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#b5bdc6",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.355Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#91c7a7",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.364Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#677381",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.376Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1b2530",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.386Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#aab4bf",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.396Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#351d22",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.406Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e3a2ab",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.416Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2d3945",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.425Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#573039",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.435Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e2a0a9",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.445Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#294739",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.455Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#93c8aa",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.465Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7d8996",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.474Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#202a35",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.485Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#aeb7c1",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.495Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#687482",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.505Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#c0c7cf",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.514Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#222b35",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.524Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#788491",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.534Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#819c8c",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.544Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7f8a96",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.554Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#818d99",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.564Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#77838f",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.574Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7f9b8b",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.584Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8f9ba7",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-30T15:40:45.594Z",
+        "reason": "Unchanged, approved 2026-08-15 workbench surface; DESIGN.md tokens describe the separate video surface, not a new range UI palette."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "cinzel",
+        "files": [
+          "experiments/rift-stone-trial/index.jsx"
+        ],
+        "createdAt": "2026-09-30T17:07:57.130Z",
+        "reason": "Independent user-approved video trial; root DESIGN governs incumbent workbench, not experimental typography"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "noto trial",
+        "files": [
+          "experiments/rift-stone-trial/index.jsx"
+        ],
+        "createdAt": "2026-09-30T17:07:57.142Z",
+        "reason": "Alias for existing local Noto Sans TC, isolated video trial only"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(180,154,101,.28)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.559Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(19,28,27,.78)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.574Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(180,154,101,.35)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.587Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(143,158,133,.28)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.599Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(143,158,133,.07)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.611Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(19,28,27,.72)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.624Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(180,154,101,.07)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.641Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(180,154,101,.34)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.652Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(5,10,9,.95)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.663Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(19,28,27,.94)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.673Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(160,170,155,.22)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.683Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(160,170,155,.46)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.693Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(160,170,155,.34)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.703Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(180,154,101,.32)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadFrame.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.714Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(160,170,155,.42)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.724Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(160,170,155,.28)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.733Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(160,170,155,.5)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.743Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(19,28,27,.8)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.754Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(19,28,27,.9)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.764Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(10,18,17,.72)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.774Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(180,154,101,.2)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.784Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(19,28,27,.78)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.795Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(19,28,27,.68)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.805Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(160,170,155,.32)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.816Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(143,158,133,.28)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.826Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(10,18,17,.08)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.839Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(143,158,133,.06)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.850Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(10,18,17,.82)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.861Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(160,170,155,.22)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.871Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(180,154,101,.45)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.882Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(19,28,27,.5)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.892Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(143,158,133,.08)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.903Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(10,18,17,.62)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.914Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0a1211",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.924Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(19,28,27,.86)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.935Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(180,154,101,.4)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.946Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(143,158,133,.35)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.956Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(180,154,101,.36)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.967Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(180,154,101,.52)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.979Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(180,154,101,.14)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:32.990Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(19,28,27,.76)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:33.001Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(143,158,133,.32)",
+        "files": [
+          ".data/component-material-preview/PostMatchReadScenes.jsx"
+        ],
+        "createdAt": "2026-10-01T01:13:33.011Z",
+        "reason": "Independent component material preview palette; root DESIGN governs incumbent, experimental tokens documented separately"
+      }
+    ]
+  }
+}
