@@ -155,4 +155,4 @@ components:
 - **Don't** 把「數據 MVP 候選」寫成未經來源證實的官方 MVP。
 - **Don't** 用英文 eyebrow、小標或裝飾圖表替代真正的比分、物件與判讀。
 
-完整產品契約與逐幕規格見 `PRODUCT.md` 與 `docs/superpowers/specs/2026-09-27-post-match-read-lol-broadcast-visual-design.md`。
+完整產品契約與逐幕規格見 `PRODUCT.md`。
